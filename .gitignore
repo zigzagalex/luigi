@@ -30,3 +30,20 @@ go.work.sum
 # Editor/IDE
 # .idea/
 # .vscode/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Node
+node_modules/
+.next/
+out/
+npm-debug.log*
+yarn.lock
+pnpm-lock.yaml
+
+# Containers
+*.env
+EOF
+git add .gitignore
