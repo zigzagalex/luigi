@@ -1,31 +1,40 @@
-FROM node:20-alpine AS deps
+# syntax=docker/dockerfile:1
+
+# Gemeinsame Basis
+FROM node:20-alpine AS base
 WORKDIR /app
 RUN apk add --no-cache libc6-compat
-COPY package.json package-lock.json ./
-RUN npm ci
+ENV NODE_ENV=production
+ENV NEXT_TELEMETRY_DISABLED=1
 
-FROM node:20-alpine AS build
-WORKDIR /app
+# --- Dependencies (pnpm) ---
+FROM base AS deps
+# corepack (pnpm) aktivieren
+RUN corepack enable
+COPY package.json pnpm-lock.yaml ./
+RUN pnpm install --frozen-lockfile
+
+# --- Build ---
+FROM base AS build
+ENV NODE_ENV=production
+RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-RUN npm run build
+# Wichtig: next.config.js hat output: 'standalone'
+RUN pnpm build
 
-# Final image only ships Next standalone server + static assets
+# --- Runner (klein) ---
 FROM node:20-alpine AS runner
 WORKDIR /app
-RUN apk add --no-cache libc6-compat
 ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
 ENV PORT=8080
+ENV HOSTNAME=0.0.0.0
+
+# Standalone-Output + statics kopieren
+COPY --from=build /app/.next/standalone ./
+COPY --from=build /app/.next/static ./standalone/.next/static
+COPY --from=build /app/public       ./standalone/public
+
 EXPOSE 8080
-
-# Copy the minimal standalone output
-COPY --from=build /app/.next/standalone ./        
-COPY --from=build /app/.next/static ./.next/static
-COPY --from=build /app/public ./public
-
-# If your start script is "next start -p 8080", IGNORE it here:
-# use the standalone server directly:
-CMD ["node", "server.js"]
+# server.js liegt im Root der Standalone-Ausgabe
+CMD ["node","server.js"]
