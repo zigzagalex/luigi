@@ -1,17 +1,14 @@
+import { fetchApi } from "../utils/fetchAPI";
+
 export default async function Page() {
-  const api = process.env.NEXT_PUBLIC_API_BASE!;
-  const res = await fetch(`${api}/v1/products`, { cache: "no-store" });
-
-  if (!res.ok) {
-    throw new Error(`Products fetch failed: ${res.status} ${res.statusText}`);
-  }
-
-  const items = (await res.json()) as { id: string; name: string }[];
-
+  const res = await fetchApi("/v1/products");
+  if (!res.ok) return <main style={{padding:24}}>Fehler: {res.status}</main>;
+  const items = await res.json();
   return (
-    <main style={{ padding: 24 }}>
+    <main style={{padding:24}}>
       <h1>Produkte</h1>
-      <ul>{items.map(p => <li key={p.id}>{p.name}</li>)}</ul>
+      <ul>{items.map((p:any)=><li key={p.id}>{p.name}</li>)}</ul>
     </main>
   );
 }
+

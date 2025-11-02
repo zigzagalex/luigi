@@ -1,4 +1,5 @@
-FROM golang:1.22 AS build
+ARG GO_VERSION=1.24.5
+FROM golang:${GO_VERSION} AS build
 WORKDIR /src
 COPY . .
 RUN CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -o /bin/api ./cmd/api
