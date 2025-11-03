@@ -32,10 +32,6 @@ jobs:
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.GCP_DEPLOY_SA }}
-      - name: Who am I (debug)
-        run: |
-          echo "WIF provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}"
-          echo "Target SA    : ${{ secrets.GCP_DEPLOY_SA }}"
       
       - name: Setup gcloud
         uses: google-github-actions/setup-gcloud@v2
