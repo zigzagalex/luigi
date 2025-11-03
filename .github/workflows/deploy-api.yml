@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - "api/**"
+      - "luigi-mvp/api/**"                 # <-- monorepo path
       - ".github/workflows/deploy-api.yml"
   workflow_dispatch: {}
 
@@ -25,8 +25,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Auth to Google Cloud (WIF)
         uses: google-github-actions/auth@v2
@@ -39,13 +38,13 @@ jobs:
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
 
-      - name: Configure Docker to Artifact Registry
+      - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev -q
 
       - name: Build image
         run: |
           IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPO}/api:${GITHUB_SHA::7}"
-          docker build -t "$IMAGE" ./api
+          docker build -t "$IMAGE" ./luigi-mvp/api            # <-- build context fixed
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
       - name: Push image
@@ -53,7 +52,6 @@ jobs:
 
       - name: Deploy to Cloud Run (API)
         run: |
-          # Nur das Image setzen → CloudSQL/Secrets bleiben wie konfiguriert.
           gcloud run deploy api \
             --image="$IMAGE" \
             --region="${GCP_REGION}" \
