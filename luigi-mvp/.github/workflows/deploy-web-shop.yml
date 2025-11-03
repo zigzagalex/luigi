@@ -1,0 +1,67 @@
+name: Deploy Web-Shop (Cloud Run)
+
+on:
+  push:
+    branches: [ "main" ]
+    paths:
+      - "web-shop/**"
+      - ".github/workflows/deploy-web-shop.yml"
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  id-token: write
+
+env:
+  GCP_PROJECT_ID: ${{ vars.GCP_PROJECT_ID }}
+  GCP_REGION: ${{ vars.GCP_REGION }}
+  GCP_ARTIFACT_REPO: ${{ vars.GCP_ARTIFACT_REPO }}
+
+concurrency:
+  group: web-shop-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build-and-deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Auth to Google Cloud (WIF)
+        uses: google-github-actions/auth@v2
+        with:
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
+          service_account: ${{ secrets.GCP_DEPLOY_SA }}
+
+      - name: Setup gcloud
+        uses: google-github-actions/setup-gcloud@v2
+        with:
+          project_id: ${{ env.GCP_PROJECT_ID }}
+
+      - name: Configure Docker to Artifact Registry
+        run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev -q
+
+      - name: Build (amd64) image
+        run: |
+          IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPO}/web-shop:${GITHUB_SHA::7}"
+          # Runner ist amd64 → reicht. (Dein Dockerfile ist standalone-ready.)
+          docker build --platform linux/amd64 -t "$IMAGE" ./web-shop
+          echo "IMAGE=$IMAGE" >> $GITHUB_ENV
+
+      - name: Push image
+        run: docker push "$IMAGE"
+
+      - name: Compute regional API URL
+        run: |
+          PN=$(gcloud projects describe "${GCP_PROJECT_ID}" --format='value(projectNumber)')
+          echo "API_URL_REG=https://api-${PN}.${GCP_REGION}.run.app" >> $GITHUB_ENV
+
+      - name: Deploy to Cloud Run (Web-Shop)
+        run: |
+          gcloud run deploy web-shop \
+            --image="$IMAGE" \
+            --region="${GCP_REGION}" \
+            --allow-unauthenticated \
+            --service-account="run-web-shop@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
+            --set-env-vars=NEXT_PUBLIC_API_BASE="${API_URL_REG}"

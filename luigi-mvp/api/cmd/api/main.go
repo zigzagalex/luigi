@@ -105,3 +105,5 @@ func main() {
 	log.Printf("listening on :%s", port)
 	log.Fatal(srv.ListenAndServe())
 }
+
+// Testing the CI/CD pipeline
