@@ -4,7 +4,7 @@ on:
   push:
     branches: [ "main" ]
     paths:
-      - "web-shop/**"
+      - "luigi-mvp/web-shop/**"                 # <-- monorepo path
       - ".github/workflows/deploy-web-shop.yml"
   workflow_dispatch: {}
 
@@ -25,8 +25,7 @@ jobs:
   build-and-deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
       - name: Auth to Google Cloud (WIF)
         uses: google-github-actions/auth@v2
@@ -39,14 +38,13 @@ jobs:
         with:
           project_id: ${{ env.GCP_PROJECT_ID }}
 
-      - name: Configure Docker to Artifact Registry
+      - name: Configure Docker for Artifact Registry
         run: gcloud auth configure-docker ${{ env.GCP_REGION }}-docker.pkg.dev -q
 
       - name: Build (amd64) image
         run: |
           IMAGE="${GCP_REGION}-docker.pkg.dev/${GCP_PROJECT_ID}/${GCP_ARTIFACT_REPO}/web-shop:${GITHUB_SHA::7}"
-          # Runner ist amd64 → reicht. (Dein Dockerfile ist standalone-ready.)
-          docker build --platform linux/amd64 -t "$IMAGE" ./web-shop
+          docker build --platform linux/amd64 -t "$IMAGE" ./luigi-mvp/web-shop   # <-- build context fixed
           echo "IMAGE=$IMAGE" >> $GITHUB_ENV
 
       - name: Push image
