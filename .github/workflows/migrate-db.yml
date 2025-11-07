@@ -44,9 +44,18 @@ jobs:
           sleep 5
 
       - name: Install goose
+        id: install-goose
         run: |
+          set -e
+          GOPATH=$(go env GOPATH)
+          echo "GOPATH is $GOPATH"
           go install github.com/pressly/goose/v3/cmd/goose@latest
-          echo "$(go env GOPATH)/bin" >> $GITHUB_PATH
+          if [ ! -f "$GOPATH/bin/goose" ]; then
+            echo "goose binary not found at $GOPATH/bin/goose"
+            exit 1
+          fi
+          echo "GOPATH=$GOPATH" >> $GITHUB_ENV
+          echo "$GOPATH/bin" >> $GITHUB_PATH
 
       - name: Fetch DB migrator password via run-api impersonation
         env:
@@ -62,8 +71,10 @@ jobs:
           DB_USER: migrator
           DB_NAME: ${{ secrets.DB_NAME }}
         run: |
+          set -e
+          which goose || echo "goose not on PATH, using explicit path"
           export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}?sslmode=disable"
-          goose -dir ./migrations postgres "$DATABASE_URL" up
+          "${GOPATH:-$HOME/go}/bin/goose" -dir ./migrations postgres "$DATABASE_URL" up
 
       - name: Show goose status
         if: always()
@@ -72,4 +83,4 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
         run: |
           export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}?sslmode=disable"
-          goose -dir ./migrations postgres "$DATABASE_URL" status
+          "${GOPATH:-$HOME/go}/bin/goose" -dir ./migrations postgres "$DATABASE_URL" status
