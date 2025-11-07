@@ -43,8 +43,8 @@ jobs:
           curl -sSL https://github.com/pressly/goose/releases/latest/download/goose_Linux_x86_64.tar.gz -o goose.tar.gz
           tar -xzf goose.tar.gz goose
           chmod +x goose
-          mv goose ./goose
-
+          sudo mv goose /usr/local/bin/goose
+          goose -version
 
       - name: Fetch DB migrator password via run-api impersonation
         env:
