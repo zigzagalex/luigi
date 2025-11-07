@@ -1,4 +1,5 @@
 name: Migrate DB
+
 on:
   workflow_dispatch:
   push:
@@ -21,6 +22,11 @@ jobs:
           service_account: ${{ secrets.CICD_SA_EMAIL }}
           create_credentials_file: true
           export_environment_variables: true
+
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
 
       - name: Install Cloud SQL Auth Proxy
         run: |
