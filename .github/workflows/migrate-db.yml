@@ -18,7 +18,7 @@ jobs:
       - name: Auth to Google Cloud via WIF as ci-deployer
         uses: google-github-actions/auth@v2
         with:
-          workload_identity_provider: ${{ secrets.WIF_PROVIDER }}
+          workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
           service_account: ${{ secrets.CICD_SA_EMAIL }}
           create_credentials_file: true
           export_environment_variables: true
@@ -43,8 +43,7 @@ jobs:
           curl -sSL https://github.com/pressly/goose/releases/latest/download/goose_Linux_x86_64.tar.gz -o goose.tar.gz
           tar -xzf goose.tar.gz goose
           chmod +x goose
-          sudo mv goose /usr/local/bin/goose
-          goose -version
+
 
       - name: Fetch DB migrator password via run-api impersonation
         env:
@@ -54,15 +53,14 @@ jobs:
               --secret=migrator \
               --impersonate-service-account="${RUN_API_SA_EMAIL}")
           echo "DB_PASSWORD=$PW" >> $GITHUB_ENV
-
+      
       - name: Run migrations with goose
         env:
           DB_USER: migrator
           DB_NAME: ${{ secrets.DB_NAME }}
         run: |
-          set -e
           export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}?sslmode=disable"
-          goose -dir ./migrations postgres "$DATABASE_URL" up
+          ./goose -dir ./migrations postgres "$DATABASE_URL" up
 
       - name: Show goose status
         if: always()
@@ -71,4 +69,4 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
         run: |
           export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}?sslmode=disable"
-          goose -dir ./migrations postgres "$DATABASE_URL" status
+          ./goose -dir ./migrations postgres "$DATABASE_URL" status
