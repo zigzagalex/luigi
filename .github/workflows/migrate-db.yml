@@ -45,10 +45,6 @@ jobs:
           chmod +x goose
           mv goose ./goose
 
-      - name: Test goose binary
-        run: |
-          ./goose -version || echo "goose is still being weird"
-
 
       - name: Fetch DB migrator password via run-api impersonation
         env:
@@ -64,8 +60,9 @@ jobs:
           DB_USER: migrator
           DB_NAME: ${{ secrets.DB_NAME }}
         run: |
+          set -e
           export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}?sslmode=disable"
-          ./goose -dir ./migrations postgres "$DATABASE_URL" up
+          goose -dir ./migrations postgres "$DATABASE_URL" up
 
       - name: Show goose status
         if: always()
@@ -74,4 +71,4 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
         run: |
           export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}?sslmode=disable"
-          ./goose -dir ./migrations postgres "$DATABASE_URL" status
+          goose -dir ./migrations postgres "$DATABASE_URL" status
