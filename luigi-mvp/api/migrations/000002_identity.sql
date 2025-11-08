@@ -4,7 +4,7 @@ CREATE TABLE shops (
     name        TEXT NOT NULL,
     timezone    TEXT NOT NULL DEFAULT 'Europe/Zurich',
     created_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
-    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now(),
+    updated_at  TIMESTAMPTZ NOT NULL DEFAULT now()
 );
 
 CREATE TABLE users (
