@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'luigi/luigi-mvp/api/migrations**'
+      - 'luigi/luigi-mvp/api/migrations/**'
 
 permissions:
   contents: read
@@ -40,37 +40,37 @@ jobs:
             --impersonate-service-account="${RUN_API_SA_EMAIL}" &
           sleep 5
 
-      - name: Install goose (prebuilt binary)
-        run: |
-          GOOSE_VERSION="v3.15.0"
-          curl -sSL "https://github.com/pressly/goose/releases/download/${GOOSE_VERSION}/goose_Linux_x86_64.tar.gz" -o goose.tar.gz
-          tar -xzf goose.tar.gz goose
-          chmod +x goose
-          mv goose /usr/local/bin/goose
+      - name: Setup Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.22.x'
 
-
-      - name: Fetch DB migrator password via run-api impersonation
+      # Install goose and run it
+      - name: Run migrations with goose (install via go install)
         env:
+          DB_USER: migrator
+          DB_NAME: ${{ secrets.DB_NAME }}
           RUN_API_SA_EMAIL: ${{ secrets.RUN_API_SA_EMAIL }}
         run: |
-          PW=$(gcloud secrets versions access latest \
-              --secret=migrator \
-              --impersonate-service-account="${RUN_API_SA_EMAIL}")
-          echo "DB_PASSWORD=$PW" >> $GITHUB_ENV
-      
-      - name: Run migrations with goose
-        env:
-          DB_USER: migrator
-          DB_NAME: ${{ secrets.DB_NAME }}
-        run: |
-          export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}?sslmode=disable"
-          goose -dir ./luigi/luigi-mvp/api/migrations postgres "$DATABASE_URL" up
+          set -euo pipefail
 
-      - name: Show goose status
-        if: always()
-        env:
-          DB_USER: migrator
-          DB_NAME: ${{ secrets.DB_NAME }}
-        run: |
+          # fetch DB password (impersonate run-api SA)
+          DB_PASSWORD=$(gcloud secrets versions access latest \
+            --secret=migrator \
+            --impersonate-service-account="${RUN_API_SA_EMAIL}")
+
+          # install goose deterministically
+          GOOSE_VERSION="v3.15.0"
+          GOPATH=$(go env GOPATH)
+          go install github.com/pressly/goose/v3/cmd/goose@${GOOSE_VERSION}
+          GOOSE="${GOPATH}/bin/goose"
+
+          # sanity
+          "$GOOSE" -version
+
+          # run migrations (point to your real migrations dir)
           export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}?sslmode=disable"
-          goose -dir ./luigi/luigi-mvp/api/migrations postgres "$DATABASE_URL" status
+          "$GOOSE" -dir ./luigi/luigi-mvp/api/migrations postgres "$DATABASE_URL" up
+
+          # show status
+          "$GOOSE" -dir ./luigi/luigi-mvp/api/migrations postgres "$DATABASE_URL" status
