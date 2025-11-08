@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'luigi/luigi-mvp/api/migrations/**'
+      - 'luigi-mvp/api/migrations/**'
 
 permissions:
   contents: read
@@ -70,7 +70,7 @@ jobs:
 
           # run migrations (point to your real migrations dir)
           export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}?sslmode=disable"
-          "$GOOSE" -dir ./luigi/luigi-mvp/api/migrations postgres "$DATABASE_URL" up
+          "$GOOSE" -dir ./luigi-mvp/api/migrations postgres "$DATABASE_URL" up
 
           # show status
-          "$GOOSE" -dir ./luigi/luigi-mvp/api/migrations postgres "$DATABASE_URL" status
+          "$GOOSE" -dir ./luigi-mvp/api/migrations postgres "$DATABASE_URL" status
