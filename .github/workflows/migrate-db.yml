@@ -5,7 +5,7 @@ on:
   push:
     branches: [ main ]
     paths:
-      - 'migrations/**'
+      - 'luigi/luigi-mvp/api/migrations**'
 
 jobs:
   migrate:
@@ -15,13 +15,11 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Auth to Google Cloud via WIF as ci-deployer
+      - name: Auth to Google Cloud (WIF)
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: ${{ secrets.WORKLOAD_IDENTITY_PROVIDER }}
-          service_account: ${{ secrets.CICD_SA_EMAIL }}
-          create_credentials_file: true
-          export_environment_variables: true
+          service_account: ${{ secrets.GCP_DEPLOY_SA }}
 
       - name: Install Cloud SQL Auth Proxy
         run: |
@@ -60,7 +58,7 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
         run: |
           export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}?sslmode=disable"
-          ./goose -dir ./migrations postgres "$DATABASE_URL" up
+          ./goose -dir ./luigi/luigi-mvp/api/migrations postgres "$DATABASE_URL" up
 
       - name: Show goose status
         if: always()
@@ -69,4 +67,4 @@ jobs:
           DB_NAME: ${{ secrets.DB_NAME }}
         run: |
           export DATABASE_URL="postgres://${DB_USER}:${DB_PASSWORD}@127.0.0.1:5432/${DB_NAME}?sslmode=disable"
-          ./goose -dir ./migrations postgres "$DATABASE_URL" status
+          ./goose -dir ./luigi/luigi-mvp/api/migrations postgres "$DATABASE_URL" status
