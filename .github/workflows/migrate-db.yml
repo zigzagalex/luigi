@@ -42,10 +42,12 @@ jobs:
 
       - name: Install goose (prebuilt binary)
         run: |
-          curl -sSL https://github.com/pressly/goose/releases/latest/download/goose_Linux_x86_64.tar.gz -o goose.tar.gz
+          GOOSE_VERSION="v3.15.0"
+          curl -sSL "https://github.com/pressly/goose/releases/download/${GOOSE_VERSION}/goose_Linux_x86_64.tar.gz" -o goose.tar.gz
           tar -xzf goose.tar.gz goose
           chmod +x goose
           mv goose /usr/local/bin/goose
+
 
       - name: Fetch DB migrator password via run-api impersonation
         env:
