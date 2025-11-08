@@ -2,6 +2,7 @@
 CREATE TABLE reservations (
   id                 BIGSERIAL PRIMARY KEY,
   shop_id            BIGINT NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
+  store_id           BIGINT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
   customer_id        BIGINT REFERENCES customers(id) ON DELETE SET NULL,
   status             reservation_status NOT NULL DEFAULT 'confirmed',
   start_at           TIMESTAMPTZ NOT NULL,
@@ -32,7 +33,7 @@ ALTER TABLE reservation_items ADD CONSTRAINT ex_inventory_overlap
     inventory_item_id WITH =,
     padded_range      WITH &&
   );
-  
+
 -- +goose Down
 ALTER TABLE reservation_items DROP CONSTRAINT IF EXISTS ex_inventory_overlap;
 DROP INDEX IF EXISTS gist_res_items;
