@@ -2,6 +2,7 @@ package shopsv1
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"strings"
@@ -101,11 +102,18 @@ func updateHandler(svc *shopsvc.Service) http.HandlerFunc {
 			IsActive: req.IsActive,
 		})
 		if err != nil {
+			// TEMP: log + raw error response so we see what's going on
+			// (keep your 404 mapping for ErrNotFound)
 			if err == shopsvc.ErrNotFound {
 				httpx.Fail(w, http.StatusNotFound, "shop_not_found", nil)
-			} else {
-				httpx.Fail(w, http.StatusInternalServerError, "update_shop_failed", err.Error())
+				return
 			}
+			// Log to stderr so it shows in Cloud Run logs
+			// import "log" at top
+			log.Printf("update_shop_failed id=%d: %v", id, err)
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusInternalServerError)
+			_, _ = w.Write([]byte(`{"error":"update_shop_failed","details":"` + strings.ReplaceAll(err.Error(), `"`, `\"`) + `"}`))
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
