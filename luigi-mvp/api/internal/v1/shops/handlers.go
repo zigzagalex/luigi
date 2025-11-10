@@ -26,7 +26,7 @@ func listHandler(svc *shopsvc.Service) http.HandlerFunc {
 		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 		offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 
-		item, err := svc.List(r.Context(), shopsvc.ListInput{
+		items, err := svc.List(r.Context(), shopsvc.ListInput{
 			Limit:  int32(limit),
 			Offset: int32(offset),
 		})
@@ -34,7 +34,8 @@ func listHandler(svc *shopsvc.Service) http.HandlerFunc {
 			httpx.Fail(w, http.StatusInternalServerError, "lists_shops_failed", err.Error())
 			return
 		}
-		httpx.JSON(w, http.StatusCreated, item)
+		if items == nil { items = []db.Shop{} }
+		httpx.JSON(w, http.StatusOK, items)
 	}
 }
 
@@ -65,7 +66,7 @@ func createHandler(svc *shopsvc.Service) http.HandlerFunc {
 			httpx.Fail(w, http.StatusInternalServerError, "create_shop_failed", err.Error())
 			return
 		}
-		httpx.JSON(w, http.StatusCreated, item)
+		httpx.JSON(w, http.StatusOK, item)
 	}
 }
 
