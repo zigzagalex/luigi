@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
@@ -34,7 +35,9 @@ func listHandler(svc *shopsvc.Service) http.HandlerFunc {
 			httpx.Fail(w, http.StatusInternalServerError, "lists_shops_failed", err.Error())
 			return
 		}
-		if items == nil { items = []db.Shop{} }
+		if items == nil {
+			items = []db.Shop{}
+		}
 		httpx.JSON(w, http.StatusOK, items)
 	}
 }
@@ -93,8 +96,8 @@ func updateHandler(svc *shopsvc.Service) http.HandlerFunc {
 
 		item, err := svc.Update(r.Context(), shopsvc.UpdateInput{
 			ID:       id,
-			Name:     req.Name,
-			Timezone: req.Timezone,
+			Name:     trimOrNil(req.Name),
+			Timezone: trimOrNil(req.Timezone),
 			IsActive: req.IsActive,
 		})
 		if err != nil {
@@ -108,4 +111,15 @@ func updateHandler(svc *shopsvc.Service) http.HandlerFunc {
 		httpx.JSON(w, http.StatusOK, item)
 
 	}
+}
+
+func trimOrNil(p *string) *string {
+	if p == nil {
+		return nil
+	}
+	s := strings.TrimSpace(*p)
+	if s == "" {
+		return nil
+	}
+	return &s
 }

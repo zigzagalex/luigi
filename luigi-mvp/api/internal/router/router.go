@@ -4,6 +4,7 @@ import (
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
+	chiMw "github.com/go-chi/chi/v5/middleware"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	
@@ -18,7 +19,7 @@ type Deps struct {
 func New(d Deps) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.SecurityHeaders, middleware.RequestLogger, apiVersionHeader("1")) // default header for v1 routes
-
+	r.Use(chiMw.Recoverer)
 	r.Route("/v1", func(r chi.Router) {
 		v1shops.RegisterRoutes(r, d.Q)
 	})
