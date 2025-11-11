@@ -12,17 +12,25 @@ import (
 
 const createStore = `-- name: CreateStore :one
 INSERT INTO stores (
-  shop_id, name, address1, address2, postal_code, city, country, timezone, is_active
+  shop_id,
+  name,
+  address1,
+  address2,
+  postal_code,
+  city,
+  country,
+  timezone,
+  is_active
 ) VALUES (
-  $1,
-  $2,
-  $3,
-  $4,
-  $5,
-  $6,
-  COALESCE($7, 'CH'),
-  $8,
-  COALESCE($9, TRUE)
+  $1,                      -- required
+  $2,                         -- required
+  $3::text,              -- nullable, no default
+  $4::text,
+  $5::text,
+  $6::text,
+  COALESCE($7::text, 'CH'),
+  $8::text,
+  COALESCE($9::bool, TRUE)
 )
 RETURNING
   id, shop_id, name, address1, address2, postal_code, city, country,
@@ -36,9 +44,9 @@ type CreateStoreParams struct {
 	Address2   sql.NullString `json:"address2"`
 	PostalCode sql.NullString `json:"postal_code"`
 	City       sql.NullString `json:"city"`
-	Country    interface{}    `json:"country"`
+	Country    sql.NullString `json:"country"`
 	Timezone   sql.NullString `json:"timezone"`
-	IsActive   interface{}    `json:"is_active"`
+	IsActive   sql.NullBool   `json:"is_active"`
 }
 
 func (q *Queries) CreateStore(ctx context.Context, arg *CreateStoreParams) (Store, error) {
@@ -76,15 +84,18 @@ SELECT
   id, shop_id, name, address1, address2, postal_code, city, country,
   timezone, is_active, created_at, updated_at
 FROM stores
-WHERE ($1 IS NULL OR shop_id = $1)
+WHERE (
+  $1::bigint IS NULL
+  OR shop_id = $1::bigint
+)
 ORDER BY id
 LIMIT $3 OFFSET $2
 `
 
 type ListStoresParams struct {
-	ShopID     interface{} `json:"shop_id"`
-	PageOffset int32       `json:"page_offset"`
-	PageLimit  int32       `json:"page_limit"`
+	ShopID     sql.NullInt64 `json:"shop_id"`
+	PageOffset int32         `json:"page_offset"`
+	PageLimit  int32         `json:"page_limit"`
 }
 
 func (q *Queries) ListStores(ctx context.Context, arg *ListStoresParams) ([]Store, error) {
@@ -126,14 +137,14 @@ func (q *Queries) ListStores(ctx context.Context, arg *ListStoresParams) ([]Stor
 const updateStore = `-- name: UpdateStore :one
 UPDATE stores
 SET
-  name        = COALESCE($1, name),
-  address1    = COALESCE($2, address1),
-  address2    = COALESCE($3, address2),
-  postal_code = COALESCE($4, postal_code),
-  city        = COALESCE($5, city),
-  country     = COALESCE($6, country),
-  timezone    = COALESCE($7, timezone),
-  is_active   = COALESCE($8, is_active),
+  name        = COALESCE($1::text,        name),
+  address1    = COALESCE($2::text,    address1),
+  address2    = COALESCE($3::text,    address2),
+  postal_code = COALESCE($4::text, postal_code),
+  city        = COALESCE($5::text,        city),
+  country     = COALESCE($6::text,     country),
+  timezone    = COALESCE($7::text,    timezone),
+  is_active   = COALESCE($8::bool,   is_active),
   updated_at  = now()
 WHERE id = $9
 RETURNING
