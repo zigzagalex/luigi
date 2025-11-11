@@ -5,11 +5,11 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chiMw "github.com/go-chi/chi/v5/middleware"
-	"github.com/zigzagalex/luigi/api/internal/middleware"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
-	
-	v1shops "github.com/zigzagalex/luigi/api/internal/v1/shops"
+	"github.com/zigzagalex/luigi/api/internal/middleware"
 
+	v1shops "github.com/zigzagalex/luigi/api/internal/v1/shops"
+	v1stores "github.com/zigzagalex/luigi/api/internal/v1/stores"
 )
 
 type Deps struct {
@@ -22,6 +22,7 @@ func New(d Deps) http.Handler {
 	r.Use(chiMw.Recoverer)
 	r.Route("/v1", func(r chi.Router) {
 		v1shops.RegisterRoutes(r, d.Q)
+		v1stores.RegisterRoutes(r, d.Q)
 	})
 	return r
 }
