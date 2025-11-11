@@ -3,6 +3,7 @@ package stores
 import (
 	"context"
 	"database/sql"
+	"strings"
 
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 )
@@ -34,8 +35,12 @@ func (s *Service) List(ctx context.Context, in ListInput) ([]db.Store, error) {
 	if in.Offset < 0 {
 		in.Offset = 0
 	}
+	var shopID sql.NullInt64
+	if in.ShopID != nil {
+		shopID = sql.NullInt64{Int64: *in.ShopID, Valid: true}
+	}
 	return s.q.ListStores(ctx, &db.ListStoresParams{
-		ShopID:     in.ShopID,
+		ShopID:     shopID,
 		PageLimit:  in.Limit,
 		PageOffset: in.Offset,
 	})
@@ -55,30 +60,18 @@ type CreateInput struct {
 
 func (s *Service) Create(ctx context.Context, in CreateInput) (db.Store, error) {
 	return s.q.CreateStore(ctx, &db.CreateStoreParams{
-		ShopID: in.ShopID,
-		Name:   in.Name,
-		Address1: sql.NullString{
-			String: *in.Address1,
-			Valid:  in.Address1 != nil,
-		},
-		Address2: sql.NullString{
-			String: *in.Address2,
-			Valid:  in.Address2 != nil,
-		},
-		PostalCode: sql.NullString{
-			String: *in.PostalCode,
-			Valid:  in.PostalCode != nil,
-		},
-		City: sql.NullString{
-			String: *in.City,
-			Valid:  in.City != nil,
-		},
-		Country: in.Country, // nil -> default 'CH' via COALESCE
-		Timezone: sql.NullString{
-			String: *in.Timezone,
-			Valid:  in.Timezone != nil,
-		},
-		IsActive: in.IsActive, // nil -> default TRUE via COALESCE
+		ShopID:     in.ShopID,
+		Name:       in.Name,
+		Address1:   toNullString(in.Address1),
+		Address2:   toNullString(in.Address2),
+		PostalCode: toNullString(in.PostalCode),
+		City:       toNullString(in.City),
+		// nil -> NULL -> COALESCE(..., 'CH')
+		Country: toNullString(in.Country),
+		// nil -> NULL -> stored NULL (no default)
+		Timezone: toNullString(in.Timezone),
+		// nil -> NULL -> COALESCE(..., TRUE)
+		IsActive: toNullBool(in.IsActive),
 	})
 }
 
@@ -96,40 +89,34 @@ type UpdateInput struct {
 
 func (s *Service) Update(ctx context.Context, in UpdateInput) (db.Store, error) {
 	return s.q.UpdateStore(ctx, &db.UpdateStoreParams{
-		ID: in.ID,
-		Name: sql.NullString{
-			String: *in.Name,
-			Valid:  in.Name != nil,
-		},
-		Address1: sql.NullString{
-			String: *in.Address1,
-			Valid:  in.Address1 != nil,
-		},
-		Address2: sql.NullString{
-			String: *in.Address2,
-			Valid:  in.Address2 != nil,
-		},
-		PostalCode: sql.NullString{
-			String: *in.PostalCode,
-			Valid:  in.PostalCode != nil,
-		},
-		City: sql.NullString{
-			String: *in.City,
-			Valid:  in.City != nil,
-		},
-		Country: sql.NullString{
-			String: *in.Country,
-			Valid:  in.Country != nil,
-		},
-		Timezone: sql.NullString{
-			String: *in.Timezone,
-			Valid:  in.Timezone != nil,
-		},
-		IsActive: sql.NullBool{
-			Bool:  *in.IsActive,
-			Valid: in.IsActive != nil,
-		},
+		ID:         in.ID,
+		Name:       toNullString(in.Name),
+		Address1:   toNullString(in.Address1),
+		Address2:   toNullString(in.Address2),
+		PostalCode: toNullString(in.PostalCode),
+		City:       toNullString(in.City),
+		Country:    toNullString(in.Country),
+		Timezone:   toNullString(in.Timezone),
+		IsActive:   toNullBool(in.IsActive),
 	})
 }
 
 var ErrNotFound = sql.ErrNoRows
+
+func toNullString(p *string) sql.NullString {
+	if p == nil {
+		return sql.NullString{Valid: false}
+	}
+	s := strings.TrimSpace(*p)
+	if s == "" {
+		return sql.NullString{Valid: false}
+	}
+	return sql.NullString{String: s, Valid: true}
+}
+
+func toNullBool(p *bool) sql.NullBool {
+	if p == nil {
+		return sql.NullBool{Valid: false}
+	}
+	return sql.NullBool{Bool: *p, Valid: true}
+}
