@@ -14,16 +14,16 @@ const createShop = `-- name: CreateShop :one
 INSERT INTO shops (name, timezone, is_active)
 VALUES (
   $1,
-  COALESCE($2, 'Europe/Zurich'),
-  COALESCE($3, TRUE)
+  COALESCE($2::text, 'Europe/Zurich'),
+  COALESCE($3::bool, TRUE)
 )
 RETURNING id, name, timezone, is_active, created_at, updated_at
 `
 
 type CreateShopParams struct {
-	Name     string      `json:"name"`
-	Timezone interface{} `json:"timezone"`
-	IsActive interface{} `json:"is_active"`
+	Name     string         `json:"name"`
+	Timezone sql.NullString `json:"timezone"`
+	IsActive sql.NullBool   `json:"is_active"`
 }
 
 func (q *Queries) CreateShop(ctx context.Context, arg *CreateShopParams) (Shop, error) {
@@ -85,9 +85,9 @@ func (q *Queries) ListShops(ctx context.Context, arg *ListShopsParams) ([]Shop, 
 const updateShop = `-- name: UpdateShop :one
 UPDATE shops
 SET
-  name      = COALESCE($1, name),
-  timezone  = COALESCE($2, timezone),
-  is_active = COALESCE($3, is_active),
+  name       = COALESCE($1::text,      name),
+  timezone   = COALESCE($2::text,  timezone),
+  is_active  = COALESCE($3::bool, is_active),
   updated_at = now()
 WHERE id = $4
 RETURNING id, name, timezone, is_active, created_at, updated_at
