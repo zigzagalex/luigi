@@ -11,10 +11,14 @@ import (
 type Querier interface {
 	CreateShop(ctx context.Context, arg *CreateShopParams) (Shop, error)
 	CreateStore(ctx context.Context, arg *CreateStoreParams) (Store, error)
+	CreateUser(ctx context.Context, arg *CreateUserParams) (User, error)
+	DeleteStore(ctx context.Context, id int64) (Store, error)
 	ListShops(ctx context.Context, arg *ListShopsParams) ([]Shop, error)
 	ListStores(ctx context.Context, arg *ListStoresParams) ([]Store, error)
+	ListUsers(ctx context.Context, arg *ListUsersParams) ([]User, error)
 	UpdateShop(ctx context.Context, arg *UpdateShopParams) (Shop, error)
 	UpdateStore(ctx context.Context, arg *UpdateStoreParams) (Store, error)
+	UpdateUser(ctx context.Context, arg *UpdateUserParams) (User, error)
 }
 
 var _ Querier = (*Queries)(nil)

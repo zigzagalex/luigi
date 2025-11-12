@@ -12,6 +12,7 @@ type storeQuerier interface {
 	ListStores(ctx context.Context, arg *db.ListStoresParams) ([]db.Store, error)
 	CreateStore(ctx context.Context, arg *db.CreateStoreParams) (db.Store, error)
 	UpdateStore(ctx context.Context, arg *db.UpdateStoreParams) (db.Store, error)
+	DeleteStore(ctx context.Context, id int64) (db.Store, error)
 }
 
 type Service struct {
@@ -99,6 +100,10 @@ func (s *Service) Update(ctx context.Context, in UpdateInput) (db.Store, error) 
 		Timezone:   toNullString(in.Timezone),
 		IsActive:   toNullBool(in.IsActive),
 	})
+}
+
+func (s *Service) Delete(ctx context.Context, id int64) (db.Store, error) {
+	return s.q.DeleteStore(ctx, id)
 }
 
 var ErrNotFound = sql.ErrNoRows

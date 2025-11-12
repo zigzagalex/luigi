@@ -22,9 +22,9 @@ INSERT INTO stores (
   timezone,
   is_active
 ) VALUES (
-  $1,                      -- required
-  $2,                         -- required
-  $3::text,              -- nullable, no default
+  $1,                      
+  $2,                         
+  $3::text,              
   $4::text,
   $5::text,
   $6::text,
@@ -33,8 +33,18 @@ INSERT INTO stores (
   COALESCE($9::bool, TRUE)
 )
 RETURNING
-  id, shop_id, name, address1, address2, postal_code, city, country,
-  timezone, is_active, created_at, updated_at
+  id, 
+  shop_id, 
+  name, 
+  address1, 
+  address2, 
+  postal_code, 
+  city, 
+  country,
+  timezone, 
+  is_active, 
+  created_at, 
+  updated_at
 `
 
 type CreateStoreParams struct {
@@ -61,6 +71,44 @@ func (q *Queries) CreateStore(ctx context.Context, arg *CreateStoreParams) (Stor
 		arg.Timezone,
 		arg.IsActive,
 	)
+	var i Store
+	err := row.Scan(
+		&i.ID,
+		&i.ShopID,
+		&i.Name,
+		&i.Address1,
+		&i.Address2,
+		&i.PostalCode,
+		&i.City,
+		&i.Country,
+		&i.Timezone,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const deleteStore = `-- name: DeleteStore :one
+DELETE FROM stores
+WHERE id = $1
+RETURNING
+  id,
+  shop_id,
+  name,
+  address1,
+  address2,
+  postal_code,
+  city,
+  country,
+  timezone,
+  is_active,
+  created_at,
+  updated_at
+`
+
+func (q *Queries) DeleteStore(ctx context.Context, id int64) (Store, error) {
+	row := q.db.QueryRowContext(ctx, deleteStore, id)
 	var i Store
 	err := row.Scan(
 		&i.ID,

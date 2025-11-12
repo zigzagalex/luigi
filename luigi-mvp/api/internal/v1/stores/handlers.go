@@ -2,6 +2,7 @@ package storesv1
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 
@@ -17,6 +18,7 @@ func RegisterRoutes(r chi.Router, q db.Querier) {
 		r.Get("/", listHandler(svc)) // optional ?shop_id=, ?limit=, ?offset=
 		r.Post("/", createHandler(svc))
 		r.Put("/{storeID}", updateHandler(svc))
+		r.Delete("/{storeID}", deleteHandler(svc))
 	})
 }
 
@@ -131,6 +133,29 @@ func updateHandler(svc *storesvc.Service) http.HandlerFunc {
 			}
 			return
 		}
+		httpx.JSON(w, http.StatusOK, item)
+	}
+}
+
+func deleteHandler(svc *storesvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.ParseInt(chi.URLParam(r, "storeID"), 10, 64)
+		if err != nil || id <= 0 {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_id", nil)
+			return
+		}
+
+		item, err := svc.Delete(r.Context(), id)
+		if err != nil {
+			if err == storesvc.ErrNotFound {
+				httpx.Fail(w, http.StatusNotFound, "store_not_found", nil)
+				return
+			}
+			log.Printf("delete_store_failed id=%d: %v", id, err)
+			httpx.Fail(w, http.StatusInternalServerError, "delete_store_failed", err.Error())
+			return
+		}
+		// Return the deleted row so the caller can confirm what was removed.
 		httpx.JSON(w, http.StatusOK, item)
 	}
 }

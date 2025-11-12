@@ -22,9 +22,9 @@ INSERT INTO stores (
   timezone,
   is_active
 ) VALUES (
-  sqlc.arg(shop_id),                      -- required
-  sqlc.arg(name),                         -- required
-  sqlc.narg(address1)::text,              -- nullable, no default
+  sqlc.arg(shop_id),                      
+  sqlc.arg(name),                         
+  sqlc.narg(address1)::text,              
   sqlc.narg(address2)::text,
   sqlc.narg(postal_code)::text,
   sqlc.narg(city)::text,
@@ -33,8 +33,19 @@ INSERT INTO stores (
   COALESCE(sqlc.narg(is_active)::bool, TRUE)
 )
 RETURNING
-  id, shop_id, name, address1, address2, postal_code, city, country,
-  timezone, is_active, created_at, updated_at;
+  id, 
+  shop_id, 
+  name, 
+  address1, 
+  address2, 
+  postal_code, 
+  city, 
+  country,
+  timezone, 
+  is_active, 
+  created_at, 
+  updated_at
+;
 
 -- name: UpdateStore :one
 UPDATE stores
@@ -52,3 +63,21 @@ WHERE id = sqlc.arg(id)
 RETURNING
   id, shop_id, name, address1, address2, postal_code, city, country,
   timezone, is_active, created_at, updated_at;
+
+
+-- name: DeleteStore :one
+DELETE FROM stores
+WHERE id = sqlc.arg(id)
+RETURNING
+  id,
+  shop_id,
+  name,
+  address1,
+  address2,
+  postal_code,
+  city,
+  country,
+  timezone,
+  is_active,
+  created_at,
+  updated_at;
