@@ -25,7 +25,7 @@ INSERT INTO users (
     $3::text,
     $4,
     $5,
-    COALESCE($6::text, "customer"),
+    COALESCE($6::text, 'customer'),
     COALESCE($7::bool, TRUE)
 )
 RETURNING
