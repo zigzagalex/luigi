@@ -9,6 +9,7 @@ import (
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 
 	v1customers "github.com/zigzagalex/luigi/api/internal/v1/customers"
+	v1product_variants "github.com/zigzagalex/luigi/api/internal/v1/product_variants"
 	v1products "github.com/zigzagalex/luigi/api/internal/v1/products"
 	v1shops "github.com/zigzagalex/luigi/api/internal/v1/shops"
 	v1stores "github.com/zigzagalex/luigi/api/internal/v1/stores"
@@ -29,6 +30,7 @@ func New(d Deps) http.Handler {
 		v1users.RegisterRoutes(r, d.Q)
 		v1customers.RegisterRoutes(r, d.Q)
 		v1products.RegisterRoutes(r, d.Q)
+		v1product_variants.RegisterRoutes(r, d.Q)
 	})
 	return r
 }
