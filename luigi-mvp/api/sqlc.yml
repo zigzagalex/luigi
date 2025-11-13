@@ -17,3 +17,6 @@ sql:
         overrides:
           - db_type: pg_catalog.timestamptz
             go_type: time.Time
+          - db_type: "interval"
+            go_type:
+              type: "string"
