@@ -14,8 +14,8 @@ const createShop = `-- name: CreateShop :one
 INSERT INTO shops (name, timezone, is_active)
 VALUES (
   $1,
-  COALESCE($2::text, 'Europe/Zurich'),
-  COALESCE($3::bool, TRUE)
+  $2::text,
+  $3::bool
 )
 RETURNING id, name, timezone, is_active, created_at, updated_at
 `

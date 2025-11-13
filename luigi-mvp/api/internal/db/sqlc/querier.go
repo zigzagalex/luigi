@@ -9,14 +9,18 @@ import (
 )
 
 type Querier interface {
+	CreateCustomer(ctx context.Context, arg *CreateCustomerParams) (Customer, error)
 	CreateShop(ctx context.Context, arg *CreateShopParams) (Shop, error)
 	CreateStore(ctx context.Context, arg *CreateStoreParams) (Store, error)
 	CreateUser(ctx context.Context, arg *CreateUserParams) (User, error)
+	DeleteCustomer(ctx context.Context, id int64) (Customer, error)
 	DeleteStore(ctx context.Context, id int64) (Store, error)
 	DeleteUser(ctx context.Context, id int64) (User, error)
+	ListCustomers(ctx context.Context, arg *ListCustomersParams) ([]Customer, error)
 	ListShops(ctx context.Context, arg *ListShopsParams) ([]Shop, error)
 	ListStores(ctx context.Context, arg *ListStoresParams) ([]Store, error)
 	ListUsers(ctx context.Context, arg *ListUsersParams) ([]User, error)
+	UpdateCustomer(ctx context.Context, arg *UpdateCustomerParams) (Customer, error)
 	UpdateShop(ctx context.Context, arg *UpdateShopParams) (Shop, error)
 	UpdateStore(ctx context.Context, arg *UpdateStoreParams) (Store, error)
 	UpdateUser(ctx context.Context, arg *UpdateUserParams) (User, error)
