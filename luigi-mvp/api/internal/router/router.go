@@ -10,6 +10,7 @@ import (
 
 	v1shops "github.com/zigzagalex/luigi/api/internal/v1/shops"
 	v1stores "github.com/zigzagalex/luigi/api/internal/v1/stores"
+	v1users "github.com/zigzagalex/luigi/api/internal/v1/users"
 )
 
 type Deps struct {
@@ -23,6 +24,7 @@ func New(d Deps) http.Handler {
 	r.Route("/v1", func(r chi.Router) {
 		v1shops.RegisterRoutes(r, d.Q)
 		v1stores.RegisterRoutes(r, d.Q)
+		v1users.RegisterRoutes(r, d.Q)
 	})
 	return r
 }
