@@ -28,9 +28,9 @@ INSERT INTO stores (
   sqlc.narg(address2)::text,
   sqlc.narg(postal_code)::text,
   sqlc.narg(city)::text,
-  COALESCE(sqlc.narg(country)::text, 'CH'),
+  sqlc.narg(country)::text, 
   sqlc.narg(timezone)::text,
-  COALESCE(sqlc.narg(is_active)::bool, TRUE)
+  sqlc.narg(is_active)::bool
 )
 RETURNING
   id, 

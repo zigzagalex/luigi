@@ -8,8 +8,8 @@ LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
 INSERT INTO shops (name, timezone, is_active)
 VALUES (
   sqlc.arg(name),
-  COALESCE(sqlc.narg(timezone)::text, 'Europe/Zurich'),
-  COALESCE(sqlc.narg(is_active)::bool, TRUE)
+  sqlc.narg(timezone)::text,
+  sqlc.narg(is_active)::bool
 )
 RETURNING id, name, timezone, is_active, created_at, updated_at;
 

@@ -28,9 +28,9 @@ INSERT INTO stores (
   $4::text,
   $5::text,
   $6::text,
-  COALESCE($7::text, 'CH'),
+  $7::text, 
   $8::text,
-  COALESCE($9::bool, TRUE)
+  $9::bool
 )
 RETURNING
   id, 
