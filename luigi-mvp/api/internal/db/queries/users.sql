@@ -70,3 +70,18 @@ RETURNING
     is_active,
     created_at,
     updated_at;
+
+
+-- name: DeleteUser :one
+DELETE FROM users
+WHERE id = sqlc.arg(id)
+RETURNING
+  id, 
+  shop_id, 
+  store_id, 
+  firebase_uid, 
+  email, 
+  display_name,
+  role, 
+  is_active, 
+  created_at, updated_at;

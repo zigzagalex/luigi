@@ -13,6 +13,7 @@ type Querier interface {
 	CreateStore(ctx context.Context, arg *CreateStoreParams) (Store, error)
 	CreateUser(ctx context.Context, arg *CreateUserParams) (User, error)
 	DeleteStore(ctx context.Context, id int64) (Store, error)
+	DeleteUser(ctx context.Context, id int64) (User, error)
 	ListShops(ctx context.Context, arg *ListShopsParams) ([]Shop, error)
 	ListStores(ctx context.Context, arg *ListStoresParams) ([]Store, error)
 	ListUsers(ctx context.Context, arg *ListUsersParams) ([]User, error)
