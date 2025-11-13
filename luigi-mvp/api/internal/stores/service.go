@@ -3,9 +3,9 @@ package stores
 import (
 	"context"
 	"database/sql"
-	"strings"
 
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
+	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
 
 type storeQuerier interface {
@@ -63,16 +63,16 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (db.Store, error) 
 	return s.q.CreateStore(ctx, &db.CreateStoreParams{
 		ShopID:     in.ShopID,
 		Name:       in.Name,
-		Address1:   toNullString(in.Address1),
-		Address2:   toNullString(in.Address2),
-		PostalCode: toNullString(in.PostalCode),
-		City:       toNullString(in.City),
+		Address1:   u.ToNullString(in.Address1),
+		Address2:   u.ToNullString(in.Address2),
+		PostalCode: u.ToNullString(in.PostalCode),
+		City:       u.ToNullString(in.City),
 		// nil -> NULL -> COALESCE(..., 'CH')
-		Country: toNullString(in.Country),
+		Country: u.ToNullString(in.Country),
 		// nil -> NULL -> stored NULL (no default)
-		Timezone: toNullString(in.Timezone),
+		Timezone: u.ToNullString(in.Timezone),
 		// nil -> NULL -> COALESCE(..., TRUE)
-		IsActive: toNullBool(in.IsActive),
+		IsActive: u.ToNullBool(in.IsActive),
 	})
 }
 
@@ -91,14 +91,14 @@ type UpdateInput struct {
 func (s *Service) Update(ctx context.Context, in UpdateInput) (db.Store, error) {
 	return s.q.UpdateStore(ctx, &db.UpdateStoreParams{
 		ID:         in.ID,
-		Name:       toNullString(in.Name),
-		Address1:   toNullString(in.Address1),
-		Address2:   toNullString(in.Address2),
-		PostalCode: toNullString(in.PostalCode),
-		City:       toNullString(in.City),
-		Country:    toNullString(in.Country),
-		Timezone:   toNullString(in.Timezone),
-		IsActive:   toNullBool(in.IsActive),
+		Name:       u.ToNullString(in.Name),
+		Address1:   u.ToNullString(in.Address1),
+		Address2:   u.ToNullString(in.Address2),
+		PostalCode: u.ToNullString(in.PostalCode),
+		City:       u.ToNullString(in.City),
+		Country:    u.ToNullString(in.Country),
+		Timezone:   u.ToNullString(in.Timezone),
+		IsActive:   u.ToNullBool(in.IsActive),
 	})
 }
 
@@ -107,21 +107,3 @@ func (s *Service) Delete(ctx context.Context, id int64) (db.Store, error) {
 }
 
 var ErrNotFound = sql.ErrNoRows
-
-func toNullString(p *string) sql.NullString {
-	if p == nil {
-		return sql.NullString{Valid: false}
-	}
-	s := strings.TrimSpace(*p)
-	if s == "" {
-		return sql.NullString{Valid: false}
-	}
-	return sql.NullString{String: s, Valid: true}
-}
-
-func toNullBool(p *bool) sql.NullBool {
-	if p == nil {
-		return sql.NullBool{Valid: false}
-	}
-	return sql.NullBool{Bool: *p, Valid: true}
-}

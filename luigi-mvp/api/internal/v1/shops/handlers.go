@@ -11,6 +11,7 @@ import (
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
 	shopsvc "github.com/zigzagalex/luigi/api/internal/shops"
+	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
 
 func RegisterRoutes(r chi.Router, q db.Querier) {
@@ -97,8 +98,8 @@ func updateHandler(svc *shopsvc.Service) http.HandlerFunc {
 
 		item, err := svc.Update(r.Context(), shopsvc.UpdateInput{
 			ID:       id,
-			Name:     trimOrNil(req.Name),
-			Timezone: trimOrNil(req.Timezone),
+			Name:     u.TrimOrNil(req.Name),
+			Timezone: u.TrimOrNil(req.Timezone),
 			IsActive: req.IsActive,
 		})
 		if err != nil {
@@ -121,13 +122,3 @@ func updateHandler(svc *shopsvc.Service) http.HandlerFunc {
 	}
 }
 
-func trimOrNil(p *string) *string {
-	if p == nil {
-		return nil
-	}
-	s := strings.TrimSpace(*p)
-	if s == "" {
-		return nil
-	}
-	return &s
-}
