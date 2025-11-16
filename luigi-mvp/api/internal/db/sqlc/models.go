@@ -54,8 +54,8 @@ type InventoryItem struct {
 	TagCode              sql.NullString `json:"tag_code"`
 	SerialNumber         sql.NullString `json:"serial_number"`
 	Status               string         `json:"status"`
-	ServicePaddingBefore int64          `json:"service_padding_before"`
-	ServicePaddingAfter  int64          `json:"service_padding_after"`
+	ServicePaddingBefore string         `json:"service_padding_before"`
+	ServicePaddingAfter  string         `json:"service_padding_after"`
 	IsActive             bool           `json:"is_active"`
 	CreatedAt            time.Time      `json:"created_at"`
 	UpdatedAt            time.Time      `json:"updated_at"`
