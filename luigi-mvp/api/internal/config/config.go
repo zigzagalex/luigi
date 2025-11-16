@@ -14,6 +14,9 @@ type Config struct {
 	MaxIdleConns    int
 	ConnMaxIdle     time.Duration
 	ConnMaxLifetime time.Duration
+
+	GCSBucketName string
+	MediaBaseURL  string
 }
 
 // soft-get with default
@@ -34,8 +37,8 @@ func must(k string) string {
 }
 
 func Load() Config {
-	env := get("ENV", "prod")            // default prod on Cloud Run
-	port := get("PORT", "8080")          // Cloud Run injects PORT=8080 anyway
+	env := get("ENV", "prod")   // default prod on Cloud Run
+	port := get("PORT", "8080") // Cloud Run injects PORT=8080 anyway
 
 	// 1) If DATABASE_URL provided, trust it (works for both URL and DSN forms with pgx).
 	if url := os.Getenv("DATABASE_URL"); url != "" {
@@ -67,6 +70,9 @@ func Load() Config {
 }
 
 func base(env, port, url string) Config {
+	gcsBucket := must("GCS_BUCKET_NAME")
+	mediaBaseURL := must("MEDIA_BASE_URL")
+
 	return Config{
 		Env:             env,
 		Port:            port,
@@ -75,5 +81,7 @@ func base(env, port, url string) Config {
 		MaxIdleConns:    5,
 		ConnMaxIdle:     5 * time.Minute,
 		ConnMaxLifetime: 30 * time.Minute,
+		GCSBucketName:   gcsBucket,
+		MediaBaseURL:    mediaBaseURL,
 	}
 }

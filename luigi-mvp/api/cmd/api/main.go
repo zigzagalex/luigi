@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"net/http"
 
@@ -8,6 +9,7 @@ import (
 	dbpool "github.com/zigzagalex/luigi/api/internal/db"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/router"
+	"github.com/zigzagalex/luigi/api/internal/storage"
 )
 
 func main() {
@@ -23,7 +25,18 @@ func main() {
 	defer sqlDB.Close()
 
 	q := db.New(sqlDB)
-	r := router.New(router.Deps{Q: q})
+
+	ctx := context.Background()
+	gcsClient, err := storage.NewGCSClient(ctx, cfg.GCSBucketName)
+	if err != nil {
+		log.Fatalf("failed to init GCS client: %v", err)
+	}
+
+	r := router.New(router.Deps{
+		Q:            q,
+		Storage:      gcsClient,
+		MediaBaseURL: cfg.MediaBaseURL,
+	})
 
 	log.Printf("listening on :%s", cfg.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Port, r))
