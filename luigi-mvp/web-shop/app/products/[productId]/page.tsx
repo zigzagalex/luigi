@@ -1,3 +1,4 @@
+export const dynamic = "force-dynamic";
 import { fetchApi } from "@/utils/fetchAPI";
 
 type Variant = {
