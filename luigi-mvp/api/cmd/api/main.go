@@ -16,8 +16,10 @@ func main() {
 	cfg := config.Load()
 
 	sqlDB, err := dbpool.Open(cfg.DatabaseURL, dbpool.PoolConfig{
-		MaxOpenConns: cfg.MaxOpenConns, MaxIdleConns: cfg.MaxIdleConns,
-		ConnMaxIdle: cfg.ConnMaxIdle, ConnMaxLifetime: cfg.ConnMaxLifetime,
+		MaxOpenConns: cfg.MaxOpenConns, 
+		MaxIdleConns: cfg.MaxIdleConns,
+		ConnMaxIdle: cfg.ConnMaxIdle, 
+		ConnMaxLifetime: cfg.ConnMaxLifetime,
 	})
 	if err != nil {
 		log.Fatal(err)

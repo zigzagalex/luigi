@@ -50,10 +50,14 @@ jobs:
       - name: Push image
         run: docker push "$IMAGE"
 
-      - name: Compute regional API URL
+      - name: Compute API URL from Cloud Run
         run: |
-          PN=$(gcloud projects describe "${GCP_PROJECT_ID}" --format='value(projectNumber)')
-          echo "API_URL_REG=https://api-${PN}.${GCP_REGION}.run.app" >> $GITHUB_ENV
+          API_URL_REG=$(gcloud run services describe api \
+            --project="${GCP_PROJECT_ID}" \
+            --region="${GCP_REGION}" \
+            --format='value(status.url)')
+          echo "API_BASE_URL=${API_URL_REG}" >> $GITHUB_ENV
+
 
       - name: Deploy to Cloud Run (Web-Shop)
         run: |
@@ -62,4 +66,5 @@ jobs:
             --region="${GCP_REGION}" \
             --allow-unauthenticated \
             --service-account="run-web-shop@${GCP_PROJECT_ID}.iam.gserviceaccount.com" \
-            --set-env-vars=NEXT_PUBLIC_API_BASE="${API_URL_REG}"
+            --set-env-vars=API_BASE_URL="${API_BASE_URL}"
+
