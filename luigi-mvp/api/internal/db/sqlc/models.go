@@ -125,6 +125,19 @@ type ProductVariant struct {
 	UpdatedAt  time.Time             `json:"updated_at"`
 }
 
+type ProductVariantImage struct {
+	ID               int64          `json:"id"`
+	ProductVariantID int64          `json:"product_variant_id"`
+	ObjectKey        string         `json:"object_key"`
+	SortOrder        int32          `json:"sort_order"`
+	IsPrimary        bool           `json:"is_primary"`
+	AltText          sql.NullString `json:"alt_text"`
+	WidthPx          sql.NullInt32  `json:"width_px"`
+	HeightPx         sql.NullInt32  `json:"height_px"`
+	CreatedAt        time.Time      `json:"created_at"`
+	UpdatedAt        time.Time      `json:"updated_at"`
+}
+
 type Reservation struct {
 	ID               int64          `json:"id"`
 	ShopID           int64          `json:"shop_id"`
