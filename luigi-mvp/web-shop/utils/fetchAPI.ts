@@ -1,58 +1,75 @@
 // utils/fetchAPI.ts
 import { GoogleAuth, IdTokenClient } from "google-auth-library";
 
-// Create GoogleAuth once. It won't actually call GCP until we use it.
-const auth = new GoogleAuth();
+// Resolve base URL once, with proper typing
+const envBase = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE;
 
-// Cache the resolved IdTokenClient
+if (!envBase) {
+  throw new Error("API_BASE_URL or NEXT_PUBLIC_API_BASE is not set");
+}
+
+const base: string = envBase;
+
+// One auth instance and one IdTokenClient (cached)
+const auth = new GoogleAuth();
 let idTokenClient: IdTokenClient | null = null;
 
-async function getIdTokenClient(audience: string): Promise<IdTokenClient> {
+async function getIdTokenClient(): Promise<IdTokenClient> {
   if (!idTokenClient) {
-    idTokenClient = await auth.getIdTokenClient(audience);
+    // This client automatically attaches an ID token for `base` as audience
+    idTokenClient = await auth.getIdTokenClient(base);
   }
   return idTokenClient;
 }
 
 /**
- * Server-side helper to call the protected Go API.
+ * Server-side helper to call the IAM-protected API.
  *
- * - Reads API_BASE_URL / NEXT_PUBLIC_API_BASE at *call time* (runtime),
- *   not at module import time (build).
- * - In Cloud Run, GoogleAuth uses the service account `run-web-shop@...`
- *   to mint ID tokens for `audience = API_BASE_URL`.
+ * - Uses GoogleAuth + IdTokenClient to mint an ID token
+ * - Calls the API with that token (no manual header fiddling)
+ * - Wraps the result into a standard Fetch `Response` object
  */
 export async function fetchApi(
   path: string,
-  options: RequestInit = {}
+  init: RequestInit = {}
 ): Promise<Response> {
-  const base =
-    process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE;
+  const client = await getIdTokenClient();
 
-  if (!base) {
-    throw new Error("API_BASE_URL or NEXT_PUBLIC_API_BASE is not set");
+  // Build absolute URL from base + path
+  const url = new URL(path, base).toString();
+
+  // Map minimal RequestInit fields into the client.request call
+  const method = init.method ?? "GET";
+
+  // For now we only support simple bodies (string / JSON serialised by caller)
+  const data = init.body as any;
+
+  const nodeRes = await client.request({
+    url,
+    method,
+    headers: init.headers as any,
+    data,
+    // Don't throw on non-2xx, we want to handle status in the caller
+    validateStatus: () => true,
+  });
+
+  const status = nodeRes.status ?? 200;
+  const rawData = nodeRes.data;
+
+  let body: string;
+  if (typeof rawData === "string") {
+    body = rawData;
+  } else if (rawData === undefined || rawData === null) {
+    body = "";
+  } else {
+    body = JSON.stringify(rawData);
   }
 
-  const client = await getIdTokenClient(base);
-
-  // TS is picky; cast via unknown into a plain header map
-  const headers = (await client.getRequestHeaders()) as unknown as Record<
-    string,
-    string
-  >;
-
-  const authHeader =
-    headers["Authorization"] ?? headers["authorization"];
-
-  if (!authHeader) {
-    throw new Error("Failed to obtain Authorization header from IdTokenClient");
-  }
-
-  return fetch(`${base}${path}`, {
-    ...options,
+  // Use the global Response from the Fetch API (available in Next / Node 18+)
+  return new Response(body, {
+    status,
     headers: {
-      ...(options.headers || {}),
-      Authorization: authHeader,
+      "content-type": "application/json",
     },
   });
 }
