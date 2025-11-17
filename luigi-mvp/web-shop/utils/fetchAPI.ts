@@ -1,23 +1,17 @@
 // utils/fetchAPI.ts
 import { GoogleAuth, IdTokenClient } from "google-auth-library";
 
-// Resolve base URL once, with proper typing
-const envBase = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE;
-
-if (!envBase) {
-  throw new Error("API_BASE_URL or NEXT_PUBLIC_API_BASE is not set");
-}
-
-const base: string = envBase;
-
-// One auth instance and one IdTokenClient (cached)
 const auth = new GoogleAuth();
-let idTokenClient: IdTokenClient | null = null;
 
-async function getIdTokenClient(): Promise<IdTokenClient> {
-  if (!idTokenClient) {
-    // This client automatically attaches an ID token for `base` as audience
-    idTokenClient = await auth.getIdTokenClient(base);
+// Cache the client + audience so we don't recreate it every call
+let idTokenClient: IdTokenClient | null = null;
+let idTokenAudience: string | null = null;
+
+async function getIdTokenClient(audience: string): Promise<IdTokenClient> {
+  // If audience changed or client not created yet, build a new one
+  if (!idTokenClient || idTokenAudience !== audience) {
+    idTokenClient = await auth.getIdTokenClient(audience);
+    idTokenAudience = audience;
   }
   return idTokenClient;
 }
@@ -25,31 +19,32 @@ async function getIdTokenClient(): Promise<IdTokenClient> {
 /**
  * Server-side helper to call the IAM-protected API.
  *
- * - Uses GoogleAuth + IdTokenClient to mint an ID token
- * - Calls the API with that token (no manual header fiddling)
- * - Wraps the result into a standard Fetch `Response` object
+ * - Reads API_BASE_URL / NEXT_PUBLIC_API_BASE at *call time* (runtime),
+ *   not at module import time (build).
+ * - Uses GoogleAuth + IdTokenClient to mint an ID token with audience = base URL.
+ * - Calls the API and wraps the result in a standard Fetch `Response`.
  */
 export async function fetchApi(
   path: string,
   init: RequestInit = {}
 ): Promise<Response> {
-  const client = await getIdTokenClient();
+  // Read env ONLY when the function is called, not at import
+  const base = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE;
 
-  // Build absolute URL from base + path
+  if (!base) {
+    throw new Error("API_BASE_URL or NEXT_PUBLIC_API_BASE is not set");
+  }
+
   const url = new URL(path, base).toString();
 
-  // Map minimal RequestInit fields into the client.request call
-  const method = init.method ?? "GET";
-
-  // For now we only support simple bodies (string / JSON serialised by caller)
-  const data = init.body as any;
+  const client = await getIdTokenClient(base);
 
   const nodeRes = await client.request({
     url,
-    method,
+    method: init.method ?? "GET",
     headers: init.headers as any,
-    data,
-    // Don't throw on non-2xx, we want to handle status in the caller
+    data: init.body as any,
+    // Don't throw on non-2xx, we want to inspect status in callers
     validateStatus: () => true,
   });
 
@@ -65,7 +60,6 @@ export async function fetchApi(
     body = JSON.stringify(rawData);
   }
 
-  // Use the global Response from the Fetch API (available in Next / Node 18+)
   return new Response(body, {
     status,
     headers: {
