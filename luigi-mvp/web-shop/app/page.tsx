@@ -9,11 +9,21 @@ type Product = {
 };
 
 export default async function Page() {
-  const res = await fetchApi("/v1/products");
+  try {
+    const res = await fetchApi("/v1/products");
 
-  if (!res.ok) {
-    return <div>Error: {res.status}</div>;
-  }
+    if (!res.ok) {
+      const text = await res.text();
+      console.error("Failed to load products:", res.status, text);
+
+      return (
+        <div>
+          <h2>Produkte</h2>
+          <p>Fehler beim Laden: {res.status}</p>
+          <pre style={{ whiteSpace: "pre-wrap", fontSize: 12 }}>{text}</pre>
+        </div>
+      );
+    }
 
   const items: Product[] = await res.json();
 
@@ -42,4 +52,17 @@ export default async function Page() {
       </ul>
     </div>
   );
+} catch (err: any) {
+    console.error("Exception while loading products:", err);
+
+    return (
+      <div>
+        <h2>Produkte</h2>
+        <p>Fehler beim Laden (Exception)</p>
+        <pre style={{ whiteSpace: "pre-wrap", fontSize: 12 }}>
+          {String(err?.message ?? err)}
+        </pre>
+      </div>
+    );
+  }
 }
