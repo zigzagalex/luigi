@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createProduct = `-- name: CreateProduct :one
@@ -148,6 +149,89 @@ func (q *Queries) ListProducts(ctx context.Context, arg *ListProductsParams) ([]
 			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listProductsWithPrimaryImage = `-- name: ListProductsWithPrimaryImage :many
+SELECT
+  p.id,
+  p.shop_id,
+  p.sku,
+  p.name,
+  p.description,
+  p.price_category,
+  p.is_active,
+  p.created_at,
+  p.updated_at,
+  pi.object_key AS primary_image_object_key
+FROM products p
+LEFT JOIN LATERAL (
+  SELECT pvi.object_key
+  FROM product_variants pv
+  JOIN product_variant_images pvi
+    ON pvi.product_variant_id = pv.id
+   AND pvi.is_primary = TRUE
+  WHERE pv.product_id = p.id
+  ORDER BY pv.created_at ASC 
+  LIMIT 1
+) AS pi ON TRUE
+WHERE
+  $1::bigint IS NULL
+  OR shop_id = $1::bigint
+ORDER BY p.id
+LIMIT $3 OFFSET $2
+`
+
+type ListProductsWithPrimaryImageParams struct {
+	ShopID     sql.NullInt64 `json:"shop_id"`
+	PageOffset int32         `json:"page_offset"`
+	PageLimit  int32         `json:"page_limit"`
+}
+
+type ListProductsWithPrimaryImageRow struct {
+	ID                    int64          `json:"id"`
+	ShopID                int64          `json:"shop_id"`
+	Sku                   sql.NullString `json:"sku"`
+	Name                  string         `json:"name"`
+	Description           sql.NullString `json:"description"`
+	PriceCategory         string         `json:"price_category"`
+	IsActive              bool           `json:"is_active"`
+	CreatedAt             time.Time      `json:"created_at"`
+	UpdatedAt             time.Time      `json:"updated_at"`
+	PrimaryImageObjectKey string         `json:"primary_image_object_key"`
+}
+
+func (q *Queries) ListProductsWithPrimaryImage(ctx context.Context, arg *ListProductsWithPrimaryImageParams) ([]ListProductsWithPrimaryImageRow, error) {
+	rows, err := q.db.QueryContext(ctx, listProductsWithPrimaryImage, arg.ShopID, arg.PageOffset, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []ListProductsWithPrimaryImageRow
+	for rows.Next() {
+		var i ListProductsWithPrimaryImageRow
+		if err := rows.Scan(
+			&i.ID,
+			&i.ShopID,
+			&i.Sku,
+			&i.Name,
+			&i.Description,
+			&i.PriceCategory,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+			&i.PrimaryImageObjectKey,
 		); err != nil {
 			return nil, err
 		}

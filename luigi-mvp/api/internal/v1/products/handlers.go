@@ -11,21 +11,22 @@ import (
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
 	productsvc "github.com/zigzagalex/luigi/api/internal/products"
+	"github.com/zigzagalex/luigi/api/internal/storage"
 	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
 
-func RegisterRoutes(r chi.Router, q db.Querier) {
+func RegisterRoutes(r chi.Router, q db.Querier, store storage.Client, mediaBaseURL string) {
 	svc := productsvc.NewService(q)
 
 	r.Route("/products", func(r chi.Router) {
-		r.Get("/", listHandler(svc))                 // GET /products?limit=&offset=&shop_id=
+		r.Get("/", listHandler(svc, mediaBaseURL))   // GET /products?limit=&offset=&shop_id=
 		r.Post("/", createHandler(svc))              // POST /products
 		r.Put("/{productID}", updateHandler(svc))    // PUT /products/{productID}
 		r.Delete("/{productID}", deleteHandler(svc)) // DELETE /products/{productID}
 	})
 }
 
-func listHandler(svc *productsvc.Service) http.HandlerFunc {
+func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 		offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
@@ -40,7 +41,7 @@ func listHandler(svc *productsvc.Service) http.HandlerFunc {
 			shopIDPtr = &v
 		}
 
-		items, err := svc.List(r.Context(), productsvc.ListInput{
+		rows, err := svc.ListWithPrimaryImage(r.Context(), productsvc.ListWithImageInput{
 			ShopID: shopIDPtr,
 			Limit:  int32(limit),
 			Offset: int32(offset),
@@ -49,10 +50,16 @@ func listHandler(svc *productsvc.Service) http.HandlerFunc {
 			httpx.Fail(w, http.StatusInternalServerError, "list_products_failed", err.Error())
 			return
 		}
-		if items == nil {
-			items = []db.Product{}
+		if rows == nil {
+			rows = []db.ListProductsWithPrimaryImageRow{}
 		}
-		httpx.JSON(w, http.StatusOK, items)
+
+		out := make([]productsvc.ProductDTO, 0, len(rows))
+		for _, row := range rows {
+			out = append(out, productsvc.RowToDTO(row, mediaBaseURL))
+		}
+
+		httpx.JSON(w, http.StatusOK, out)
 	}
 }
 

@@ -12,6 +12,7 @@ import (
 type productQuerier interface {
 	CreateProduct(ctx context.Context, arg *db.CreateProductParams) (db.Product, error)
 	ListProducts(ctx context.Context, arg *db.ListProductsParams) ([]db.Product, error)
+	ListProductsWithPrimaryImage(ctx context.Context, arg *db.ListProductsWithPrimaryImageParams) ([]db.ListProductsWithPrimaryImageRow, error)
 	UpdateProduct(ctx context.Context, arg *db.UpdateProductParams) (db.Product, error)
 	DeleteProduct(ctx context.Context, id int64) (db.Product, error)
 }
@@ -92,4 +93,26 @@ func (s *Service) Update(ctx context.Context, in UpdateInput) (db.Product, error
 
 func (s *Service) Delete(ctx context.Context, id int64) (db.Product, error) {
 	return s.q.DeleteProduct(ctx, id)
+}
+
+
+type ListWithImageInput struct {
+	ShopID *int64
+	Limit  int32
+	Offset int32
+}
+
+func (s *Service) ListWithPrimaryImage(ctx context.Context, in ListWithImageInput) ([]db.ListProductsWithPrimaryImageRow, error) {
+	if in.Limit <= 0 || in.Limit > 200 {
+		in.Limit = 50
+	}
+	if in.Offset < 0 {
+		in.Offset = 0
+	}
+
+	return s.q.ListProductsWithPrimaryImage(ctx, &db.ListProductsWithPrimaryImageParams{
+		ShopID:     u.ToNullInt64(in.ShopID),
+		PageOffset: in.Offset,
+		PageLimit:  in.Limit,
+	})
 }

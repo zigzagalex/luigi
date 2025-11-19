@@ -34,7 +34,7 @@ func New(d Deps) http.Handler {
 		v1stores.RegisterRoutes(r, d.Q)
 		v1users.RegisterRoutes(r, d.Q)
 		v1customers.RegisterRoutes(r, d.Q)
-		v1products.RegisterRoutes(r, d.Q)
+		v1products.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 		v1product_variants.RegisterRoutes(r, d.Q)
 		v1inventory.RegisterRoutes(r, d.Q)
 

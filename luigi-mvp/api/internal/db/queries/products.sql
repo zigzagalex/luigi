@@ -80,3 +80,32 @@ RETURNING
   is_active,
   created_at,
   updated_at;
+
+-- name: ListProductsWithPrimaryImage :many
+SELECT
+  p.id,
+  p.shop_id,
+  p.sku,
+  p.name,
+  p.description,
+  p.price_category,
+  p.is_active,
+  p.created_at,
+  p.updated_at,
+  pi.object_key AS primary_image_object_key
+FROM products p
+LEFT JOIN LATERAL (
+  SELECT pvi.object_key
+  FROM product_variants pv
+  JOIN product_variant_images pvi
+    ON pvi.product_variant_id = pv.id
+   AND pvi.is_primary = TRUE
+  WHERE pv.product_id = p.id
+  ORDER BY pv.created_at ASC 
+  LIMIT 1
+) AS pi ON TRUE
+WHERE
+  sqlc.narg(shop_id)::bigint IS NULL
+  OR shop_id = sqlc.narg(shop_id)::bigint
+ORDER BY p.id
+LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
