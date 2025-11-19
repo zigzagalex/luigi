@@ -31,6 +31,7 @@ type Querier interface {
 	ListInventoryItems(ctx context.Context, arg *ListInventoryItemsParams) ([]InventoryItem, error)
 	ListProductVariants(ctx context.Context, arg *ListProductVariantsParams) ([]ProductVariant, error)
 	ListProducts(ctx context.Context, arg *ListProductsParams) ([]Product, error)
+	ListProductsWithPrimaryImage(ctx context.Context, arg *ListProductsWithPrimaryImageParams) ([]ListProductsWithPrimaryImageRow, error)
 	ListShops(ctx context.Context, arg *ListShopsParams) ([]Shop, error)
 	ListStores(ctx context.Context, arg *ListStoresParams) ([]Store, error)
 	ListUsers(ctx context.Context, arg *ListUsersParams) ([]User, error)
