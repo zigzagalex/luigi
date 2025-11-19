@@ -3,61 +3,34 @@
 import { useState } from "react";
 
 export default function SearchPill() {
-  const [quantity, setQuantity] = useState(1);
+  const [quantity] = useState(1); // UI-only for now
 
-  // UI-only for now – no navigation, no API calls
   return (
-    <div className="w-full flex justify-center mt-6 mb-8">
-      <div className="flex items-center gap-3 rounded-full border border-neutral-200 bg-white px-4 py-2 shadow-sm max-w-3xl w-full">
-        {/* WHAT */}
-        <button
-          type="button"
-          className="flex-1 flex flex-col text-left hover:bg-neutral-50 rounded-full px-3 py-1 transition"
-        >
-          <span className="text-[11px] uppercase tracking-wide text-neutral-500">
-            What
-          </span>
-          <span className="text-sm text-neutral-900">
-            Any bike
-          </span>
+    <div className="search-hero">
+      <div className="search-pill">
+        <button type="button" className="search-pill-section">
+          <span className="search-pill-label">What</span>
+          <span className="search-pill-value">Bike</span>
         </button>
 
-        <div className="h-6 w-px bg-neutral-200" />
+        <div className="search-pill-divider" />
 
-        {/* WHEN */}
-        <button
-          type="button"
-          className="flex-1 flex flex-col text-left hover:bg-neutral-50 rounded-full px-3 py-1 transition"
-        >
-          <span className="text-[11px] uppercase tracking-wide text-neutral-500">
-            When
-          </span>
-          <span className="text-sm text-neutral-900">
-            Add dates
-          </span>
+        <button type="button" className="search-pill-section">
+          <span className="search-pill-label">When</span>
+          <span className="search-pill-value">Add dates</span>
         </button>
 
-        <div className="h-6 w-px bg-neutral-200" />
+        <div className="search-pill-divider" />
 
-        {/* HOW MANY */}
-        <button
-          type="button"
-          className="flex-1 flex flex-col text-left hover:bg-neutral-50 rounded-full px-3 py-1 transition"
-        >
-          <span className="text-[11px] uppercase tracking-wide text-neutral-500">
-            How many
-          </span>
-          <span className="text-sm text-neutral-900">
+        <button type="button" className="search-pill-section">
+          <span className="search-pill-label">How many</span>
+          <span className="search-pill-value">
             {quantity} bike{quantity > 1 ? "s" : ""}
           </span>
         </button>
 
-        {/* CTA */}
-        <button
-          type="button"
-          className="ml-2 rounded-full bg-neutral-900 px-4 py-2 text-sm font-semibold text-white hover:bg-neutral-800 transition"
-        >
-          Search
+        <button type="button" className="search-pill-submit">
+          <span className="search-pill-submit-icon">🔍</span>
         </button>
       </div>
     </div>

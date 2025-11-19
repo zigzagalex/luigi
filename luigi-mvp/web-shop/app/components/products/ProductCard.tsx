@@ -1,3 +1,4 @@
+// app/components/products/ProductCard.tsx
 import Link from "next/link";
 import type { Product } from "@/utils/products";
 
@@ -5,10 +6,11 @@ type Props = {
   product: Product;
 };
 
+const FALLBACK_IMAGE =
+  "https://images.pexels.com/photos/276517/pexels-photo-276517.jpeg?auto=compress&cs=tinysrgb&w=800";
+
 export default function ProductCard({ product }: Props) {
-  // Try to use a backend-provided primary image if you later add it
-  const primaryImageUrl =
-    (product as any).primary_image_url as string | undefined;
+  const primaryImageUrl = product.primary_image_url ?? FALLBACK_IMAGE;
 
   const initials = product.name
     .split(" ")

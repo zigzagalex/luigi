@@ -1,18 +1,182 @@
-/* app/globals.css */
+/* ─────────────────────────────────────────
+   Airbnb-style search pill
+   ───────────────────────────────────────── */
 
-:root {
-  color-scheme: light;
+.search-hero {
+  display: flex;
+  justify-content: center;
+  margin: 24px 0 32px;
 }
 
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
+.search-pill {
+  display: flex;
+  align-items: center;
+  background: #ffffff;
+  border-radius: 9999px;
+  border: 1px solid #e5e5e5;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.06);
+  padding: 8px 8px 8px 20px;
+  max-width: 960px;
+  width: 100%;
 }
 
-body {
+.search-pill-section {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: transparent;
+  border: none;
+  padding: 6px 16px;
+  cursor: pointer;
+}
+
+.search-pill-section:hover {
+  background: #f7f7f7;
+  border-radius: 9999px;
+}
+
+.search-pill-label {
+  font-size: 11px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #717171;
+}
+
+.search-pill-value {
+  font-size: 14px;
+  color: #111827;
+}
+
+.search-pill-divider {
+  width: 1px;
+  height: 28px;
+  background: #e5e5e5;
+}
+
+.search-pill-submit {
+  margin-left: 8px;
+  width: 40px;
+  height: 40px;
+  border-radius: 9999px;
+  border: none;
+  background: #ff385c;
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.search-pill-submit:hover {
+  background: #e11d48;
+}
+
+.search-pill-submit-icon {
+  font-size: 16px;
+}
+
+/* ─────────────────────────────────────────
+   Product cards & grids
+   ───────────────────────────────────────── */
+
+.product-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+.product-card {
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.product-card-image-wrapper {
+  background: #f3f4f6;
+  border-radius: 16px;
+  overflow: hidden;
+  position: relative;
+  aspect-ratio: 4 / 3;
+}
+
+.product-card-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+  transition: transform 0.2s ease;
+}
+
+.product-card:hover .product-card-image {
+  transform: scale(1.03);
+}
+
+.product-card-content {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.product-card-title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.product-card-title {
+  font-size: 14px;
+  font-weight: 600;
   margin: 0;
-  padding: 0;
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
-  background: #f5f5f5;
+}
+
+.product-card-subtitle {
+  font-size: 12px;
+  color: #6b7280;
+  margin: 0;
+}
+
+.product-card-pill {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  border: 1px solid #e5e7eb;
+  color: #4b5563;
+}
+
+/* ─────────────────────────────────────────
+   Category rows (Netflix-style)
+   ───────────────────────────────────────── */
+
+.category-row {
+  margin-bottom: 32px;
+}
+
+.category-row-title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0 0 12px;
+}
+
+.category-row-scroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+  scrollbar-width: none; /* Firefox */
+}
+
+.category-row-scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.category-row-item {
+  min-width: 220px;
+  max-width: 260px;
+  flex-shrink: 0;
 }

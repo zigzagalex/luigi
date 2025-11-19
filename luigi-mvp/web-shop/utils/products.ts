@@ -2,7 +2,7 @@
 import { fetchApi } from "./fetchAPI";
 
 // ───────────────────────────────────────────
-// Types — match EXACT Go API JSON
+// Types
 // ───────────────────────────────────────────
 
 export interface Product {
@@ -17,6 +17,8 @@ export interface Product {
 
   created_at: string; // ISO timestamp
   updated_at: string; // ISO timestamp
+
+  primary_image_url?: string | null; 
 }
 
 export interface ProductVariant {
