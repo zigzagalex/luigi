@@ -43,6 +43,7 @@ export default async function HomePage() {
         <SearchPill />
 
         <section className="intro-section">
+          <h1 className="intro-title">THIS IS THE NEW BUILD</h1>
           <h1 className="intro-title">Choose your next adventure</h1>
           <p className="intro-subtitle">
             Browse high-quality bikes from local shops. Click any bike to see
