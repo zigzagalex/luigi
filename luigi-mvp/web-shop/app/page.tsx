@@ -1,7 +1,8 @@
+// app/page.tsx
 import SearchPill from "./components/search/SearchPill";
 import ProductGrid from "./components/products/ProductGrid";
 import CategoryRow from "./components/products/CategoryRow";
-import { fetchProducts, type Product } from "../utils/products";
+import { fetchProducts, type Product } from "@/utils/products";
 
 export const dynamic = "force-dynamic";
 
@@ -37,43 +38,36 @@ export default async function HomePage() {
   const byCategory = groupByPriceCategory(products);
 
   return (
-    <main className="min-h-screen bg-neutral-50">
-      <div className="mx-auto max-w-6xl px-4 pb-16">
-        {/* Hero Search */}
+    <main className="page">
+      <div className="page-inner">
         <SearchPill />
 
-        {/* Intro text */}
-        <section className="mb-8">
-          <h1 className="text-xl font-semibold text-neutral-900">
-            Choose your next adventure
-          </h1>
-          <p className="text-sm text-neutral-600">
-            Browse high-quality bikes from local shops. Click any bike to see more details.
+        <section className="intro-section">
+          <h1 className="intro-title">Choose your next adventure</h1>
+          <p className="intro-subtitle">
+            Browse high-quality bikes from local shops. Click any bike to see
+            more details.
           </p>
         </section>
 
-        {/* Featured grid */}
         {featured.length > 0 && (
-          <section className="mb-10">
-            <h2 className="mb-3 text-base font-semibold text-neutral-900">
-              Featured bikes
-            </h2>
+          <section className="section-block">
+            <h2 className="section-title">Featured bikes</h2>
             <ProductGrid products={featured} />
           </section>
         )}
 
-        {/* Category rows (Netflix-style) */}
         {Object.entries(byCategory).map(([category, prods]) => (
-          <CategoryRow
-            key={category}
-            title={prettyLabel(category)}
-            products={prods.slice(0, 12)}
-          />
+          <section key={category} className="section-block">
+            <CategoryRow
+              title={prettyLabel(category)}
+              products={prods.slice(0, 20)}
+            />
+          </section>
         ))}
 
-        {/* Fallback if no products at all */}
         {products.length === 0 && (
-          <p className="text-sm text-neutral-500 mt-6">
+          <p className="no-products-msg">
             No bikes to show yet. Check your API config or seed some products.
           </p>
         )}
