@@ -1,3 +1,6 @@
+"use client";
+
+import { useRef } from "react";
 import type { Product } from "@/utils/products";
 import ProductCard from "./ProductCard";
 
@@ -7,23 +10,50 @@ type Props = {
 };
 
 export default function CategoryRow({ title, products }: Props) {
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+
   if (!products.length) return null;
 
-  return (
-    <section className="mb-8">
-      <h2 className="mb-3 text-base font-semibold text-neutral-900">
-        {title}
-      </h2>
+  const scroll = (direction: "left" | "right") => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const amount = container.clientWidth * 0.8;
+    container.scrollBy({
+      left: direction === "left" ? -amount : amount,
+      behavior: "smooth",
+    });
+  };
 
-      <div className="flex gap-4 overflow-x-auto pb-2 [-ms-overflow-style:none] [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
-        {products.map((product) => (
-          <div
-            key={product.id}
-            className="min-w-[220px] max-w-[260px] flex-shrink-0"
-          >
-            <ProductCard product={product} />
-          </div>
-        ))}
+  return (
+    <section className="category-row">
+      <div className="category-row-header">
+        <h2 className="category-row-title">{title}</h2>
+      </div>
+
+      <div className="category-row-body">
+        <button
+          type="button"
+          className="category-row-arrow category-row-arrow-left"
+          onClick={() => scroll("left")}
+        >
+          ‹
+        </button>
+
+        <div ref={scrollRef} className="category-row-scroll">
+          {products.map((p) => (
+            <div key={p.id} className="category-row-item">
+              <ProductCard product={p} />
+            </div>
+          ))}
+        </div>
+
+        <button
+          type="button"
+          className="category-row-arrow category-row-arrow-right"
+          onClick={() => scroll("right")}
+        >
+          ›
+        </button>
       </div>
     </section>
   );
