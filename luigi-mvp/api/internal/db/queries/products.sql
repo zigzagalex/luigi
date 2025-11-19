@@ -92,7 +92,7 @@ SELECT
   p.is_active,
   p.created_at,
   p.updated_at,
-  pi.object_key AS primary_image_object_key
+  COALESCE(pi.object_key, '') AS primary_image_object_key
 FROM products p
 LEFT JOIN LATERAL (
   SELECT pvi.object_key
