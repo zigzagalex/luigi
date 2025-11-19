@@ -3,6 +3,8 @@ import ProductGrid from "./components/products/ProductGrid";
 import CategoryRow from "./components/products/CategoryRow";
 import { fetchProducts, type Product } from "../utils/products";
 
+export const dynamic = "force-dynamic";
+
 function groupByPriceCategory(products: Product[]): Record<string, Product[]> {
   const groups: Record<string, Product[]> = {};
   for (const p of products) {
@@ -23,8 +25,13 @@ function prettyLabel(category: string): string {
 }
 
 export default async function HomePage() {
-  // adjust limit as you like
-  const products = await fetchProducts({ limit: 32 });
+  let products: Product[] = [];
+
+  try {
+    products = await fetchProducts({ limit: 32 });
+  } catch (err) {
+    console.error("Failed to fetch products for homepage:", err);
+  }
 
   const featured = products.slice(0, 8);
   const byCategory = groupByPriceCategory(products);
@@ -38,7 +45,7 @@ export default async function HomePage() {
         {/* Intro text */}
         <section className="mb-8">
           <h1 className="text-xl font-semibold text-neutral-900">
-            Find your next adventure
+            Choose your next adventure
           </h1>
           <p className="text-sm text-neutral-600">
             Browse high-quality bikes from local shops. Click any bike to see more details.
@@ -46,12 +53,14 @@ export default async function HomePage() {
         </section>
 
         {/* Featured grid */}
-        <section className="mb-10">
-          <h2 className="mb-3 text-base font-semibold text-neutral-900">
-            Featured bikes
-          </h2>
-          <ProductGrid products={featured} />
-        </section>
+        {featured.length > 0 && (
+          <section className="mb-10">
+            <h2 className="mb-3 text-base font-semibold text-neutral-900">
+              Featured bikes
+            </h2>
+            <ProductGrid products={featured} />
+          </section>
+        )}
 
         {/* Category rows (Netflix-style) */}
         {Object.entries(byCategory).map(([category, prods]) => (
@@ -61,6 +70,13 @@ export default async function HomePage() {
             products={prods.slice(0, 12)}
           />
         ))}
+
+        {/* Fallback if no products at all */}
+        {products.length === 0 && (
+          <p className="text-sm text-neutral-500 mt-6">
+            No bikes to show yet. Check your API config or seed some products.
+          </p>
+        )}
       </div>
     </main>
   );
