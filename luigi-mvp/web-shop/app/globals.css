@@ -1,26 +1,16 @@
-/* Basic reset / base styles */
-*,
-*::before,
-*::after {
-  box-sizing: border-box;
-}
-
-html,
+/* TEST: is globals.css actually loaded? */
 body {
-  padding: 0;
   margin: 0;
+  padding: 0;
+  background: hotpink !important;
+  border: 10px solid red !important;
   font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
     sans-serif;
 }
 
-body {
-  background: #0b1020; /* top nav background */
-  color: #111827;
-}
 
-a {
-  color: inherit;
-}
+
+
 
 /* Header styles */
 .site-header {
