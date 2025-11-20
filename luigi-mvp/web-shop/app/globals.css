@@ -1,4 +1,4 @@
-/* TEST: is globals.css actually loaded? */
+/* TEST — make this impossible to miss */
 body {
   margin: 0;
   padding: 0;
@@ -8,6 +8,15 @@ body {
     sans-serif;
 }
 
+.site-header {
+  background: yellow !important;
+  color: black !important;
+}
+
+.site-header-title {
+  font-size: 40px !important;
+  text-transform: uppercase;
+}
 
 
 
