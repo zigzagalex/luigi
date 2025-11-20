@@ -13,8 +13,8 @@ export default function RootLayout({ children }: { children: ReactNode }) {
       <body>
         <header className="site-header">
           <div className="site-header-inner">
-            <div className="site-header-title">CSS TEST 999</div>
-            <div className="site-header-subtitle">DO YOU SEE THIS?</div>
+            <div className="site-header-title">Luigi's Bike Rentals</div>
+            <div className="site-header-subtitle">Bern, Zurich, Geneva</div>
           </div>
         </header>
 

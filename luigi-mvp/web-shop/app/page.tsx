@@ -42,15 +42,6 @@ export default async function HomePage() {
       <div className="page-inner">
         <SearchPill />
 
-        <section className="intro-section">
-          <h1 className="intro-title">THIS IS THE NEW BUILD</h1>
-          <h1 className="intro-title">Choose your next adventure</h1>
-          <p className="intro-subtitle">
-            Browse high-quality bikes from local shops. Click any bike to see
-            more details.
-          </p>
-        </section>
-
         {featured.length > 0 && (
           <section className="section-block">
             <h2 className="section-title">Featured bikes</h2>
