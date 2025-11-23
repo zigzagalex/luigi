@@ -15,6 +15,7 @@ type productQuerier interface {
 	ListProductsWithPrimaryImage(ctx context.Context, arg *db.ListProductsWithPrimaryImageParams) ([]db.ListProductsWithPrimaryImageRow, error)
 	UpdateProduct(ctx context.Context, arg *db.UpdateProductParams) (db.Product, error)
 	DeleteProduct(ctx context.Context, id int64) (db.Product, error)
+	ListCategoriesForProduct(ctx context.Context, productID int64) ([]db.ProductCategory, error)
 }
 
 type Service struct {
@@ -95,13 +96,13 @@ func (s *Service) Delete(ctx context.Context, id int64) (db.Product, error) {
 	return s.q.DeleteProduct(ctx, id)
 }
 
-
 type ListWithImageInput struct {
 	ShopID *int64
 	Limit  int32
 	Offset int32
 }
 
+// Raw rows, used internally if needed
 func (s *Service) ListWithPrimaryImage(ctx context.Context, in ListWithImageInput) ([]db.ListProductsWithPrimaryImageRow, error) {
 	if in.Limit <= 0 || in.Limit > 200 {
 		in.Limit = 50
@@ -115,4 +116,49 @@ func (s *Service) ListWithPrimaryImage(ctx context.Context, in ListWithImageInpu
 		PageOffset: in.Offset,
 		PageLimit:  in.Limit,
 	})
+}
+
+// High-level API: ready-to-serve DTOs with image URL + categories
+func (s *Service) ListWithPrimaryImageDTO(
+	ctx context.Context,
+	in ListWithImageInput,
+	mediaBaseURL string,
+) ([]ProductDTO, error) {
+	rows, err := s.ListWithPrimaryImage(ctx, in)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]ProductDTO, 0, len(rows))
+	for _, row := range rows {
+		// base product + primary image
+		dto := RowToDTO(row, mediaBaseURL)
+
+		// attach categories from product_category_assignments
+		if err := s.attachCategories(ctx, &dto); err != nil {
+			return nil, err
+		}
+
+		out = append(out, dto)
+	}
+
+	return out, nil
+}
+
+func (s *Service) attachCategories(ctx context.Context, dto *ProductDTO) error {
+	cats, err := s.q.ListCategoriesForProduct(ctx, dto.ID)
+	if err != nil {
+		return err
+	}
+
+	out := make([]ProductCategoryDTO, 0, len(cats))
+	for _, c := range cats {
+		out = append(out, ProductCategoryDTO{
+			ID:   c.ID,
+			Name: c.Name,
+			Slug: c.Slug,
+		})
+	}
+	dto.Categories = out
+	return nil
 }

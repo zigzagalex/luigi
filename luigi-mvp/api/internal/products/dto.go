@@ -6,15 +6,22 @@ import (
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 )
 
+type ProductCategoryDTO struct {
+	ID   int64  `json:"id"`
+	Name string `json:"name"`
+	Slug string `json:"slug"`
+}
+
 type ProductDTO struct {
-	ID              int64   `json:"id"`
-	ShopID          int64   `json:"shop_id"`
-	SKU             *string `json:"sku,omitempty"`
-	Name            string  `json:"name"`
-	Description     *string `json:"description,omitempty"`
-	PriceCategory   string  `json:"price_category"`
-	IsActive        bool    `json:"is_active"`
-	PrimaryImageURL *string `json:"primary_image_url,omitempty"`
+	ID              int64                `json:"id"`
+	ShopID          int64                `json:"shop_id"`
+	SKU             *string              `json:"sku,omitempty"`
+	Name            string               `json:"name"`
+	Description     *string              `json:"description,omitempty"`
+	PriceCategory   string               `json:"price_category"`
+	IsActive        bool                 `json:"is_active"`
+	PrimaryImageURL *string              `json:"primary_image_url,omitempty"`
+	Categories      []ProductCategoryDTO `json:"categories,omitempty"`
 }
 
 func toStringPtr(ns sql.NullString) *string {
@@ -42,5 +49,6 @@ func RowToDTO(row db.ListProductsWithPrimaryImageRow, mediaBaseURL string) Produ
 		PriceCategory:   row.PriceCategory,
 		IsActive:        row.IsActive,
 		PrimaryImageURL: primaryURL,
+		Categories:      nil,
 	}
 }

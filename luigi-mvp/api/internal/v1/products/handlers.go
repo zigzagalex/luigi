@@ -41,25 +41,24 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 			shopIDPtr = &v
 		}
 
-		rows, err := svc.ListWithPrimaryImage(r.Context(), productsvc.ListWithImageInput{
-			ShopID: shopIDPtr,
-			Limit:  int32(limit),
-			Offset: int32(offset),
-		})
+		items, err := svc.ListWithPrimaryImageDTO(
+			r.Context(),
+			productsvc.ListWithImageInput{
+				ShopID: shopIDPtr,
+				Limit:  int32(limit),
+				Offset: int32(offset),
+			},
+			mediaBaseURL,
+		)
 		if err != nil {
 			httpx.Fail(w, http.StatusInternalServerError, "list_products_failed", err.Error())
 			return
 		}
-		if rows == nil {
-			rows = []db.ListProductsWithPrimaryImageRow{}
+		if items == nil {
+			items = []productsvc.ProductDTO{}
 		}
 
-		out := make([]productsvc.ProductDTO, 0, len(rows))
-		for _, row := range rows {
-			out = append(out, productsvc.RowToDTO(row, mediaBaseURL))
-		}
-
-		httpx.JSON(w, http.StatusOK, out)
+		httpx.JSON(w, http.StatusOK, items)
 	}
 }
 
