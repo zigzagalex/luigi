@@ -115,6 +115,24 @@ type ProductAccessory struct {
 	AccessoryID int64 `json:"accessory_id"`
 }
 
+type ProductCategory struct {
+	ID          int64          `json:"id"`
+	ShopID      int64          `json:"shop_id"`
+	ParentID    sql.NullInt64  `json:"parent_id"`
+	Slug        string         `json:"slug"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	SortOrder   int32          `json:"sort_order"`
+	IsActive    bool           `json:"is_active"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+}
+
+type ProductCategoryAssignment struct {
+	ProductID  int64 `json:"product_id"`
+	CategoryID int64 `json:"category_id"`
+}
+
 type ProductVariant struct {
 	ID         int64                 `json:"id"`
 	ProductID  int64                 `json:"product_id"`

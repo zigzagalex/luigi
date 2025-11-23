@@ -9,9 +9,12 @@ import (
 )
 
 type Querier interface {
+	AssignProductToCategory(ctx context.Context, arg *AssignProductToCategoryParams) error
+	ClearProductCategories(ctx context.Context, productID int64) error
 	CreateCustomer(ctx context.Context, arg *CreateCustomerParams) (Customer, error)
 	CreateInventoryItem(ctx context.Context, arg *CreateInventoryItemParams) (InventoryItem, error)
 	CreateProduct(ctx context.Context, arg *CreateProductParams) (Product, error)
+	CreateProductCategory(ctx context.Context, arg *CreateProductCategoryParams) (ProductCategory, error)
 	CreateProductVariant(ctx context.Context, arg *CreateProductVariantParams) (ProductVariant, error)
 	CreateProductVariantImage(ctx context.Context, arg *CreateProductVariantImageParams) (ProductVariantImage, error)
 	CreateShop(ctx context.Context, arg *CreateShopParams) (Shop, error)
@@ -20,12 +23,16 @@ type Querier interface {
 	DeleteCustomer(ctx context.Context, id int64) (Customer, error)
 	DeleteInventoryItem(ctx context.Context, id int64) (InventoryItem, error)
 	DeleteProduct(ctx context.Context, id int64) (Product, error)
+	DeleteProductCategory(ctx context.Context, id int64) (ProductCategory, error)
 	DeleteProductVariant(ctx context.Context, id int64) (ProductVariant, error)
 	DeleteProductVariantImage(ctx context.Context, id int64) error
 	DeleteStore(ctx context.Context, id int64) (Store, error)
 	DeleteUser(ctx context.Context, id int64) (User, error)
 	GetPrimaryImageByVariantID(ctx context.Context, productVariantID int64) (ProductVariantImage, error)
+	GetProductCategory(ctx context.Context, id int64) (ProductCategory, error)
 	GetProductVariantImage(ctx context.Context, id int64) (ProductVariantImage, error)
+	ListCategoriesByShop(ctx context.Context, shopID int64) ([]ProductCategory, error)
+	ListCategoriesForProduct(ctx context.Context, productID int64) ([]ProductCategory, error)
 	ListCustomers(ctx context.Context, arg *ListCustomersParams) ([]Customer, error)
 	ListImagesByVariantID(ctx context.Context, productVariantID int64) ([]ProductVariantImage, error)
 	ListInventoryItems(ctx context.Context, arg *ListInventoryItemsParams) ([]InventoryItem, error)
@@ -38,6 +45,7 @@ type Querier interface {
 	UpdateCustomer(ctx context.Context, arg *UpdateCustomerParams) (Customer, error)
 	UpdateInventoryItem(ctx context.Context, arg *UpdateInventoryItemParams) (InventoryItem, error)
 	UpdateProduct(ctx context.Context, arg *UpdateProductParams) (Product, error)
+	UpdateProductCategory(ctx context.Context, arg *UpdateProductCategoryParams) (ProductCategory, error)
 	UpdateProductVariant(ctx context.Context, arg *UpdateProductVariantParams) (ProductVariant, error)
 	UpdateShop(ctx context.Context, arg *UpdateShopParams) (Shop, error)
 	UpdateStore(ctx context.Context, arg *UpdateStoreParams) (Store, error)
