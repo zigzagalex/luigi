@@ -17,6 +17,7 @@ import (
 	v1shops "github.com/zigzagalex/luigi/api/internal/v1/shops"
 	v1stores "github.com/zigzagalex/luigi/api/internal/v1/stores"
 	v1users "github.com/zigzagalex/luigi/api/internal/v1/users"
+	v1categories "github.com/zigzagalex/luigi/api/internal/v1/categories"
 )
 
 type Deps struct {
@@ -37,6 +38,7 @@ func New(d Deps) http.Handler {
 		v1products.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 		v1product_variants.RegisterRoutes(r, d.Q)
 		v1inventory.RegisterRoutes(r, d.Q)
+		v1categories.RegisterRoutes(r, d.Q)
 
 		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 	})
