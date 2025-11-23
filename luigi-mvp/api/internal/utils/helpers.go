@@ -27,6 +27,15 @@ func ToNullInt64(p *int64) sql.NullInt64 {
 	return sql.NullInt64{Int64: *p, Valid: true}
 }
 
+// ToNullInt32 converts *int32 → sql.NullInt32.
+// Nil → NULL.
+func ToNullInt32(p *int32) sql.NullInt32 {
+	if p == nil {
+		return sql.NullInt32{Valid: false}
+	}
+	return sql.NullInt32{Int32: *p, Valid: true}
+}
+
 // ToNullBool converts *bool → sql.NullBool.
 // Nil → NULL.
 func ToNullBool(p *bool) sql.NullBool {
@@ -44,7 +53,6 @@ func DerefOr(p *string, def string) string {
 	}
 	return *p
 }
-
 
 func TrimOrNil(p *string) *string {
 	if p == nil {
