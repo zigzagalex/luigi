@@ -5,6 +5,12 @@ import { fetchApi } from "./fetchAPI";
 // Types
 // ───────────────────────────────────────────
 
+export interface ProductCategory {
+  id: number;
+  name: string;
+  slug: string;
+}
+
 export interface Product {
   id: number;
   shop_id: number;
@@ -19,6 +25,7 @@ export interface Product {
   updated_at: string; // ISO timestamp
 
   primary_image_url?: string | null; 
+  categories?: ProductCategory[];
 }
 
 export interface ProductVariant {
