@@ -405,19 +405,25 @@ a {
 
 
 .app-header {
-  background: #0b1220;        /* match your current dark navy */
+  background: #0b1220;        /* your dark navy bar */
   color: #fff;
-  padding: 1rem 2rem;
+  padding: 1rem 2rem 2.5rem;  /* extra bottom padding for the search pill row */
 }
 
 .app-header-inner {
   max-width: 1200px;
   margin: 0 auto;
+}
+
+/* Row 1: logo + kebab */
+.app-header-top {
   display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1.5rem;
 }
 
+/* Logo block */
 .app-logo {
   display: flex;
   flex-direction: column;
@@ -434,11 +440,6 @@ a {
 .app-logo-subtitle {
   font-size: 0.85rem;
   opacity: 0.8;
-}
-
-/* Let search pill stretch in the middle */
-.app-header-search {
-  flex: 1;
 }
 
 /* Kebab / menu icon */
@@ -460,24 +461,41 @@ a {
   background: #fff;
 }
 
-/* Responsive: stack on mobile */
+/* Row 2: search pill under nav */
+.app-header-search-row {
+  margin-top: 1.5rem;
+}
+
+/* Centered & constrained on desktop, like Airbnb */
+.app-header-search-row > * {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+/* ──────────────────────────────── */
+/* Mobile tweaks to app header      */
+/* ──────────────────────────────── */
+
 @media (max-width: 768px) {
   .app-header {
-    padding: 0.75rem 1rem;
+    padding: 0.75rem 1rem 1.75rem;
   }
 
-  .app-header-inner {
-    flex-direction: column;
-    align-items: stretch;
+  .app-header-top {
     gap: 0.75rem;
   }
 
-  .app-header-menu {
-    align-self: flex-end;
+  .app-logo-title {
+    font-size: 1rem;
   }
 
-  .app-header-search {
-    width: 100%;
-    order: 3; /* logo top, menu right-top, search below */
+  .app-logo-subtitle {
+    font-size: 0.8rem;
+  }
+
+  /* Search pill full width on mobile */
+  .app-header-search-row > * {
+    max-width: 100%;
   }
 }
+
