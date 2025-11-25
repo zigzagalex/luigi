@@ -162,7 +162,7 @@ a {
   border-radius: 9999px;
   border: none;
   /* subtle indigo/navy gradient to match the header vibe */
-  background: linear-gradient(135deg, #1d4ed8, #4f46e5);
+  background: linear-gradient(135deg, #a4aec9, #bfc9e6);
   color: #ffffff;
   display: flex;
   align-items: center;
@@ -173,7 +173,7 @@ a {
 }
 
 .search-pill-submit:hover {
-  background: linear-gradient(135deg, #1e40af, #4338ca);
+  background: linear-gradient(135deg, #a4aec9, #bfc9e6);
 }
 
 .search-pill-submit-icon {
