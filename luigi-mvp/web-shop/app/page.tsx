@@ -34,7 +34,6 @@ export default async function HomePage() {
 
         {featured.length > 0 && (
           <section className="section-block">
-            <h2 className="section-title">Featured bikes</h2>
             <FeaturedProductsSlider products={featured} />
           </section>
         )}
