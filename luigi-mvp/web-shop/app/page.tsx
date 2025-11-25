@@ -2,6 +2,7 @@
 import SearchPill from "./components/search/SearchPill";
 import ProductGrid from "./components/products/ProductGrid";
 import CategoryRow from "./components/products/CategoryRow";
+import FeaturedProductsSlider from "./components/products/FeaturedProductsSlider";
 import {
   fetchProducts,
   groupProductsByMainCategory,
@@ -34,7 +35,7 @@ export default async function HomePage() {
         {featured.length > 0 && (
           <section className="section-block">
             <h2 className="section-title">Featured bikes</h2>
-            <ProductGrid products={featured} />
+            <FeaturedProductsSlider products={featured} />
           </section>
         )}
 
