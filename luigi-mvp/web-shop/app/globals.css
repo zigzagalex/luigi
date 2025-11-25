@@ -111,7 +111,10 @@ a {
   width: 100%;
 }
 
+/* sections now stretch to fill the pill */
 .search-pill-section {
+  flex: 1;                     /* <-- key change */
+  min-width: 0;                /* allow text to shrink nicely */
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -143,28 +146,34 @@ a {
   color: #111827;
 }
 
+/* thin vertical separators */
 .search-pill-divider {
   width: 1px;
   height: 28px;
   background: #e5e7eb;
 }
 
+/* more stylish search button (no more bright red) */
 .search-pill-submit {
-  margin-left: 8px;
+  margin-left: 10px;
+  margin-right: 4px;
   width: 40px;
   height: 40px;
   border-radius: 9999px;
   border: none;
-  background: #ff385c;
+  /* subtle indigo/navy gradient to match the header vibe */
+  background: linear-gradient(135deg, #1d4ed8, #4f46e5);
   color: #ffffff;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
+  flex-shrink: 0;              /* don’t let it get squished */
 }
 
 .search-pill-submit:hover {
-  background: #e11d48;
+  background: linear-gradient(135deg, #1e40af, #4338ca);
 }
 
 .search-pill-submit-icon {
@@ -228,14 +237,7 @@ a {
   gap: 8px;
 }
 
-.quantity-controls button {
-  width: 28px;
-  height: 28px;
-  border-radius: 9999px;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  cursor: pointer;
-}
+.quantity-controls butto
 
 /* ─────────────────────────────────────────
    Product cards & grids
