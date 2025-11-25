@@ -377,3 +377,23 @@ a {
 .category-row-arrow-right {
   right: -16px;
 }
+
+
+/* ─────────────────────────────────────────
+   Product Slideshow
+   ───────────────────────────────────────── */
+
+.featured-slider {
+  margin-bottom: 2rem;
+}
+
+.featured-slider-viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+/* Make the product cards a bit bigger in this slider context */
+.featured-slider-item .product-card {
+  max-width: 480px;
+  margin: 0 auto;
+}
