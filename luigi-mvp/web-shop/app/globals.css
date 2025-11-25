@@ -397,3 +397,87 @@ a {
   max-width: 480px;
   margin: 0 auto;
 }
+
+
+/* ─────────────────────────────────────────
+   App Layout Header
+   ───────────────────────────────────────── */
+
+
+.app-header {
+  background: #0b1220;        /* match your current dark navy */
+  color: #fff;
+  padding: 1rem 2rem;
+}
+
+.app-header-inner {
+  max-width: 1200px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+.app-logo {
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+
+.app-logo-title {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.app-logo-subtitle {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* Let search pill stretch in the middle */
+.app-header-search {
+  flex: 1;
+}
+
+/* Kebab / menu icon */
+.app-header-menu {
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.22rem;
+  padding: 0.4rem;
+  cursor: pointer;
+}
+
+.app-header-menu span {
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: #fff;
+}
+
+/* Responsive: stack on mobile */
+@media (max-width: 768px) {
+  .app-header {
+    padding: 0.75rem 1rem;
+  }
+
+  .app-header-inner {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .app-header-menu {
+    align-self: flex-end;
+  }
+
+  .app-header-search {
+    width: 100%;
+    order: 3; /* logo top, menu right-top, search below */
+  }
+}
