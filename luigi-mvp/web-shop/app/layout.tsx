@@ -1,5 +1,6 @@
 // app/layout.tsx
 import "@/globals.css";
+import AppHeader from "./components/layout/AppHeader";
 import type { ReactNode } from "react";
 
 export const metadata = {
@@ -11,13 +12,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
   return (
     <html lang="de">
       <body>
-        <header className="site-header">
-          <div className="site-header-inner">
-            <div className="site-header-title">Luigi's Bike Rentals</div>
-            <div className="site-header-subtitle">Bern, Zurich, Geneva</div>
-          </div>
-        </header>
-
+        <AppHeader />
         {children}
       </body>
     </html>

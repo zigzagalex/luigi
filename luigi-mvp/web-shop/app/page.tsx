@@ -30,7 +30,6 @@ export default async function HomePage() {
   return (
     <main className="page">
       <div className="page-inner">
-        <SearchPill />
 
         {featured.length > 0 && (
           <section className="section-block">
