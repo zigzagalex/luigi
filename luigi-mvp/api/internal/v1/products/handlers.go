@@ -16,23 +16,26 @@ import (
 )
 
 func RegisterRoutes(r chi.Router, q db.Querier, store storage.Client, mediaBaseURL string) {
-    svc := productsvc.NewService(q)
+	svc := productsvc.NewService(q)
 
-    // List + create
-    r.Get("/products", listHandler(svc, mediaBaseURL))   // GET /v1/products
-    r.Post("/products", createHandler(svc))              // POST /v1/products
-
-    // Single product
-    r.Get("/products/{productID}", getHandler(svc))      // GET /v1/products/5
-    r.Put("/products/{productID}", updateHandler(svc))   // PUT /v1/products/5
-    r.Delete("/products/{productID}", deleteHandler(svc))// DELETE /v1/products/5
-
+	// Debug route to prove this file is wired
 	r.Get("/products/debug/ping", func(w http.ResponseWriter, r *http.Request) {
-        w.Header().Set("Content-Type", "text/plain")
-        _, _ = w.Write([]byte("products ping OK"))
-    })
-}
+		w.Header().Set("Content-Type", "text/plain")
+		_, _ = w.Write([]byte("products ping OK"))
+	})
 
+	// All product routes under /v1/products
+	r.Route("/products", func(r chi.Router) {
+		// /v1/products
+		r.Get("/", listHandler(svc, mediaBaseURL))
+		r.Post("/", createHandler(svc))
+
+		// /v1/products/{productID}
+		r.Get("/{productID}", getHandler(svc))
+		r.Put("/{productID}", updateHandler(svc))
+		r.Delete("/{productID}", deleteHandler(svc))
+	})
+}
 
 func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
