@@ -109,3 +109,17 @@ WHERE
   OR shop_id = sqlc.narg(shop_id)::bigint
 ORDER BY p.id
 LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
+
+-- name: GetProduct :one
+SELECT
+  id,
+  shop_id,
+  sku,
+  name,
+  description,
+  price_category,
+  is_active,
+  created_at,
+  updated_at
+FROM products
+WHERE id = sqlc.arg(product_id)::bigint;
