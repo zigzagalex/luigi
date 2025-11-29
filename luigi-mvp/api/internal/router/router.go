@@ -44,13 +44,11 @@ func New(d Deps) http.Handler {
 		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 	})
 
-	// 🔍 DEBUG: list all routes that this binary actually has
-	if err := chi.Walk(r, func(method string, route string, handler http.Handler, m ...func(http.Handler) http.Handler) error {
-		log.Printf("[ROUTE] %s %s", method, route)
-		return nil
-	}); err != nil {
-		log.Printf("chi.Walk error: %v", err)
-	}
+	 r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+        // this log will tell us if the router failed to match
+        log.Printf("[V1 NOT FOUND] %s %s", r.Method, r.URL.Path)
+        http.Error(w, "v1 not found: "+r.URL.Path, http.StatusNotFound)
+    })
 
 	return r
 }
