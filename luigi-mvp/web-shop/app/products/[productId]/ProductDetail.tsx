@@ -43,11 +43,12 @@ type Props = {
   inventory: InventoryItem[];
 };
 
-function getVariantSize(v: VariantWithImages): string | undefined {
-  if (!v.attributes) return undefined;
+function getVariantSize(v?: VariantWithImages | null): string | undefined {
+  if (!v || !v.attributes) return undefined;
   const raw = (v.attributes as any).size;
   return typeof raw === "string" ? raw : undefined;
 }
+
 
 export default function ProductDetail({
   product,
@@ -72,13 +73,13 @@ export default function ProductDetail({
   const images = selectedVariant?.images ?? [];
 
   const sizeMap = useMemo(() => {
-    const map = new Map<string, VariantWithImages>();
-    variants.forEach((v) => {
-      const size = getVariantSize(v);
-      if (size) map.set(size, v);
-    });
-    return map;
-  }, [variants]);
+  const map = new Map<string, VariantWithImages>();
+  variants.forEach((v) => {
+    const size = getVariantSize(v);
+    if (size) map.set(size, v);
+  });
+  return map;
+}, [variants]);
 
   const sizeOptions = ["S", "M", "L"]; // extend later if you want
 
