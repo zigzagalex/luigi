@@ -29,6 +29,7 @@ type Querier interface {
 	DeleteStore(ctx context.Context, id int64) (Store, error)
 	DeleteUser(ctx context.Context, id int64) (User, error)
 	GetPrimaryImageByVariantID(ctx context.Context, productVariantID int64) (ProductVariantImage, error)
+	GetProduct(ctx context.Context, productID int64) (Product, error)
 	GetProductCategory(ctx context.Context, id int64) (ProductCategory, error)
 	GetProductVariantImage(ctx context.Context, id int64) (ProductVariantImage, error)
 	ListCategoriesByShop(ctx context.Context, shopID int64) ([]ProductCategory, error)

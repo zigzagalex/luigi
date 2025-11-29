@@ -16,6 +16,8 @@ type productQuerier interface {
 	UpdateProduct(ctx context.Context, arg *db.UpdateProductParams) (db.Product, error)
 	DeleteProduct(ctx context.Context, id int64) (db.Product, error)
 	ListCategoriesForProduct(ctx context.Context, productID int64) ([]db.ProductCategory, error)
+
+	GetProduct(ctx context.Context, id int64) (db.Product, error) 
 }
 
 type Service struct {
@@ -45,6 +47,10 @@ func (s *Service) List(ctx context.Context, in ListInput) ([]db.Product, error) 
 		PageOffset: in.Offset,
 		PageLimit:  in.Limit,
 	})
+}
+
+func (s *Service) Get(ctx context.Context, id int64) (db.Product, error) {
+    return s.q.GetProduct(ctx, id)
 }
 
 type CreateInput struct {
@@ -144,6 +150,35 @@ func (s *Service) ListWithPrimaryImageDTO(
 
 	return out, nil
 }
+
+// GetDTO returns a single product as a ProductDTO, including categories.
+// PrimaryImageURL is left nil here
+func (s *Service) GetDTO(ctx context.Context, id int64) (ProductDTO, error) {
+	p, err := s.q.GetProduct(ctx, id)
+	if err != nil {
+		return ProductDTO{}, err // ErrNotFound bubbles up as-is
+	}
+
+	dto := ProductDTO{
+		ID:              p.ID,
+		ShopID:          p.ShopID,
+		SKU:             toStringPtr(p.Sku),
+		Name:            p.Name,
+		Description:     toStringPtr(p.Description),
+		PriceCategory:   p.PriceCategory,
+		IsActive:        p.IsActive,
+		PrimaryImageURL: nil, // detail page uses the gallery; no primary image here
+		Categories:      nil,
+	}
+
+	// Attach categories like on the list endpoint
+	if err := s.attachCategories(ctx, &dto); err != nil {
+		return ProductDTO{}, err
+	}
+
+	return dto, nil
+}
+
 
 func (s *Service) attachCategories(ctx context.Context, dto *ProductDTO) error {
 	cats, err := s.q.ListCategoriesForProduct(ctx, dto.ID)

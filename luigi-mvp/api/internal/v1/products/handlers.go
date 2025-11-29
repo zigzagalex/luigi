@@ -20,6 +20,7 @@ func RegisterRoutes(r chi.Router, q db.Querier, store storage.Client, mediaBaseU
 
 	r.Route("/products", func(r chi.Router) {
 		r.Get("/", listHandler(svc, mediaBaseURL))   // GET /products?limit=&offset=&shop_id=
+		r.Get("/{productID}", getHandler(svc))       // GET /products/{productID}
 		r.Post("/", createHandler(svc))              // POST /products
 		r.Put("/{productID}", updateHandler(svc))    // PUT /products/{productID}
 		r.Delete("/{productID}", deleteHandler(svc)) // DELETE /products/{productID}
@@ -61,6 +62,30 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 		httpx.JSON(w, http.StatusOK, items)
 	}
 }
+
+func getHandler(svc *productsvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		id, err := strconv.ParseInt(chi.URLParam(r, "productID"), 10, 64)
+		if err != nil || id <= 0 {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_id", nil)
+			return
+		}
+
+		dto, err := svc.GetDTO(r.Context(), id)
+		if err != nil {
+			if err == productsvc.ErrNotFound {
+				httpx.Fail(w, http.StatusNotFound, "product_not_found", nil)
+				return
+			}
+			log.Printf("get_product_failed id=%d: %v", id, err)
+			httpx.Fail(w, http.StatusInternalServerError, "get_product_failed", err.Error())
+			return
+		}
+
+		httpx.JSON(w, http.StatusOK, dto)
+	}
+}
+
 
 type createReq struct {
 	ShopID        int64   `json:"shop_id"`
