@@ -8,8 +8,6 @@ package db
 import (
 	"context"
 	"database/sql"
-
-	
 )
 
 const assignProductToCategory = `-- name: AssignProductToCategory :exec

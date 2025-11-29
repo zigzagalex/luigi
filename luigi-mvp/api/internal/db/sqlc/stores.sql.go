@@ -30,7 +30,7 @@ INSERT INTO stores (
   $6::text,
   $7::text, 
   $8::text,
-  $9::bool
+  COALESCE($9::bool, TRUE)
 )
 RETURNING
   id, 
