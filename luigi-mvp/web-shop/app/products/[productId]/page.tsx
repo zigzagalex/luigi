@@ -84,11 +84,10 @@ async function fetchVariants(productId: string): Promise<Variant[]> {
 }
 
 async function fetchImages(variantId: number): Promise<VariantImage[]> {
-  const res = await fetchApi(
-    `/v1/product_variant_images${buildQuery({ variant_id: variantId })}`
-  );
+  const res = await fetchApi(`/v1/product_variants/${variantId}/images`);
   return parseJSON<VariantImage[]>(res);
 }
+
 
 async function fetchStores(shopId: number): Promise<Store[]> {
   const res = await fetchApi(`/v1/stores${buildQuery({ shop_id: shopId })}`);
