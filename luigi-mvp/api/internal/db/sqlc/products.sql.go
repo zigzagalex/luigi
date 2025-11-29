@@ -116,11 +116,11 @@ SELECT
   created_at,
   updated_at
 FROM products
-WHERE id = $1::bigint
+WHERE id = $1
 `
 
-func (q *Queries) GetProduct(ctx context.Context, productID int64) (Product, error) {
-	row := q.db.QueryRowContext(ctx, getProduct, productID)
+func (q *Queries) GetProduct(ctx context.Context, id int64) (Product, error) {
+	row := q.db.QueryRowContext(ctx, getProduct, id)
 	var i Product
 	err := row.Scan(
 		&i.ID,

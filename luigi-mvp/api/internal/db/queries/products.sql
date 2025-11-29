@@ -122,4 +122,4 @@ SELECT
   created_at,
   updated_at
 FROM products
-WHERE id = sqlc.arg(product_id)::bigint;
+WHERE id = sqlc.arg(id);
