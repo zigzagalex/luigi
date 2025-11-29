@@ -26,6 +26,11 @@ func RegisterRoutes(r chi.Router, q db.Querier, store storage.Client, mediaBaseU
     r.Get("/products/{productID}", getHandler(svc))      // GET /v1/products/5
     r.Put("/products/{productID}", updateHandler(svc))   // PUT /v1/products/5
     r.Delete("/products/{productID}", deleteHandler(svc))// DELETE /v1/products/5
+
+	r.Get("/products/debug/ping", func(w http.ResponseWriter, r *http.Request) {
+        w.Header().Set("Content-Type", "text/plain")
+        _, _ = w.Write([]byte("products ping OK"))
+    })
 }
 
 

@@ -48,6 +48,16 @@ func New(d Deps) http.Handler {
         http.Error(w, "v1 not found: "+r.URL.Path, http.StatusNotFound)
     	})
 	})
+
+	if err := chi.Walk(r, func(method, route string, handler http.Handler,
+        middlewares ...func(http.Handler) http.Handler) error {
+
+        log.Printf("[ROUTE] %s %s", method, route)
+        return nil
+    }); err != nil {
+        log.Printf("chi.Walk error: %v", err)
+    }
+	
 	return r
 }
 
