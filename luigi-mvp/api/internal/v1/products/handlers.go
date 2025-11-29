@@ -16,16 +16,18 @@ import (
 )
 
 func RegisterRoutes(r chi.Router, q db.Querier, store storage.Client, mediaBaseURL string) {
-	svc := productsvc.NewService(q)
+    svc := productsvc.NewService(q)
 
-	r.Route("/products", func(r chi.Router) {
-		r.Get("/", listHandler(svc, mediaBaseURL))   // GET /products?limit=&offset=&shop_id=
-		r.Get("/{productID}", getHandler(svc))       // GET /products/{productID}
-		r.Post("/", createHandler(svc))              // POST /products
-		r.Put("/{productID}", updateHandler(svc))    // PUT /products/{productID}
-		r.Delete("/{productID}", deleteHandler(svc)) // DELETE /products/{productID}
-	})
+    // List + create
+    r.Get("/products", listHandler(svc, mediaBaseURL))   // GET /v1/products
+    r.Post("/products", createHandler(svc))              // POST /v1/products
+
+    // Single product
+    r.Get("/products/{productID}", getHandler(svc))      // GET /v1/products/5
+    r.Put("/products/{productID}", updateHandler(svc))   // PUT /v1/products/5
+    r.Delete("/products/{productID}", deleteHandler(svc))// DELETE /v1/products/5
 }
+
 
 func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
