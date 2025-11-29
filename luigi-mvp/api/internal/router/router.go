@@ -42,14 +42,12 @@ func New(d Deps) http.Handler {
 		v1categories.RegisterRoutes(r, d.Q)
 
 		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
-	})
-
-	 r.NotFound(func(w http.ResponseWriter, r *http.Request) {
+		r.NotFound(func(w http.ResponseWriter, r *http.Request) {
         // this log will tell us if the router failed to match
         log.Printf("[V1 NOT FOUND] %s %s", r.Method, r.URL.Path)
         http.Error(w, "v1 not found: "+r.URL.Path, http.StatusNotFound)
-    })
-
+    	})
+	})
 	return r
 }
 
