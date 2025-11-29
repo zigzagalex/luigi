@@ -27,7 +27,6 @@ export default function ProductCard({ product }: Props) {
             </span>
           )}
         </div>
-        <p className="product-card-subtitle">Shop #{product.shop_id}</p>
       </div>
     </Link>
   );

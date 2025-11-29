@@ -30,7 +30,7 @@ INSERT INTO stores (
   sqlc.narg(city)::text,
   sqlc.narg(country)::text, 
   sqlc.narg(timezone)::text,
-  sqlc.narg(is_active)::bool
+  COALESCE(sqlc.narg(is_active)::bool, TRUE)
 )
 RETURNING
   id, 
