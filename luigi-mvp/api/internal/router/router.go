@@ -1,6 +1,7 @@
 package router
 
 import (
+	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -9,6 +10,7 @@ import (
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	"github.com/zigzagalex/luigi/api/internal/storage"
 
+	v1categories "github.com/zigzagalex/luigi/api/internal/v1/categories"
 	v1customers "github.com/zigzagalex/luigi/api/internal/v1/customers"
 	v1inventory "github.com/zigzagalex/luigi/api/internal/v1/inventory"
 	v1productvariantimages "github.com/zigzagalex/luigi/api/internal/v1/product_variant_images"
@@ -17,7 +19,6 @@ import (
 	v1shops "github.com/zigzagalex/luigi/api/internal/v1/shops"
 	v1stores "github.com/zigzagalex/luigi/api/internal/v1/stores"
 	v1users "github.com/zigzagalex/luigi/api/internal/v1/users"
-	v1categories "github.com/zigzagalex/luigi/api/internal/v1/categories"
 )
 
 type Deps struct {
@@ -42,6 +43,15 @@ func New(d Deps) http.Handler {
 
 		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 	})
+
+	// 🔍 DEBUG: list all routes that this binary actually has
+	if err := chi.Walk(r, func(method string, route string, handler http.Handler, m ...func(http.Handler) http.Handler) error {
+		log.Printf("[ROUTE] %s %s", method, route)
+		return nil
+	}); err != nil {
+		log.Printf("chi.Walk error: %v", err)
+	}
+
 	return r
 }
 
