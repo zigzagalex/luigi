@@ -3,12 +3,10 @@ import { GoogleAuth, IdTokenClient } from "google-auth-library";
 
 const auth = new GoogleAuth();
 
-// Cache the client + audience so we don't recreate it every call
 let idTokenClient: IdTokenClient | null = null;
 let idTokenAudience: string | null = null;
 
 async function getIdTokenClient(audience: string): Promise<IdTokenClient> {
-  // If audience changed or client not created yet, build a new one
   if (!idTokenClient || idTokenAudience !== audience) {
     idTokenClient = await auth.getIdTokenClient(audience);
     idTokenAudience = audience;
@@ -16,27 +14,41 @@ async function getIdTokenClient(audience: string): Promise<IdTokenClient> {
   return idTokenClient;
 }
 
+function getApiBase(): string {
+  const base = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE;
+  if (!base) {
+    throw new Error("API_BASE_URL or NEXT_PUBLIC_API_BASE is not set");
+  }
+  return base;
+}
+
+function isLocalBase(base: string): boolean {
+  return (
+    base.startsWith("http://localhost") ||
+    base.startsWith("http://127.0.0.1")
+  );
+}
+
 /**
- * Server-side helper to call the IAM-protected API.
+ * Server-side helper to call the API.
  *
- * - Reads API_BASE_URL / NEXT_PUBLIC_API_BASE at *call time* (runtime),
- *   not at module import time (build).
- * - Uses GoogleAuth + IdTokenClient to mint an ID token with audience = base URL.
- * - Calls the API and wraps the result in a standard Fetch `Response`.
+ * - In dev/local (API_BASE_URL = http://localhost:8080), uses plain fetch.
+ * - In prod/stage (Cloud Run), uses GoogleAuth + IdTokenClient for IAM auth.
  */
 export async function fetchApi(
   path: string,
   init: RequestInit = {}
 ): Promise<Response> {
-  // Read env ONLY when the function is called, not at import
-  const base = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE;
-
-  if (!base) {
-    throw new Error("API_BASE_URL or NEXT_PUBLIC_API_BASE is not set");
-  }
-
+  const base = getApiBase();
   const url = new URL(path, base).toString();
 
+  // Local dev path: no IAM, just fetch 
+  if (isLocalBase(base)) {
+    const res = await fetch(url, init);
+    return res;
+  }
+
+  // Cloud Run / IAM-protected path 
   const client = await getIdTokenClient(base);
 
   const nodeRes = await client.request({
@@ -44,7 +56,6 @@ export async function fetchApi(
     method: init.method ?? "GET",
     headers: init.headers as any,
     data: init.body as any,
-    // Don't throw on non-2xx, we want to inspect status in callers
     validateStatus: () => true,
   });
 

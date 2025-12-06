@@ -16,9 +16,9 @@ func main() {
 	cfg := config.Load()
 
 	sqlDB, err := dbpool.Open(cfg.DatabaseURL, dbpool.PoolConfig{
-		MaxOpenConns: cfg.MaxOpenConns, 
-		MaxIdleConns: cfg.MaxIdleConns,
-		ConnMaxIdle: cfg.ConnMaxIdle, 
+		MaxOpenConns:    cfg.MaxOpenConns,
+		MaxIdleConns:    cfg.MaxIdleConns,
+		ConnMaxIdle:     cfg.ConnMaxIdle,
 		ConnMaxLifetime: cfg.ConnMaxLifetime,
 	})
 	if err != nil {
@@ -29,14 +29,24 @@ func main() {
 	q := db.New(sqlDB)
 
 	ctx := context.Background()
-	gcsClient, err := storage.NewGCSClient(ctx, cfg.GCSBucketName)
-	if err != nil {
-		log.Fatalf("failed to init GCS client: %v", err)
+
+	var store storage.Client
+
+	if cfg.Env == "dev" {
+		// Local dev: no GCP, just a noop client
+		store = storage.NewNoopClient()
+	} else {
+		// Prod/staging: GCS.
+		gcsClient, err := storage.NewGCSClient(ctx, cfg.GCSBucketName)
+		if err != nil {
+			log.Fatalf("failed to init GCS client: %v", err)
+		}
+		store = gcsClient
 	}
 
 	r := router.New(router.Deps{
 		Q:            q,
-		Storage:      gcsClient,
+		Storage:      store,
 		MediaBaseURL: cfg.MediaBaseURL,
 	})
 
