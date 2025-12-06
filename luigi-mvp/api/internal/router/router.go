@@ -31,6 +31,10 @@ func New(d Deps) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.SecurityHeaders, middleware.RequestLogger, apiVersionHeader("1")) // default header for v1 routes
 	r.Use(chiMw.Recoverer)
+	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		_, _ = w.Write([]byte(`{"status":"ok"}`))
+	})
 	r.Route("/v1", func(r chi.Router) {
 		v1shops.RegisterRoutes(r, d.Q)
 		v1stores.RegisterRoutes(r, d.Q)
@@ -43,21 +47,21 @@ func New(d Deps) http.Handler {
 
 		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 		r.NotFound(func(w http.ResponseWriter, r *http.Request) {
-        // this log will tell us if the router failed to match
-        log.Printf("[V1 NOT FOUND] %s %s", r.Method, r.URL.Path)
-        http.Error(w, "v1 not found: "+r.URL.Path, http.StatusNotFound)
-    	})
+			// this log will tell us if the router failed to match
+			log.Printf("[V1 NOT FOUND] %s %s", r.Method, r.URL.Path)
+			http.Error(w, "v1 not found: "+r.URL.Path, http.StatusNotFound)
+		})
 	})
 
 	if err := chi.Walk(r, func(method, route string, handler http.Handler,
-        middlewares ...func(http.Handler) http.Handler) error {
+		middlewares ...func(http.Handler) http.Handler) error {
 
-        log.Printf("[ROUTE] %s %s", method, route)
-        return nil
-    }); err != nil {
-        log.Printf("chi.Walk error: %v", err)
-    }
-	
+		log.Printf("[ROUTE] %s %s", method, route)
+		return nil
+	}); err != nil {
+		log.Printf("chi.Walk error: %v", err)
+	}
+
 	return r
 }
 

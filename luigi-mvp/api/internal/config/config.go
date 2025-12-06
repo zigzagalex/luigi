@@ -70,8 +70,20 @@ func Load() Config {
 }
 
 func base(env, port, url string) Config {
-	gcsBucket := must("GCS_BUCKET_NAME")
-	mediaBaseURL := must("MEDIA_BASE_URL")
+	var (
+		gcsBucket    string
+		mediaBaseURL string
+	)
+
+	if env == "prod" {
+		// PROD
+		gcsBucket = must("GCS_BUCKET_NAME")
+		mediaBaseURL = must("MEDIA_BASE_URL")
+	} else {
+		// DEV
+		gcsBucket = get("GCS_BUCKET_NAME", "")
+		mediaBaseURL = get("MEDIA_BASE_URL", "http://localhost:8080/media")
+	}
 
 	return Config{
 		Env:             env,
