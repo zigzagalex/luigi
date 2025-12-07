@@ -2,8 +2,8 @@
 export const dynamic = "force-dynamic";
 
 import ProductDetail from "./ProductDetail";
-import { fetchApi } from "@/utils/fetchAPI";
-import type { Product } from "@/utils/products";
+import { fetchApi } from "@/../utils/fetchAPI";
+import type { Product } from "@/../utils/products";
 
 // Helpers
 

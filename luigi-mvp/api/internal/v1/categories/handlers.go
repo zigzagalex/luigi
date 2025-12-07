@@ -28,10 +28,9 @@ func RegisterRoutes(r chi.Router, q db.Querier) {
 	})
 
 	// /v1/products/{productID}/categories...
-	r.Route("/products/{productID}", func(r chi.Router) {
-		r.Put("/categories", replaceProductCategoriesHandler(svc)) // PUT /products/{productID}/categories
-		r.Get("/categories", listProductCategoriesHandler(svc))    // GET /products/{productID}/categories
-	})
+	r.Put("/products/{productID}/categories", replaceProductCategoriesHandler(svc)) // PUT /products/{productID}/categories
+	r.Get("/products/{productID}/categories", listProductCategoriesHandler(svc))    // GET /products/{productID}/categories
+
 }
 
 func parseIDParam(r *http.Request, name string) (int64, bool) {
