@@ -79,7 +79,9 @@ INSERT INTO price_points (
   day_count,
   price_total_cents
 ) VALUES (
-  $1, $2, $3
+  $1, 
+  $2, 
+  $3
 )
 ON CONFLICT (price_category, day_count)
 DO UPDATE SET
