@@ -113,20 +113,48 @@ export default async function ProductPage({
 
   // 2) variants + images
   const variants = await fetchVariants(productId);
+
   const imagesPerVariant = await Promise.all(
     variants.map((v) => fetchImages(v.id))
   );
 
-  const variantsWithImages = variants.map((variant, idx) => ({
-    ...variant,
-    images: imagesPerVariant[idx] ?? [],
-  }));
+  // flatten all images so we can fall back if some variant has none
+  const allImages = imagesPerVariant.flat();
+
+  const variantsWithImages = variants.map((variant, idx) => {
+    const imgs = imagesPerVariant[idx] ?? [];
+    const finalImages =
+      imgs.length > 0
+        ? imgs
+        : allImages.length > 0
+        ? allImages
+        : []; // worst case, truly no images in DB
+
+    return {
+      ...variant,
+      images: finalImages,
+    };
+  });
 
   // 3) stores + inventory for that shop
   const [stores, inventory] = await Promise.all([
     fetchStores(product.shop_id),
     fetchInventory(product.shop_id),
   ]);
+
+  console.log(
+    "ProductPage data",
+    JSON.stringify(
+      {
+        productId,
+        variants,
+        imagesPerVariant,
+        variantsWithImages,
+      },
+      null,
+      2
+    )
+  );
 
   return (
     <main className="page product-detail-page">

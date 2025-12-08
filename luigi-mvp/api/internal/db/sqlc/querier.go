@@ -22,12 +22,14 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg *CreateUserParams) (User, error)
 	DeleteCustomer(ctx context.Context, id int64) (Customer, error)
 	DeleteInventoryItem(ctx context.Context, id int64) (InventoryItem, error)
+	DeletePricePoint(ctx context.Context, arg *DeletePricePointParams) error
 	DeleteProduct(ctx context.Context, id int64) (Product, error)
 	DeleteProductCategory(ctx context.Context, id int64) (ProductCategory, error)
 	DeleteProductVariant(ctx context.Context, id int64) (ProductVariant, error)
 	DeleteProductVariantImage(ctx context.Context, id int64) error
 	DeleteStore(ctx context.Context, id int64) (Store, error)
 	DeleteUser(ctx context.Context, id int64) (User, error)
+	GetPricePoint(ctx context.Context, arg *GetPricePointParams) (PricePoint, error)
 	GetPrimaryImageByVariantID(ctx context.Context, productVariantID int64) (ProductVariantImage, error)
 	GetProduct(ctx context.Context, id int64) (Product, error)
 	GetProductCategory(ctx context.Context, id int64) (ProductCategory, error)
@@ -37,6 +39,7 @@ type Querier interface {
 	ListCustomers(ctx context.Context, arg *ListCustomersParams) ([]Customer, error)
 	ListImagesByVariantID(ctx context.Context, productVariantID int64) ([]ProductVariantImage, error)
 	ListInventoryItems(ctx context.Context, arg *ListInventoryItemsParams) ([]InventoryItem, error)
+	ListPricePoints(ctx context.Context) ([]PricePoint, error)
 	ListProductVariants(ctx context.Context, arg *ListProductVariantsParams) ([]ProductVariant, error)
 	ListProducts(ctx context.Context, arg *ListProductsParams) ([]Product, error)
 	ListProductsWithPrimaryImage(ctx context.Context, arg *ListProductsWithPrimaryImageParams) ([]ListProductsWithPrimaryImageRow, error)
@@ -51,6 +54,7 @@ type Querier interface {
 	UpdateShop(ctx context.Context, arg *UpdateShopParams) (Shop, error)
 	UpdateStore(ctx context.Context, arg *UpdateStoreParams) (Store, error)
 	UpdateUser(ctx context.Context, arg *UpdateUserParams) (User, error)
+	UpsertPricePoint(ctx context.Context, arg *UpsertPricePointParams) (PricePoint, error)
 }
 
 var _ Querier = (*Queries)(nil)

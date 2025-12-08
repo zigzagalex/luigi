@@ -7,7 +7,7 @@ import {
   fetchProducts,
   groupProductsByMainCategory,
   type Product,
-} from "@/utils/products";
+} from "../utils/products";
 
 export const dynamic = "force-dynamic";
 

@@ -42,13 +42,19 @@ export async function fetchApi(
   const base = getApiBase();
   const url = new URL(path, base).toString();
 
-  // Local dev path: no IAM, just fetch 
+  // Local dev: plain fetch
   if (isLocalBase(base)) {
-    const res = await fetch(url, init);
-    return res;
+    return fetch(url, {
+      ...init,
+      headers: {
+        "Content-Type": "application/json",
+        ...(init.headers || {}),
+      },
+      cache: "no-store",
+    });
   }
 
-  // Cloud Run / IAM-protected path 
+  // Cloud Run / IAM-protected
   const client = await getIdTokenClient(base);
 
   const nodeRes = await client.request({
