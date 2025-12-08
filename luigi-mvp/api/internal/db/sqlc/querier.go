@@ -11,6 +11,15 @@ import (
 type Querier interface {
 	AssignProductToCategory(ctx context.Context, arg *AssignProductToCategoryParams) error
 	ClearProductCategories(ctx context.Context, productID int64) error
+	// Count how many inventory items of a given variant+store
+	// are available for a requested time range.
+	//
+	// Requested range is built as [start_at, end_at)
+	// and we exclude items that are:
+	//   - in maintenance_windows
+	//   - in (non-cancelled) reservations via reservation_items.padded_range
+	//   - in non-expired holds
+	CountAvailableInventoryForRange(ctx context.Context, arg *CountAvailableInventoryForRangeParams) (int32, error)
 	CreateCustomer(ctx context.Context, arg *CreateCustomerParams) (Customer, error)
 	CreateInventoryItem(ctx context.Context, arg *CreateInventoryItemParams) (InventoryItem, error)
 	CreateProduct(ctx context.Context, arg *CreateProductParams) (Product, error)
@@ -29,11 +38,14 @@ type Querier interface {
 	DeleteProductVariantImage(ctx context.Context, id int64) error
 	DeleteStore(ctx context.Context, id int64) (Store, error)
 	DeleteUser(ctx context.Context, id int64) (User, error)
+	GetPriceCategoryForVariant(ctx context.Context, productVariantID int64) (string, error)
 	GetPricePoint(ctx context.Context, arg *GetPricePointParams) (PricePoint, error)
 	GetPrimaryImageByVariantID(ctx context.Context, productVariantID int64) (ProductVariantImage, error)
 	GetProduct(ctx context.Context, id int64) (Product, error)
 	GetProductCategory(ctx context.Context, id int64) (ProductCategory, error)
 	GetProductVariantImage(ctx context.Context, id int64) (ProductVariantImage, error)
+	// List active inventory items for a given variant+store.
+	ListActiveInventoryForVariantStore(ctx context.Context, arg *ListActiveInventoryForVariantStoreParams) ([]InventoryItem, error)
 	ListCategoriesByShop(ctx context.Context, shopID int64) ([]ProductCategory, error)
 	ListCategoriesForProduct(ctx context.Context, productID int64) ([]ProductCategory, error)
 	ListCustomers(ctx context.Context, arg *ListCustomersParams) ([]Customer, error)
@@ -46,6 +58,16 @@ type Querier interface {
 	ListShops(ctx context.Context, arg *ListShopsParams) ([]Shop, error)
 	ListStores(ctx context.Context, arg *ListStoresParams) ([]Store, error)
 	ListUsers(ctx context.Context, arg *ListUsersParams) ([]User, error)
+	// Search available variants across products / stores for a given time range.
+	// Filters:
+	//   - shop_id        (optional)
+	//   - store_id       (optional)
+	//   - product_ids    (optional array)
+	//   - category_ids   (optional array)
+	//   - start_at, end_at  (required, full reservation window)
+	//   - quantity       (required, minimum units needed)
+	// Returns one row per (product, variant, store) that has COUNT(*) >= quantity.
+	SearchAvailableVariants(ctx context.Context, arg *SearchAvailableVariantsParams) ([]SearchAvailableVariantsRow, error)
 	UpdateCustomer(ctx context.Context, arg *UpdateCustomerParams) (Customer, error)
 	UpdateInventoryItem(ctx context.Context, arg *UpdateInventoryItemParams) (InventoryItem, error)
 	UpdateProduct(ctx context.Context, arg *UpdateProductParams) (Product, error)

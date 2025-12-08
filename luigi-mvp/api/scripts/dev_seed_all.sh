@@ -12,6 +12,7 @@ SCRIPTS_IN_ORDER=(
   "dev_seed_assign_categories.sh"
   "dev_seed_inventory.sh"
   "dev_seed_product_variant_images.sh"
+  "dev_seed_price_points.sh"
 )
 
 echo "==> Running full dev seed using scripts in ${SCRIPT_DIR}"

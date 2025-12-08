@@ -10,6 +10,7 @@ import (
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	"github.com/zigzagalex/luigi/api/internal/storage"
 
+	v1availability "github.com/zigzagalex/luigi/api/internal/v1/availability"
 	v1categories "github.com/zigzagalex/luigi/api/internal/v1/categories"
 	v1customers "github.com/zigzagalex/luigi/api/internal/v1/customers"
 	v1inventory "github.com/zigzagalex/luigi/api/internal/v1/inventory"
@@ -46,6 +47,7 @@ func New(d Deps) http.Handler {
 		v1inventory.RegisterRoutes(r, d.Q)
 		v1categories.RegisterRoutes(r, d.Q)
 		v1pricepoints.RegisterRoutes(r, d.Q)
+		v1availability.RegisterRoutes(r, d.Q)
 
 		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 		r.NotFound(func(w http.ResponseWriter, r *http.Request) {
