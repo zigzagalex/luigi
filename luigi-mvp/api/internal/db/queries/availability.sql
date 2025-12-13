@@ -96,7 +96,7 @@ WHERE pv.id = sqlc.arg(product_variant_id);
 -- Returns one row per (product, variant, store) that has COUNT(*) >= quantity.
 -- name: SearchAvailableVariants :many
 WITH candidate_items AS (
-  SELECT
+  SELECT DISTINCT
     ii.id,
     ii.product_variant_id,
     ii.store_id,
@@ -115,7 +115,7 @@ WITH candidate_items AS (
     -- optional filters
     AND (
       sqlc.narg(shop_id)::bigint IS NULL
-      OR p.shop_id = sqlc.narg(shop_id)::bigint
+      OR ii.shop_id = sqlc.narg(shop_id)::bigint
     )
     AND (
       sqlc.narg(store_id)::bigint IS NULL
@@ -123,13 +123,12 @@ WITH candidate_items AS (
     )
     AND (
       sqlc.narg(product_ids)::bigint[] IS NULL
-      OR p.id = ANY(sqlc.narg(product_ids)::bigint[])
+      OR p.id = ANY(sqlc.narg(product_ids))
     )
     AND (
-      sqlc.narg(category_ids)::bigint[] IS NULL
-      OR pca.category_id = ANY(sqlc.narg(category_ids)::bigint[])
+      sqlc.arg(category_ids)::bigint[] IS NULL
+      OR pca.category_id = ANY(sqlc.narg(category_ids))
     )
-
 ),
 range_param AS (
   SELECT tstzrange(sqlc.arg(start_at), sqlc.arg(end_at), '[)') AS desired_range

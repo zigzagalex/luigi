@@ -170,7 +170,7 @@ func (q *Queries) ListActiveInventoryForVariantStore(ctx context.Context, arg *L
 
 const searchAvailableVariants = `-- name: SearchAvailableVariants :many
 WITH candidate_items AS (
-  SELECT
+  SELECT DISTINCT
     ii.id,
     ii.product_variant_id,
     ii.store_id,
@@ -189,7 +189,7 @@ WITH candidate_items AS (
     -- optional filters
     AND (
       $2::bigint IS NULL
-      OR p.shop_id = $2::bigint
+      OR ii.shop_id = $2::bigint
     )
     AND (
       $3::bigint IS NULL
@@ -197,13 +197,12 @@ WITH candidate_items AS (
     )
     AND (
       $4::bigint[] IS NULL
-      OR p.id = ANY($4::bigint[])
+      OR p.id = ANY($4)
     )
     AND (
       $5::bigint[] IS NULL
-      OR pca.category_id = ANY($5::bigint[])
+      OR pca.category_id = ANY($5)
     )
-
 ),
 range_param AS (
   SELECT tstzrange($6, $7, '[)') AS desired_range
