@@ -3,12 +3,20 @@ import type { Product } from "@/../utils/products";
 
 type Props = {
   product: Product;
+  /** Optional: minimum price from availability search (in cents) */
+  minPriceCents?: number;
+  /** Optional: total available quantity for this product */
+  availableQuantity?: number;
 };
 
 const FALLBACK_IMAGE =
   "https://images.pexels.com/photos/276517/pexels-photo-276517.jpeg?auto=compress&cs=tinysrgb&w=800";
 
-export default function ProductCard({ product }: Props) {
+export default function ProductCard({
+  product,
+  minPriceCents,
+  availableQuantity,
+}: Props) {
   const imageUrl = product.primary_image_url ?? FALLBACK_IMAGE;
 
   return (
@@ -27,6 +35,17 @@ export default function ProductCard({ product }: Props) {
             </span>
           )}
         </div>
+
+        {/* 🔥 Price + availability from availability/search */}
+        {minPriceCents != null && (
+          <p className="product-card-price">
+            From CHF {(minPriceCents / 100).toFixed(2)}
+            {typeof availableQuantity === "number" &&
+              ` · ${availableQuantity} bike${
+                availableQuantity === 1 ? "" : "s"
+              } available`}
+          </p>
+        )}
       </div>
     </Link>
   );

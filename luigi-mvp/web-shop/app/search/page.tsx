@@ -1,5 +1,7 @@
 // app/search/page.tsx
+import ProductGrid from "../components/products/ProductGrid";
 import { fetchApi } from "utils/fetchAPI";
+import { fetchProducts, type Product } from "@/../utils/products";
 
 type RawSearchParams = {
   shop_id?: string;
@@ -27,17 +29,23 @@ type AvailabilityRow = {
   variants: AvailabilityVariant[];
 };
 
+// ... imports ...
+
 export default async function SearchPage({ searchParams }: SearchPageProps) {
-  // 🔑 THIS is the important part: await the promise
   const sp: RawSearchParams = (await searchParams) ?? {};
 
   const shopId = Number(sp.shop_id ?? "1");
   const categoryId = sp.category_id ? Number(sp.category_id) : undefined;
-  const from = sp.from; // "YYYY-MM-DD"
-  const to = sp.to;     // "YYYY-MM-DD"
+  const from = sp.from;
+  const to = sp.to;
   const quantity = Number(sp.quantity ?? "1");
 
   let availability: AvailabilityRow[] = [];
+  let products: Product[] = [];
+  let availabilityInfo: Record<
+    number,
+    { minPriceCents: number; availableQuantity: number }
+  > = {};
   let error: string | null = null;
 
   if (from && to) {
@@ -62,6 +70,33 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         error = `API error ${res.status}: ${text}`;
       } else {
         availability = (await res.json()) as AvailabilityRow[];
+
+        if (availability.length) {
+          // Build availabilityInfo per product
+          for (const row of availability) {
+            const totalAvailable = row.variants.reduce(
+              (sum, v) => sum + v.available_quantity,
+              0
+            );
+            const existing = availabilityInfo[row.product_id];
+
+            if (!existing || row.min_price_cents < existing.minPriceCents) {
+              availabilityInfo[row.product_id] = {
+                minPriceCents: row.min_price_cents,
+                availableQuantity: totalAvailable,
+              };
+            }
+          }
+
+          const productIds = Array.from(
+            new Set(availability.map((a) => a.product_id))
+          );
+
+          products = await fetchProducts({
+            shop_id: shopId,
+            ids: productIds.join(","),
+          });
+        }
       }
     } catch (err) {
       console.error("availability search failed:", err);
@@ -74,48 +109,21 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       <div className="page-inner">
         <h1>Available bikes</h1>
 
-        {/* Debug: show incoming search params */}
-        <pre style={{ fontSize: 12, margin: "8px 0 16px" }}>
-          {JSON.stringify(sp, null, 2)}
-        </pre>
+        {/* keep or delete this debug */}
+        {/* <pre>{JSON.stringify(sp, null, 2)}</pre> */}
 
         {!from || !to ? (
           <p>Please choose dates in the search bar first.</p>
         ) : error ? (
           <p style={{ color: "red" }}>{error}</p>
-        ) : availability.length === 0 ? (
+        ) : products.length === 0 ? (
           <p>No available bikes for that search.</p>
         ) : (
-          <div className="product-grid">
-            {availability.map((row) => (
-              <div
-                key={`${row.product_id}-${row.store_ids.join("-")}`}
-                className="product-card"
-              >
-                <div className="product-card-body">
-                  <h3>Product #{row.product_id}</h3>
-                  <p>
-                    From CHF {(row.min_price_cents / 100).toFixed(2)} ·{" "}
-                    {row.variants.reduce(
-                      (sum, v) => sum + v.available_quantity,
-                      0
-                    )}{" "}
-                    bikes available
-                  </p>
-                  <p className="product-card-meta">
-                    Stores: {row.store_ids.join(", ")}
-                  </p>
-                </div>
-
-                <a
-                  href={`/products/${row.product_id}`}
-                  className="product-card-link"
-                >
-                  View details
-                </a>
-              </div>
-            ))}
-          </div>
+          <ProductGrid
+            products={products}
+            availabilityInfo={availabilityInfo}
+            className="product-grid-search"
+          />
         )}
       </div>
     </main>
