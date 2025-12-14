@@ -1,6 +1,4 @@
 // app/page.tsx
-import SearchPill from "./components/search/SearchPill";
-import ProductGrid from "./components/products/ProductGrid";
 import CategoryRow from "./components/products/CategoryRow";
 import FeaturedProductsSlider from "./components/products/FeaturedProductsSlider";
 import {
@@ -11,17 +9,19 @@ import {
 
 export const dynamic = "force-dynamic";
 
+const DEFAULT_SHOP_ID = 1;
+
 export default async function HomePage() {
   let products: Product[] = [];
 
   try {
     products = await fetchProducts({
-      shop_id: 1,
+      shop_id: DEFAULT_SHOP_ID,
       limit: 32,
     });
-
   } catch (err) {
     console.error("Failed to fetch products for homepage:", err);
+    products = [];
   }
 
   const featured = products.slice(0, 8);
@@ -30,6 +30,7 @@ export default async function HomePage() {
   return (
     <main className="page">
       <div className="page-inner">
+        {/* No SearchPill here anymore – it lives in AppHeader */}
 
         {featured.length > 0 && (
           <section className="section-block">
@@ -40,8 +41,8 @@ export default async function HomePage() {
         {rows.map((row) => (
           <section key={row.key} className="section-block">
             <CategoryRow
-              title={row.title}                     // e.g. "Mountain Bikes"
-              products={row.products.slice(0, 10)}  // cap per row if you want
+              title={row.title}
+              products={row.products.slice(0, 10)}
             />
           </section>
         ))}

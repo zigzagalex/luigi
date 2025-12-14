@@ -1,10 +1,13 @@
 // app/components/layout/AppHeader.tsx
-"use client";
-
 import Link from "next/link";
 import SearchPill from "../search/SearchPill";
+import { fetchCategoryOptions } from "utils/fetchAPI";
 
-export default function AppHeader() {
+const DEFAULT_SHOP_ID = 1;
+
+export default async function AppHeader() {
+  const categories = await fetchCategoryOptions(DEFAULT_SHOP_ID);
+
   return (
     <header className="app-header">
       <div className="app-header-inner">
@@ -28,7 +31,7 @@ export default function AppHeader() {
 
         {/* Second row: search pill, same header, below nav */}
         <div className="app-header-search-row">
-          <SearchPill />
+          <SearchPill categories={categories} />
         </div>
       </div>
     </header>

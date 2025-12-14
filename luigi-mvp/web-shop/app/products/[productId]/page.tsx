@@ -104,9 +104,9 @@ async function fetchInventory(shopId: number): Promise<InventoryItem[]> {
 export default async function ProductPage({
   params,
 }: {
-  params: { productId: string };
+  params: Promise<{ productId: string }>;
 }) {
-  const { productId } = params;
+  const { productId } = await params;
 
   // 1) product
   const product = await fetchProduct(productId);
