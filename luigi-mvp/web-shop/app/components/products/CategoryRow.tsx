@@ -1,7 +1,7 @@
 "use client";
 
 import { useRef } from "react";
-import type { Product } from "@/utils/products";
+import type { Product } from "@/../utils/products";
 import ProductCard from "./ProductCard";
 
 type Props = {
