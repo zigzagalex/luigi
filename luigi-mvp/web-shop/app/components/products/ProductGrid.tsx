@@ -1,18 +1,38 @@
 import type { Product } from "@/../utils/products";
 import ProductCard from "./ProductCard";
 
-type Props = {
-  products: Product[];
+type AvailabilityInfo = {
+  minPriceCents: number;
+  availableQuantity?: number;
 };
 
-export default function ProductGrid({ products }: Props) {
+type Props = {
+  products: Product[];
+  availabilityInfo?: Record<number, AvailabilityInfo>;
+  className?: string; // 👈 NEW
+};
+
+export default function ProductGrid({ products, availabilityInfo, className }: Props) {
   if (!products.length) return null;
 
+  const gridClassName = ["product-grid", className]
+    .filter(Boolean)
+    .join(" ");
+
   return (
-    <div className="product-grid">
-      {products.map((product) => (
-        <ProductCard key={product.id} product={product} />
-      ))}
+    <div className={gridClassName}>
+      {products.map((product) => {
+        const info = availabilityInfo?.[product.id];
+
+        return (
+          <ProductCard
+            key={product.id}
+            product={product}
+            minPriceCents={info?.minPriceCents}
+            availableQuantity={info?.availableQuantity}
+          />
+        );
+      })}
     </div>
   );
 }
