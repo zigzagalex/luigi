@@ -1,22 +1,57 @@
 // app/components/layout/AppHeader.tsx
+"use client";
+
+import { useState } from "react";
 import Link from "next/link";
 import SearchPill from "../search/SearchPill";
-import { fetchCategoryOptions } from "utils/fetchAPI";
+import type { CategoryOption, StoreOption } from "@/../utils/fetchAPI";
 
-const DEFAULT_SHOP_ID = 1;
+type Props = {
+  categories: CategoryOption[];
+  stores: StoreOption[];
+};
 
-export default async function AppHeader() {
-  const categories = await fetchCategoryOptions(DEFAULT_SHOP_ID);
+export default function AppHeader({ categories, stores }: Props) {
+  const [selectedStore, setSelectedStore] = useState<StoreOption | null>(
+    () => stores[0] ?? null // preselect first store
+  );
 
   return (
     <header className="app-header">
       <div className="app-header-inner">
-        {/* Top row: logo + menu */}
+        {/* Top row: logo + store tabs + menu */}
         <div className="app-header-top">
           <Link href="/" className="app-logo">
             <span className="app-logo-title">Luigi&apos;s Bike Rentals</span>
             <span className="app-logo-subtitle">Bern, Zurich, Geneva</span>
           </Link>
+
+          {/* Store tabs */}
+          {stores.length > 0 && (
+            <nav
+              className="app-header-store-nav"
+              aria-label="Choose pickup location"
+            >
+              {stores.map((store) => {
+                const isActive = selectedStore?.id === store.id;
+                return (
+                  <button
+                    key={store.id}
+                    type="button"
+                    onClick={() => setSelectedStore(store)}
+                    className={[
+                      "store-tab",
+                      isActive ? "store-tab-active" : "",
+                    ]
+                      .filter(Boolean)
+                      .join(" ")}
+                  >
+                    {store.label}
+                  </button>
+                );
+              })}
+            </nav>
+          )}
 
           <button
             type="button"
@@ -29,9 +64,18 @@ export default async function AppHeader() {
           </button>
         </div>
 
-        {/* Second row: search pill, same header, below nav */}
+        {/* Second row: search pill */}
         <div className="app-header-search-row">
-          <SearchPill categories={categories} />
+          {selectedStore ? (
+            <SearchPill
+              categories={categories}
+              selectedStore={selectedStore} // required
+            />
+          ) : (
+            <div className="search-pill-disabled">
+              No stores configured yet.
+            </div>
+          )}
         </div>
       </div>
     </header>

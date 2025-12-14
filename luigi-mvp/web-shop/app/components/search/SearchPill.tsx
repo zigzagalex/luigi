@@ -5,21 +5,28 @@ import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import type { DateRange } from "react-day-picker";
 import { RangeCalendar } from "@/components/daterangepicker/DateRangePicker";
-import type { CategoryOption } from "../../../utils/fetchAPI";
+import type { CategoryOption, StoreOption } from "@/../utils/fetchAPI";
 
 type ActivePanel = "what" | "when" | "howMany" | null;
 
 type SearchPillProps = {
   categories: CategoryOption[];
+  // store is REQUIRED – header guarantees we always have one selected
+  selectedStore: StoreOption;
 };
 
 const DEFAULT_SHOP_ID = 1;
 
-export default function SearchPill({ categories }: SearchPillProps) {
+function formatDateForApi(date: Date): string {
+  // YYYY-MM-DD
+  return date.toISOString().slice(0, 10);
+}
+
+export default function SearchPill({ categories, selectedStore }: SearchPillProps) {
   const router = useRouter();
   const [active, setActive] = useState<ActivePanel>(null);
 
-  // WHAT 
+  // ---------- WHAT ----------
   const [categoryOptions] = useState<CategoryOption[]>(() =>
     categories && categories.length > 0
       ? categories
@@ -30,11 +37,11 @@ export default function SearchPill({ categories }: SearchPillProps) {
     () => categoryOptions[0] ?? { id: null, label: "Any bike" }
   );
 
-  // WHEN 
+  // ---------- WHEN ----------
   const [range, setRange] = useState<DateRange | undefined>(undefined);
 
   const whenLabel = (() => {
-    if (!range || !range.from) return "Add dates";
+    if (!range?.from) return "Add dates";
     const from = range.from;
     const to = range.to ?? range.from;
 
@@ -55,7 +62,7 @@ export default function SearchPill({ categories }: SearchPillProps) {
     return `${fromStr}–${toStr}`;
   })();
 
-  // HOW MANY
+  // ---------- HOW MANY ----------
   const [quantity, setQuantity] = useState<number>(1);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -74,31 +81,34 @@ export default function SearchPill({ categories }: SearchPillProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [active]);
 
-  // SUBMIT HANDLER
-  function handleSubmit() {
-  const params = new URLSearchParams();
+  function handleSearch() {
+    // Extra runtime guard – should never happen if header is wired correctly
+    if (!selectedStore || !selectedStore.id) {
+      console.error("SearchPill: handleSearch called without a valid selectedStore");
+      return;
+    }
 
-  params.set("shop_id", String(DEFAULT_SHOP_ID));
+    const params = new URLSearchParams();
 
-  if (selectedCategory.id !== null) {
-    params.set("category_id", String(selectedCategory.id));
-  }
+    params.set("shop_id", String(DEFAULT_SHOP_ID));
+    // store is REQUIRED
+    params.set("store_id", String(selectedStore.id));
 
-  if (range?.from) {
-    const fromDate = range.from;        // Date
-    params.set("from", formatDateForApi(fromDate));
+    if (selectedCategory.id) {
+      params.set("category_id", String(selectedCategory.id));
+    }
 
-    const toDate = range.to ?? fromDate; // also Date
-    params.set("to", formatDateForApi(toDate));
-  }
+    if (range?.from) {
+      params.set("from", formatDateForApi(range.from));
+      const toDate = range.to ?? range.from;
+      params.set("to", formatDateForApi(toDate));
+    }
 
-  if (quantity > 0) {
     params.set("quantity", String(quantity));
-  }
 
-  router.push(`/search?${params.toString()}`);
-  setActive(null);
-}
+    router.push(`/search?${params.toString()}`);
+    setActive(null);
+  }
 
   return (
     <div className="hero-wrapper">
@@ -148,8 +158,7 @@ export default function SearchPill({ categories }: SearchPillProps) {
         <button
           type="button"
           className="search-pill-submit"
-          onClick={handleSubmit}
-          aria-label="Search available bikes"
+          onClick={handleSearch}
         >
           <span className="search-pill-submit-icon">🔍</span>
         </button>
@@ -247,9 +256,4 @@ export default function SearchPill({ categories }: SearchPillProps) {
       </div>
     </div>
   );
-}
-
-function formatDateForApi(date: Date): string {
-  // API-friendly YYYY-MM-DD
-  return date.toISOString().slice(0, 10);
 }
