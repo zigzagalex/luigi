@@ -1,14 +1,57 @@
+// app/components/search/SearchPill.tsx
 "use client";
 
 import { useState, useRef, useEffect } from "react";
+import type { DateRange } from "react-day-picker";
+import { RangeCalendar } from "@/components/daterangepicker/DateRangePicker";
+import type { CategoryOption } from "../../../utils/fetchAPI"; 
 
 type ActivePanel = "what" | "when" | "howMany" | null;
 
-export default function SearchPill() {
+type SearchPillProps = {
+  categories: CategoryOption[];
+};
+
+export default function SearchPill({ categories }: SearchPillProps) {
   const [active, setActive] = useState<ActivePanel>(null);
-  const [what, setWhat] = useState<string>("Any bike");
-  const [startDate, setStartDate] = useState<string>("");
-  const [endDate, setEndDate] = useState<string>("");
+
+  // ---------- WHAT ----------
+  const [categoryOptions] = useState<CategoryOption[]>(() =>
+    categories && categories.length > 0
+      ? categories
+      : [{ id: null, label: "Any bike" }]
+  );
+
+  const [selectedCategory, setSelectedCategory] = useState<CategoryOption>(
+    () => categoryOptions[0] ?? { id: null, label: "Any bike" }
+  );
+
+  // ---------- WHEN ----------
+  const [range, setRange] = useState<DateRange | undefined>(undefined);
+
+  const whenLabel = (() => {
+    if (!range || !range.from) return "Add dates";
+    const from = range.from;
+    const to = range.to ?? range.from;
+
+    const fmt = new Intl.DateTimeFormat("de-CH", {
+      day: "2-digit",
+      month: "short",
+    });
+
+    const fromStr = fmt.format(from);
+    const toStr = fmt.format(to);
+
+    if (
+      from.getMonth() === to.getMonth() &&
+      from.getFullYear() === to.getFullYear()
+    ) {
+      return `${from.getDate()}.–${toStr}`;
+    }
+    return `${fromStr}–${toStr}`;
+  })();
+
+  // ---------- HOW MANY ----------
   const [quantity, setQuantity] = useState<number>(1);
 
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -30,6 +73,7 @@ export default function SearchPill() {
   return (
     <div className="hero-wrapper">
       <div ref={wrapperRef} className="search-pill">
+        {/* WHAT */}
         <button
           type="button"
           className={`search-pill-section ${
@@ -38,11 +82,12 @@ export default function SearchPill() {
           onClick={() => setActive(active === "what" ? null : "what")}
         >
           <span className="search-pill-label">What</span>
-          <span className="search-pill-value">{what}</span>
+          <span className="search-pill-value">{selectedCategory.label}</span>
         </button>
 
         <div className="search-pill-divider" />
 
+        {/* WHEN */}
         <button
           type="button"
           className={`search-pill-section ${
@@ -51,13 +96,12 @@ export default function SearchPill() {
           onClick={() => setActive(active === "when" ? null : "when")}
         >
           <span className="search-pill-label">When</span>
-          <span className="search-pill-value">
-            {startDate && endDate ? `${startDate} → ${endDate}` : "Add dates"}
-          </span>
+          <span className="search-pill-value">{whenLabel}</span>
         </button>
 
         <div className="search-pill-divider" />
 
+        {/* HOW MANY */}
         <button
           type="button"
           className={`search-pill-section ${
@@ -75,66 +119,87 @@ export default function SearchPill() {
           <span className="search-pill-submit-icon">🔍</span>
         </button>
 
+        {/* POPOVERS */}
         {active && (
           <div className="search-popover">
+            {/* WHAT */}
             {active === "what" && (
-              <div className="search-popover-content">
-                <h4>Bike type</h4>
-                <input
-                  type="text"
-                  className="search-input"
-                  placeholder="City, e-bike, cargo..."
-                  value={what === "Any bike" ? "" : what}
-                  onChange={(e) =>
-                    setWhat(e.target.value || "Any bike")
-                  }
-                />
-                <p className="search-help">
-                  This is UI-only for now, we’ll wire it to filters later.
-                </p>
+              <div className="search-popover-content search-popover-what">
+                <div className="category-grid">
+                  {categoryOptions.map((opt) => {
+                    const isSelected = opt.id === selectedCategory.id;
+                    return (
+                      <button
+                        key={opt.id ?? "any"}
+                        type="button"
+                        onClick={() => {
+                          setSelectedCategory(opt);
+                          setActive(null);
+                        }}
+                        className={[
+                          "category-pill",
+                          isSelected ? "category-pill-selected" : "",
+                        ]
+                          .filter(Boolean)
+                          .join(" ")}
+                      >
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
               </div>
             )}
 
+            {/* WHEN */}
             {active === "when" && (
               <div className="search-popover-content search-popover-dates">
-                <div>
-                  <label>From</label>
-                  <input
-                    type="date"
-                    className="search-input"
-                    value={startDate}
-                    onChange={(e) => setStartDate(e.target.value)}
-                  />
-                </div>
-                <div>
-                  <label>To</label>
-                  <input
-                    type="date"
-                    className="search-input"
-                    value={endDate}
-                    onChange={(e) => setEndDate(e.target.value)}
-                  />
-                </div>
+                <RangeCalendar
+                  value={{
+                    from: range?.from,
+                    to: range?.to,
+                  }}
+                  onChange={(val) =>
+                    setRange(
+                      val.from || val.to
+                        ? {
+                            from: val.from ?? undefined,
+                            to: val.to ?? undefined,
+                          }
+                        : undefined
+                    )
+                  }
+                />
               </div>
             )}
 
+            {/* HOW MANY */}
             {active === "howMany" && (
               <div className="search-popover-content search-popover-quantity">
                 <div className="quantity-row">
-                  <span>Bikes</span>
+                  <div className="quantity-labels">
+                    <span className="quantity-title">
+                      How many bikes do you want to rent?
+                    </span>
+                    <span className="quantity-subtitle">
+                      Up to {Math.max(quantity, 8)} per booking
+                    </span>
+                  </div>
+
                   <div className="quantity-controls">
                     <button
                       type="button"
-                      onClick={() =>
-                        setQuantity((q) => Math.max(1, q - 1))
-                      }
+                      className="quantity-btn"
+                      disabled={quantity <= 1}
+                      onClick={() => setQuantity((q) => Math.max(1, q - 1))}
                     >
                       −
                     </button>
-                    <span>{quantity}</span>
+                    <span className="quantity-value">{quantity}</span>
                     <button
                       type="button"
-                      onClick={() => setQuantity((q) => q + 1)}
+                      className="quantity-btn"
+                      onClick={() => setQuantity((q) => Math.min(20, q + 1))}
                     >
                       +
                     </button>

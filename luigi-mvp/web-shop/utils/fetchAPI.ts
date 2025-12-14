@@ -15,11 +15,14 @@ async function getIdTokenClient(audience: string): Promise<IdTokenClient> {
 }
 
 function getApiBase(): string {
-  const base = process.env.API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE;
-  if (!base) {
-    throw new Error("API_BASE_URL or NEXT_PUBLIC_API_BASE is not set");
-  }
-  return base;
+  const base =
+    process.env.API_BASE_URL ??
+    process.env.NEXT_PUBLIC_API_BASE_URL ?? 
+    process.env.NEXT_PUBLIC_API_BASE ??    
+    "http://localhost:8080/v1";             
+
+  // normalize: no trailing slash
+  return base.replace(/\/+$/, "");
 }
 
 function isLocalBase(base: string): boolean {
@@ -83,4 +86,63 @@ export async function fetchApi(
       "content-type": "application/json",
     },
   });
+}
+
+/* ---------- CATEGORY HELPERS ---------- */
+
+export type CategoryOption = {
+  id: number | null; // null = Any bike
+  label: string;
+};
+
+type CategoryDTO = {
+  id: number;
+  shop_id: number;
+  parent_id?: number | null;
+  name: string;
+  description?: string | null;
+  sort_order?: number | null;
+  is_active?: boolean | null;
+  children?: CategoryDTO[];
+};
+
+export async function fetchCategoryOptions(
+  shopId: number
+): Promise<CategoryOption[]> {
+  try {
+    // Use the shared helper. Path includes /v1.
+    const path = `/v1/categories/tree?shop_id=${shopId}`;
+    const res = await fetchApi(path);
+
+    // For debugging – you’ll see the full URL in the console via fetchApi’s logic if you log there.
+    console.log("fetchCategoryOptions path:", path);
+
+    if (!res.ok) {
+      console.error("fetchCategoryOptions failed:", res.status);
+      return [{ id: null, label: "Any bike" }];
+    }
+
+    const data = (await res.json()) as CategoryDTO[];
+
+    // Top-level, active categories only
+    const topLevel = data
+      .filter((c) => (c.parent_id ?? null) === null && c.is_active !== false)
+      .sort((a, b) => {
+        const ao = a.sort_order ?? 0;
+        const bo = b.sort_order ?? 0;
+        if (ao !== bo) return ao - bo;
+        return a.name.localeCompare(b.name);
+      });
+
+    return [
+      { id: null, label: "Any bike" },
+      ...topLevel.map((c) => ({
+        id: c.id,
+        label: c.name,
+      })),
+    ];
+  } catch (err) {
+    console.error("fetchCategoryOptions threw:", err);
+    return [{ id: null, label: "Any bike" }];
+  }
 }

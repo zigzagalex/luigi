@@ -775,3 +775,263 @@ a {
 .product-detail-add-to-cart:hover {
   background: #020617;
 }
+
+
+/* Date range picker */
+/* Calendar popover in search pill */
+.search-popover-dates {
+  padding: 16px 18px;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.25),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+}
+
+/* react-day-picker overrides */
+.search-popover-dates .rdp {
+  --rdp-accent-color: #111827;
+  --rdp-accent-background-color: #111827;
+  --rdp-range_middle-background-color: #1118270d;
+  --rdp-range_middle-color: #111827;
+
+  font-size: 13px;
+  color: #111827; /* base text colour */
+}
+
+/* layout: two months side by side */
+.search-popover-dates .rdp-months {
+  display: flex;
+  gap: 24px;
+}
+
+.search-popover-dates .rdp-caption {
+  font-weight: 600;
+  color: #111827;
+}
+
+.search-popover-dates .rdp-head_cell {
+  font-weight: 500;
+  color: #6b7280;
+}
+
+.search-popover-dates .rdp-table {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+/* days */
+.search-popover-dates .rdp-day {
+  border-radius: 999px;
+  height: 34px;
+  width: 34px;
+  margin: 2px;
+  color: #111827;
+  background: transparent;
+}
+
+/* selected range endpoints */
+.search-popover-dates .rdp-day_selected,
+.search-popover-dates .rdp-day_selected:focus-visible,
+.search-popover-dates .rdp-day_selected:hover {
+  background-color: #111827;
+  color: #ffffff;
+}
+
+/* middle of the range */
+.search-popover-dates .rdp-day_range_middle {
+  background-color: #1118270d;
+  border-radius: 0;
+}
+
+/* make ends pill-shaped */
+.search-popover-dates .rdp-day_range_start,
+.search-popover-dates .rdp-day_range_end {
+  border-radius: 999px;
+}
+
+/* today – subtle, not screaming or white-on-white */
+.search-popover-dates .rdp-day_today {
+  font-weight: 600;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: transparent;
+  color: #111827;
+}
+
+/* disabled (past) days: grey + no hover */
+.search-popover-dates .rdp-day_disabled {
+  color: #d1d5db;
+  cursor: not-allowed;
+  background: transparent;
+}
+
+.search-popover-dates .rdp-day_disabled:hover {
+  background: transparent;
+}
+
+/* Month label text (e.g. "December 2025") */
+.search-popover-dates .rdp-caption_label {
+  color: #111827;
+}
+
+/* Weekday headers – depending on version DayPicker uses these */
+.search-popover-dates .rdp-weekday {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+/* If your build uses head_cell, keep this too */
+.search-popover-dates .rdp-head_cell {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+
+/* ---------- WHAT: category dropdown ---------- */
+
+.search-popover-what {
+  padding: 20px 22px;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.25),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+}
+
+.search-popover-what .popover-header h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.search-popover-what .popover-header p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+/* grid of pills */
+.category-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.category-pill {
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #111827;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease-out,
+    border-color 0.12s ease-out,
+    box-shadow 0.12s ease-out,
+    color 0.12s ease-out;
+}
+
+.category-pill:hover {
+  background: #eff6ff;
+  border-color: #2563eb33;
+}
+
+.category-pill-selected {
+  background: #111827;
+  border-color: #111827;
+  color: #ffffff;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.6);
+}
+
+/* ---------- HOW MANY: quantity popover ---------- */
+
+.search-popover-quantity {
+  padding: 20px 22px;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.25),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  min-width: 320px;
+}
+
+.search-popover-quantity .popover-header h4 {
+  margin: 0 0 4px;
+  font-size: 15px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.search-popover-quantity .popover-header p {
+  margin: 0 0 16px;
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.quantity-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.quantity-labels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quantity-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.quantity-subtitle {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.quantity-controls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quantity-btn {
+  height: 32px;
+  width: 32px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 18px;
+  line-height: 1;
+  color: #111827;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease-out,
+    border-color 0.12s ease-out,
+    color 0.12s ease-out;
+}
+
+.quantity-btn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.quantity-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.quantity-value {
+  min-width: 20px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
