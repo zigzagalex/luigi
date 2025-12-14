@@ -417,12 +417,32 @@ a {
   margin: 0 auto;
 }
 
-/* Row 1: logo + kebab */
+/* Row 1: logo | centered tabs | menu */
 .app-header-top {
-  display: flex;
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
   align-items: center;
-  justify-content: space-between;
   gap: 1.5rem;
+}
+
+.app-logo {
+  justify-self: start;
+}
+
+.app-header-store-nav {
+  justify-self: center;
+}
+
+.app-header-menu {
+  justify-self: end;
+}
+
+.app-header-store-nav {
+  justify-self: center;
+  display: flex;
+  gap: 12px;
+  margin: 0; /* remove the flex-era hacks */
+  align-items: center;
 }
 
 /* Logo block */
@@ -485,6 +505,7 @@ a {
 
   .app-header-top {
     gap: 0.75rem;
+    grid-template-columns: auto 1fr auto; /* keep grid */
   }
 
   .app-logo-title {
@@ -499,7 +520,30 @@ a {
   .app-header-search-row > * {
     max-width: 100%;
   }
+
+  /* Tabs become scrollable */
+  .app-header-store-nav {
+    justify-self: stretch;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 6px;
+    gap: 10px;
+
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none; /* firefox */
+  }
+
+  .app-header-store-nav::-webkit-scrollbar {
+    display: none; /* chrome/safari */
+  }
+
+  .store-tab {
+    padding: 10px 16px;   /* bigger tap targets */
+    font-size: 0.9rem;
+    scroll-snap-align: center;
+  }
 }
+
 
 /* ─────────────────────────────────────────
    Product detail layout
@@ -1061,4 +1105,36 @@ a {
   .product-grid.product-grid-search {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
+}
+
+/* STORE TABS */
+
+.store-tab {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.store-tab:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #fff;
+}
+
+.store-tab-active {
+  background: #fff;
+  color: #0b1220;
+  border-color: #fff;
+}
+
+.store-tab:focus-visible {
+  outline: 2px solid rgba(147, 197, 253, 0.9);
+  outline-offset: 2px;
 }

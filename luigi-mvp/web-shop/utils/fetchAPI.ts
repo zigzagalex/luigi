@@ -184,3 +184,62 @@ export async function searchAvailableProducts(
 
   return (await res.json()) as Product[];
 }
+
+/* ---------- STORE HELPERS ---------- */
+// utils/fetchAPI.ts
+
+export type StoreOption = {
+  id: number;   // no more null
+  label: string;
+};
+
+type NullStringDTO = {
+  String: string;
+  Valid: boolean;
+};
+
+type StoreDTO = {
+  id: number;
+  shop_id: number;
+  name: string;
+  city?: NullStringDTO | null;   
+  is_active?: boolean | null;
+};
+
+function unwrapNullString(v: unknown): string {
+  if (typeof v === "string") return v.trim(); // in case you later return plain strings
+  if (v && typeof v === "object" && "Valid" in v && "String" in v) {
+    const obj = v as { Valid: boolean; String: string };
+    return obj.Valid ? obj.String.trim() : "";
+  }
+  return "";
+}
+
+export async function fetchStoreOptions(
+  shopId: number
+): Promise<StoreOption[]> {
+  try {
+    const res = await fetchApi(`/v1/stores?shop_id=${shopId}`);
+    if (!res.ok) {
+      console.error("fetchStoreOptions failed:", res.status);
+      return [];
+    }
+
+    const data = (await res.json()) as StoreDTO[];
+
+    const activeStores = data.filter((s) => s.is_active !== false);
+
+    return activeStores.map((s) => {
+      const cityLabel = unwrapNullString(s.city);
+    
+      return {
+        id: s.id,
+        label: cityLabel || s.name || `Store #${s.id}`,
+      };
+    });
+    
+  } catch (err) {
+    console.error("fetchStoreOptions threw:", err);
+    return [];
+  }
+}

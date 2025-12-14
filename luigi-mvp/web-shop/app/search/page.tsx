@@ -5,6 +5,7 @@ import { fetchProducts, type Product } from "@/../utils/products";
 
 type RawSearchParams = {
   shop_id?: string;
+  store_id?: string;     // <-- NEW
   category_id?: string;
   from?: string;
   to?: string;
@@ -12,7 +13,8 @@ type RawSearchParams = {
 };
 
 type SearchPageProps = {
-  searchParams?: Promise<RawSearchParams>;
+  // Next 16 passes searchParams as a Promise
+  searchParams: Promise<RawSearchParams>;
 };
 
 type AvailabilityVariant = {
@@ -29,12 +31,12 @@ type AvailabilityRow = {
   variants: AvailabilityVariant[];
 };
 
-// ... imports ...
-
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const sp: RawSearchParams = (await searchParams) ?? {};
 
   const shopId = Number(sp.shop_id ?? "1");
+
+  const storeIdStr = sp.store_id;
   const categoryId = sp.category_id ? Number(sp.category_id) : undefined;
   const from = sp.from;
   const to = sp.to;
@@ -48,10 +50,35 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   > = {};
   let error: string | null = null;
 
+  // Require store_id
+  if (!storeIdStr) {
+    return (
+      <main className="page">
+        <div className="page-inner">
+          <h1>Available bikes</h1>
+          <p>Please select a pickup location in the header first.</p>
+        </div>
+      </main>
+    );
+  }
+
+  const storeId = Number(storeIdStr);
+  if (!Number.isFinite(storeId) || storeId <= 0) {
+    return (
+      <main className="page">
+        <div className="page-inner">
+          <h1>Available bikes</h1>
+          <p>Invalid store selected.</p>
+        </div>
+      </main>
+    );
+  }
+
   if (from && to) {
     try {
       const body: any = {
         shop_id: shopId,
+        store_id: storeId,     // <-- ALWAYS pass store to availability search
         start_date: from,
         end_date: to,
         quantity,
@@ -108,9 +135,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     <main className="page">
       <div className="page-inner">
         <h1>Available bikes</h1>
-
-        {/* keep or delete this debug */}
-        {/* <pre>{JSON.stringify(sp, null, 2)}</pre> */}
 
         {!from || !to ? (
           <p>Please choose dates in the search bar first.</p>
