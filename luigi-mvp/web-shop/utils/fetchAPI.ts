@@ -88,7 +88,7 @@ export async function fetchApi(
   });
 }
 
-/* ---------- CATEGORY HELPERS ---------- */
+/* CATEGORY HELPERS FOR SEARCH PILL */
 
 export type CategoryOption = {
   id: number | null; // null = Any bike
@@ -145,4 +145,42 @@ export async function fetchCategoryOptions(
     console.error("fetchCategoryOptions threw:", err);
     return [{ id: null, label: "Any bike" }];
   }
+}
+
+import type { Product } from "./products";
+
+/* AVAILABILITY SEARCH FOR SEARCH PILL */
+
+export type AvailabilitySearchParams = {
+  shopId: number;
+  from?: string;      // "YYYY-MM-DD"
+  to?: string;        // "YYYY-MM-DD"
+  categoryId?: number | null;
+  quantity?: number;
+};
+
+export async function searchAvailableProducts(
+  params: AvailabilitySearchParams
+): Promise<Product[]> {
+  const qs = new URLSearchParams();
+
+  qs.set("shop_id", String(params.shopId));
+
+  if (params.from) qs.set("from", params.from);
+  if (params.to) qs.set("to", params.to);
+  if (params.categoryId != null) {
+    qs.set("category_id", String(params.categoryId));
+  }
+  if (params.quantity != null) {
+    qs.set("quantity", String(params.quantity));
+  }
+
+  const path = `/v1/availability/search?${qs.toString()}`;
+  const res = await fetchApi(path);
+
+  if (!res.ok) {
+    throw new Error(`availability search failed: ${res.status}`);
+  }
+
+  return (await res.json()) as Product[];
 }

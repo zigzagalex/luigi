@@ -11,7 +11,7 @@ export default async function AppHeader() {
   return (
     <header className="app-header">
       <div className="app-header-inner">
-        {/* Top row: logo + menu (like Airbnb nav bar) */}
+        {/* Top row: logo + menu */}
         <div className="app-header-top">
           <Link href="/" className="app-logo">
             <span className="app-logo-title">Luigi&apos;s Bike Rentals</span>
