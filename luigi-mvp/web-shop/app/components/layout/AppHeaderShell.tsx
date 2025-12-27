@@ -4,6 +4,8 @@ import {
   fetchCategoryOptions,
   fetchStoreOptions,
 } from "@/../utils/fetchAPI";
+import styles from "./AppFooterShell.module.css";
+
 
 const DEFAULT_SHOP_ID = 1;
 
