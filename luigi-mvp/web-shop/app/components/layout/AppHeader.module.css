@@ -1,0 +1,165 @@
+.header {
+  background: #0b1220; /* dark navy bar */
+  color: #ffffff;
+  padding: 1rem 2rem 2.5rem; /* extra bottom padding for the search pill row */
+}
+
+.inner {
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+/* Row 1: logo | centered tabs | menu */
+.topRow {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: center;
+  gap: 1.5rem;
+}
+
+/* Logo block */
+.logo {
+  justify-self: start;
+  display: flex;
+  flex-direction: column;
+  text-decoration: none;
+  color: inherit;
+  min-width: 0;
+}
+
+.logoTitle {
+  font-weight: 700;
+  font-size: 1.1rem;
+}
+
+.logoSubtitle {
+  font-size: 0.85rem;
+  opacity: 0.8;
+}
+
+/* Store tabs nav */
+.storeNav {
+  justify-self: center;
+  display: flex;
+  gap: 12px;
+  margin: 0;
+  align-items: center;
+}
+
+/* Tabs */
+.tab {
+  padding: 8px 18px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.85);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+  white-space: nowrap;
+}
+
+.tab:hover {
+  background: rgba(255, 255, 255, 0.10);
+  border-color: rgba(255, 255, 255, 0.32);
+  color: #ffffff;
+}
+
+.tabActive {
+  background: #ffffff;
+  color: #0b1220;
+  border-color: #ffffff;
+}
+
+.tab:focus-visible {
+  outline: 2px solid rgba(147, 197, 253, 0.9);
+  outline-offset: 2px;
+}
+
+/* Menu icon (kebab/burger) */
+.menuButton {
+  justify-self: end;
+  border: none;
+  background: transparent;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 0.22rem;
+  padding: 0.4rem;
+  cursor: pointer;
+}
+
+.menuButton span {
+  width: 18px;
+  height: 2px;
+  border-radius: 999px;
+  background: #ffffff;
+}
+
+/* Row 2: search pill under nav */
+.searchRow {
+  margin-top: 1.5rem;
+}
+
+/* Centered & constrained on desktop */
+.searchRow > * {
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.disabled {
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  color: rgba(255, 255, 255, 0.85);
+  border-radius: 14px;
+  padding: 12px 16px;
+  font-size: 14px;
+}
+
+/* Mobile tweaks */
+@media (max-width: 768px) {
+  .header {
+    padding: 0.75rem 1rem 1.75rem;
+  }
+
+  .topRow {
+    gap: 0.75rem;
+    grid-template-columns: auto 1fr auto;
+  }
+
+  .logoTitle {
+    font-size: 1rem;
+  }
+
+  .logoSubtitle {
+    font-size: 0.8rem;
+  }
+
+  /* Search pill full width on mobile */
+  .searchRow > * {
+    max-width: 100%;
+  }
+
+  /* Tabs become scrollable */
+  .storeNav {
+    justify-self: stretch;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    padding: 0 6px;
+    gap: 10px;
+
+    scroll-snap-type: x mandatory;
+    scrollbar-width: none;
+  }
+
+  .storeNav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .tab {
+    padding: 10px 16px;
+    font-size: 0.9rem;
+    scroll-snap-align: center;
+  }
+}

@@ -1,5 +1,6 @@
 import type { Product } from "@/../utils/products";
 import ProductCard from "./ProductCard";
+import styles from "./ProductGrid.module.css";
 
 type AvailabilityInfo = {
   minPriceCents: number;
@@ -9,18 +10,22 @@ type AvailabilityInfo = {
 type Props = {
   products: Product[];
   availabilityInfo?: Record<number, AvailabilityInfo>;
-  className?: string; // 👈 NEW
+  className?: string; // optional extra class from caller
+  variant?: "default" | "search"; // 👈 add this
 };
 
-export default function ProductGrid({ products, availabilityInfo, className }: Props) {
+export default function ProductGrid({
+  products,
+  availabilityInfo,
+  className,
+  variant = "default",
+}: Props) {
   if (!products.length) return null;
 
-  const gridClassName = ["product-grid", className]
-    .filter(Boolean)
-    .join(" ");
+  const baseClass = variant === "search" ? styles.searchGrid : styles.grid;
 
   return (
-    <div className={gridClassName}>
+    <div className={[baseClass, className].filter(Boolean).join(" ")}>
       {products.map((product) => {
         const info = availabilityInfo?.[product.id];
 

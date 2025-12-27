@@ -1,0 +1,269 @@
+.page {
+  padding-top: 32px;
+  padding-bottom: 48px;
+}
+
+.layout {
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+@media (min-width: 900px) {
+  .layout {
+    flex-direction: row;
+    align-items: flex-start;
+    gap: 48px;
+  }
+
+  .media {
+    flex: 0 0 50%;
+  }
+
+  .sidebar {
+    flex: 0 0 50%;
+  }
+}
+
+/* LEFT: media */
+
+.mediaEmpty {
+  width: 100%;
+  min-height: 320px;
+  border-radius: 16px;
+  background: #f3f4f6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #9ca3af;
+}
+
+.mainImageWrapper {
+  position: relative;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
+  overflow: hidden;
+}
+
+.mainImage {
+  display: block;
+  width: 100%;
+  height: auto;
+  max-height: 480px;
+  object-fit: contain;
+  background: #0f172a;
+}
+
+.imageArrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 9999px;
+  background: rgba(15, 23, 42, 0.6);
+  color: #f9fafb;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.imageArrowLeft {
+  left: 12px;
+}
+
+.imageArrowRight {
+  right: 12px;
+}
+
+.imageArrow:hover {
+  background: rgba(15, 23, 42, 0.85);
+}
+
+.thumbs {
+  margin-top: 12px;
+  display: flex;
+  gap: 8px;
+  flex-wrap: nowrap;
+  overflow-x: auto;
+  padding-bottom: 4px;
+}
+
+.thumb {
+  width: 64px;
+  height: 64px;
+  border-radius: 10px;
+  object-fit: cover;
+  border: 1px solid #e5e7eb;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.thumbActive {
+  border-color: #111827;
+  box-shadow: 0 0 0 2px #11182711;
+}
+
+/* RIGHT: info */
+
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.title {
+  margin: 0;
+  font-size: 26px;
+  line-height: 1.2;
+}
+
+.subtitle {
+  font-size: 13px;
+  color: #6b7280;
+}
+
+.priceRow {
+  margin-top: 8px;
+}
+
+.pricePill {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border-radius: 9999px;
+  background: #0f172a;
+  color: #f9fafb;
+  font-size: 12px;
+  text-transform: capitalize;
+}
+
+/* Blocks */
+
+.block {
+  padding-top: 8px;
+  border-top: 1px solid #e5e7eb;
+}
+
+.blockTitle {
+  margin: 0 0 8px;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+/* Chips */
+
+.chipRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  border-radius: 9999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease,
+    color 0.15s ease, opacity 0.15s ease;
+}
+
+.chip:hover:not(.chipDisabled):not(:disabled) {
+  background: #f3f4f6;
+}
+
+.chipDisabled,
+.chip:disabled {
+  cursor: default;
+  opacity: 0.45;
+}
+
+.chipSelected {
+  background: #111827;
+  border-color: #111827;
+  color: #f9fafb;
+}
+
+/* Dates */
+
+.dateRow {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+@media (min-width: 600px) {
+  .dateRow {
+    flex-direction: row;
+  }
+}
+
+.dateField label {
+  display: block;
+  font-size: 12px;
+  color: #6b7280;
+  margin-bottom: 4px;
+}
+
+.dateField input[type="date"] {
+  width: 100%;
+  border-radius: 10px;
+  border: 1px solid #d1d5db;
+  padding: 7px 10px;
+  font-size: 13px;
+}
+
+/* Quantity */
+
+.quantity {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  border-radius: 9999px;
+  border: 1px solid #d1d5db;
+  padding: 4px 10px;
+}
+
+.quantity button {
+  border: none;
+  background: transparent;
+  width: 24px;
+  height: 24px;
+  border-radius: 9999px;
+  cursor: pointer;
+  font-size: 16px;
+}
+
+.quantity button:hover {
+  background: #f3f4f6;
+}
+
+/* Add to cart */
+
+.addToCart {
+  width: 100%;
+  border: none;
+  border-radius: 9999px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #0f172a;
+  color: #f9fafb;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.3);
+}
+
+.addToCart:hover {
+  background: #020617;
+}

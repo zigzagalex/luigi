@@ -1,0 +1,353 @@
+.heroWrapper {
+  display: flex;
+  justify-content: center;
+  margin: 16px 0 24px;
+  }
+  
+.pill {
+  position: relative;
+  display: flex;
+  align-items: center;
+
+  background: #ffffff;
+  border-radius: 9999px;
+  border: 1px solid #e5e7eb;
+
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
+
+  padding: 8px 8px 8px 20px;
+  max-width: 960px;
+  width: 100%;
+  }
+  
+.section {
+  flex: 1;
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+
+  background: transparent;
+  border: none;
+  padding: 6px 16px;
+  cursor: pointer;
+  border-radius: 9999px;
+
+  text-align: left;
+}
+  
+.section:hover {
+  background: #f3f4f6;
+}
+
+.sectionActive {
+  background: #e5f0ff;
+}
+
+.label {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: #6b7280;
+}
+  
+.value {
+  font-size: 14px;
+  color: #111827;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.divider {
+  width: 1px;
+  height: 28px;
+  background: #e5e7eb;
+}
+
+/* Search button */
+.submit {
+  margin-left: 10px;
+  margin-right: 4px;
+  width: 40px;
+  height: 40px;
+
+  border-radius: 9999px;
+  border: none;
+
+  background: linear-gradient(135deg, #a4aec9, #bfc9e6);
+  color: #ffffff;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.25);
+  flex-shrink: 0;
+}
+
+.submit:hover {
+  filter: brightness(0.98);
+}
+
+.submitIcon {
+  font-size: 16px;
+}
+
+/* Popover container */
+.popover {
+  position: absolute;
+  left: 20px;
+  right: 20px;
+  top: 64px;
+
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+  padding: 16px 20px;
+  z-index: 20;
+}
+
+/* Panel shells */
+.panel {
+  border-radius: 24px;
+  background: #ffffff;
+}
+
+/* WHAT panel */
+.whatPanel {
+  padding: 20px 22px;
+  border-radius: 24px;
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.25),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+}
+
+.categoryGrid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.categoryPill {
+  border-radius: 999px;
+  border: 1px solid #e5e7eb;
+  background: #f9fafb;
+  padding: 8px 14px;
+  font-size: 13px;
+  color: #111827;
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease-out,
+    border-color 0.12s ease-out,
+    box-shadow 0.12s ease-out,
+    color 0.12s ease-out;
+}
+
+.categoryPill:hover {
+  background: #eff6ff;
+  border-color: #2563eb33;
+}
+
+.categoryPillSelected {
+  background: #111827;
+  border-color: #111827;
+  color: #ffffff;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.6);
+}
+  
+/* WHEN panel */
+.datesPanel {
+  padding: 16px 18px;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.25),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+}
+
+/* react-day-picker overrides (must be global selectors) */
+.datesPanel :global(.rdp) {
+  --rdp-accent-color: #111827;
+  --rdp-accent-background-color: #111827;
+  --rdp-range_middle-background-color: #1118270d;
+  --rdp-range_middle-color: #111827;
+
+  font-size: 13px;
+  color: #111827;
+}
+
+.datesPanel :global(.rdp-months) {
+  display: flex;
+  gap: 24px;
+}
+
+.datesPanel :global(.rdp-caption) {
+  font-weight: 600;
+  color: #111827;
+}
+
+.datesPanel :global(.rdp-head_cell),
+.datesPanel :global(.rdp-weekday) {
+  color: #6b7280;
+  font-weight: 500;
+}
+
+.datesPanel :global(.rdp-table) {
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+.datesPanel :global(.rdp-day) {
+  border-radius: 999px;
+  height: 34px;
+  width: 34px;
+  margin: 2px;
+  color: #111827;
+  background: transparent;
+}
+
+.datesPanel :global(.rdp-day_selected),
+.datesPanel :global(.rdp-day_selected:focus-visible),
+.datesPanel :global(.rdp-day_selected:hover) {
+  background-color: #111827;
+  color: #ffffff;
+}
+
+.datesPanel :global(.rdp-day_range_middle) {
+  background-color: #1118270d;
+  border-radius: 0;
+}
+
+.datesPanel :global(.rdp-day_range_start),
+.datesPanel :global(.rdp-day_range_end) {
+  border-radius: 999px;
+}
+
+.datesPanel :global(.rdp-day_today) {
+  font-weight: 600;
+  border: 1px solid rgba(148, 163, 184, 0.7);
+  background: transparent;
+  color: #111827;
+}
+
+.datesPanel :global(.rdp-day_disabled) {
+  color: #d1d5db;
+  cursor: not-allowed;
+  background: transparent;
+}
+
+.datesPanel :global(.rdp-day_disabled:hover) {
+  background: transparent;
+}
+
+.datesPanel :global(.rdp-caption_label) {
+  color: #111827;
+}
+
+.datesPanel :global(.rdp-dropdown),
+.datesPanel :global(.rdp-dropdown_month),
+.datesPanel :global(.rdp-dropdown_year),
+.datesPanel :global(.rdp-dropdown select) {
+  color: #111827;
+}
+
+  
+/* HOW MANY panel */
+.quantityPanel {
+  padding: 20px 22px;
+  border-radius: 24px;
+  background: #ffffff;
+  box-shadow:
+    0 18px 45px rgba(15, 23, 42, 0.25),
+    0 0 0 1px rgba(15, 23, 42, 0.04);
+  min-width: 320px;
+}
+
+.quantityRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.quantityLabels {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.quantityTitle {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.quantitySubtitle {
+  font-size: 12px;
+  color: #6b7280;
+}
+
+.quantityControls {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.quantityBtn {
+  height: 32px;
+  width: 32px;
+  border-radius: 999px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  font-size: 18px;
+  line-height: 1;
+  color: #111827;
+
+  cursor: pointer;
+  transition:
+    background-color 0.12s ease-out,
+    border-color 0.12s ease-out,
+    color 0.12s ease-out;
+}
+
+.quantityBtn:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.quantityBtn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.quantityValue {
+  min-width: 20px;
+  text-align: center;
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+/* Mobile: make the pill less cramped */
+@media (max-width: 768px) {
+  .pill {
+    padding: 8px;
+  }
+
+  .section {
+    padding: 8px 10px;
+  }
+
+  .popover {
+    left: 8px;
+    right: 8px;
+  }
+}
