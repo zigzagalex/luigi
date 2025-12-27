@@ -1,4 +1,3 @@
-// app/page.tsx
 import CategoryRow from "./components/products/CategoryRow";
 import FeaturedProductsSlider from "./components/products/FeaturedProductsSlider";
 import {
@@ -6,6 +5,7 @@ import {
   groupProductsByMainCategory,
   type Product,
 } from "../utils/products";
+import styles from "./PageShell.module.css";
 
 export const dynamic = "force-dynamic";
 
@@ -28,27 +28,22 @@ export default async function HomePage() {
   const rows = groupProductsByMainCategory(products);
 
   return (
-    <main className="page">
-      <div className="page-inner">
-        {/* No SearchPill here anymore – it lives in AppHeader */}
-
+    <main className={styles.page}>
+      <div className={styles.inner}>
         {featured.length > 0 && (
-          <section className="section-block">
+          <section className={styles.section}>
             <FeaturedProductsSlider products={featured} />
           </section>
         )}
 
         {rows.map((row) => (
-          <section key={row.key} className="section-block">
-            <CategoryRow
-              title={row.title}
-              products={row.products.slice(0, 10)}
-            />
+          <section key={row.key} className={styles.section}>
+            <CategoryRow title={row.title} products={row.products.slice(0, 10)} />
           </section>
         ))}
 
         {products.length === 0 && (
-          <p className="no-products-msg">
+          <p className={styles.emptyMsg}>
             No bikes to show yet. Check your API config or seed some products.
           </p>
         )}

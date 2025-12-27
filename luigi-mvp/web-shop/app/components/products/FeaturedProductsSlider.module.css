@@ -1,0 +1,30 @@
+.slider {
+  margin-bottom: 2rem;
+}
+
+.header {
+  margin-bottom: 12px;
+}
+
+.viewport {
+  overflow: hidden;
+  width: 100%;
+}
+
+.track {
+  display: flex;
+  transition: transform 600ms ease-in-out;
+  will-change: transform;
+}
+
+.item {
+  box-sizing: border-box;
+  padding: 0 0.5rem;
+  display: flex;
+  justify-content: center;
+}
+
+.cardWrap {
+  width: 100%;
+  max-width: 480px;
+}

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Product } from "@/../utils/products";
 import ProductCard from "./ProductCard";
+import styles from "./FeaturedProductsSlider.module.css";
 
 type Props = {
   products: Product[];
@@ -10,7 +11,7 @@ type Props = {
 };
 
 const DESKTOP_VISIBLE_COUNT = 2;
-const INTERVAL_MS = 5000; // 5s per slide
+const INTERVAL_MS = 5000;
 
 export default function FeaturedProductsSlider({ products, title }: Props) {
   const items = useMemo(() => products.slice(0, 12), [products]);
@@ -19,23 +20,19 @@ export default function FeaturedProductsSlider({ products, title }: Props) {
   const [visibleCount, setVisibleCount] = useState(DESKTOP_VISIBLE_COUNT);
   const [index, setIndex] = useState(0);
 
-  // Responsive: 1 tile on mobile, 2 on desktop
+  // Responsive: 1 on mobile, 2 on desktop
   useEffect(() => {
     if (typeof window === "undefined") return;
 
     const mql = window.matchMedia("(max-width: 640px)");
 
-    const update = (matches: boolean) => {
-      setVisibleCount(matches ? 1 : DESKTOP_VISIBLE_COUNT);
+    const update = () => {
+      setVisibleCount(mql.matches ? 1 : DESKTOP_VISIBLE_COUNT);
     };
 
-    // initial
-    update(mql.matches);
+    update();
 
-    const handler = (event: MediaQueryListEvent) => {
-      update(event.matches);
-    };
-
+    const handler = () => update();
     mql.addEventListener("change", handler);
     return () => mql.removeEventListener("change", handler);
   }, []);
@@ -57,36 +54,31 @@ export default function FeaturedProductsSlider({ products, title }: Props) {
   if (total === 0) return null;
 
   const effectiveVisible = Math.max(1, Math.min(visibleCount, total));
-  const translatePercent = (index * 100) / effectiveVisible;
+
+  // If visible=2, one "step" is 50% of viewport width
+  const stepPercent = 100 / effectiveVisible;
+  const translatePercent = index * stepPercent;
 
   return (
-    <section className="featured-slider">
-      <div className="featured-slider-header">
-        <h2 className="section-title">
-          {title ?? "Featured bikes"}
-        </h2>
+    <section className={styles.slider}>
+      <div className={styles.header}>
+        <h2>{title ?? "Featured bikes"}</h2>
       </div>
 
-      <div className="featured-slider-viewport">
+      <div className={styles.viewport}>
         <div
-          className="featured-slider-track"
-          style={{
-            display: "flex",
-            transition: "transform 600ms ease-in-out",
-            transform: `translateX(-${translatePercent}%)`,
-          }}
+          className={styles.track}
+          style={{ transform: `translateX(-${translatePercent}%)` }}
         >
           {items.map((product) => (
             <div
               key={product.id}
-              className="featured-slider-item"
-              style={{
-                flex: `0 0 ${100 / effectiveVisible}%`, // 100% on mobile, 50% on desktop
-                padding: "0 0.5rem",
-                boxSizing: "border-box",
-              }}
+              className={styles.item}
+              style={{ flex: `0 0 ${stepPercent}%` }}
             >
-              <ProductCard product={product} />
+              <div className={styles.cardWrap}>
+                <ProductCard product={product} />
+              </div>
             </div>
           ))}
         </div>

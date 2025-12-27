@@ -1,0 +1,82 @@
+.row {
+  margin-bottom: 28px;
+}
+
+.header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+.title {
+  font-size: 15px;
+  font-weight: 600;
+  margin: 0;
+}
+
+.body {
+  position: relative;
+}
+
+.scroll {
+  display: flex;
+  gap: 16px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+
+  /* hide scrollbar */
+  scrollbar-width: none; /* Firefox */
+}
+
+.scroll::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.item {
+  min-width: 220px;
+  max-width: 260px;
+  flex-shrink: 0;
+}
+
+/* Arrow buttons */
+.arrow {
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+
+  width: 32px;
+  height: 32px;
+  border-radius: 9999px;
+  border: none;
+
+  background: rgba(255, 255, 255, 0.9);
+  box-shadow: 0 4px 10px rgba(15, 23, 42, 0.18);
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  cursor: pointer;
+  user-select: none;
+}
+
+.arrow:hover {
+  background: rgba(255, 255, 255, 1);
+}
+
+.arrowLeft {
+  left: -16px;
+}
+
+.arrowRight {
+  right: -16px;
+}
+
+/* On small screens, arrows are annoying—hide them */
+@media (max-width: 640px) {
+  .arrow {
+    display: none;
+  }
+}

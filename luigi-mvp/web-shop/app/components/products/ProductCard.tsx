@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { Product } from "@/../utils/products";
+import styles from "./ProductCard.module.css";
 
 type Props = {
   product: Product;
@@ -20,30 +21,31 @@ export default function ProductCard({
   const imageUrl = product.primary_image_url ?? FALLBACK_IMAGE;
 
   return (
-    <Link href={`/products/${product.id}`} className="product-card">
-      <div className="product-card-image-wrapper">
+    <Link href={`/products/${product.id}`} className={styles.card}>
+      <div className={styles.imageWrapper}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img src={imageUrl} alt={product.name} className="product-card-image" />
+        <img
+          src={imageUrl}
+          alt={product.name}
+          className={styles.image}
+          loading="lazy"
+        />
       </div>
 
-      <div className="product-card-content">
-        <div className="product-card-title-row">
-          <h3 className="product-card-title">{product.name}</h3>
+      <div className={styles.content}>
+        <div className={styles.titleRow}>
+          <h3 className={styles.title}>{product.name}</h3>
+
           {product.price_category && (
-            <span className="product-card-pill">
-              {product.price_category}
-            </span>
+            <span className={styles.pill}>{product.price_category}</span>
           )}
         </div>
 
-        {/* 🔥 Price + availability from availability/search */}
         {minPriceCents != null && (
-          <p className="product-card-price">
+          <p className={styles.price}>
             From CHF {(minPriceCents / 100).toFixed(2)}
             {typeof availableQuantity === "number" &&
-              ` · ${availableQuantity} bike${
-                availableQuantity === 1 ? "" : "s"
-              } available`}
+              ` · ${availableQuantity} bike${availableQuantity === 1 ? "" : "s"} available`}
           </p>
         )}
       </div>
