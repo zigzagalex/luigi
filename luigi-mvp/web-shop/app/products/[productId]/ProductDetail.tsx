@@ -238,7 +238,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
 
   function formatPillDate(d?: Date) {
     if (!d) return "Add date";
-    return new Intl.DateTimeFormat("en-US", { month: "numeric", day: "numeric", year: "numeric" }).format(d);
+    return new Intl.DateTimeFormat("de-CH", { month: "2-digit", day: "2-digit", year: "numeric" }).format(d);
   }
 
   const [activeDateField, setActiveDateField] = useState<ActiveDateField>("from");
@@ -395,9 +395,9 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
                   setActiveDateField("from");
                   setCalendarOpen(true);
                 }}
-                aria-label="Select check-in date"
+                aria-label="Select Pickup date"
               >
-                <span className={styles.dateLabel}>CHECK-IN</span>
+                <span className={styles.dateLabel}>PICK-UP</span>
                 <span className={styles.dateValue}>{formatPillDate(range.from)}</span>
               </button>
 
@@ -415,9 +415,9 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
                   setActiveDateField("to");
                   setCalendarOpen(true);
                 }}
-                aria-label="Select checkout date"
+                aria-label="Select Return date"
               >
-                <span className={styles.dateLabel}>CHECKOUT</span>
+                <span className={styles.dateLabel}>RETURN</span>
                 <span className={styles.dateValue}>{formatPillDate(range.to)}</span>
               </button>
             </div>
