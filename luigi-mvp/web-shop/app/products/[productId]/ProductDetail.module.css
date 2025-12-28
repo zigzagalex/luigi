@@ -1,6 +1,14 @@
 .page {
   padding-top: 32px;
   padding-bottom: 48px;
+  padding-inline: 24px;
+}
+
+.inner {
+  padding-top: 48;
+  padding-bottom: 48;
+  max-width: 1200px;
+  margin: 0 auto;
 }
 
 .layout {
@@ -267,3 +275,59 @@
 .addToCart:hover {
   background: #020617;
 }
+
+
+.datePill {
+  display: grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items: stretch;
+
+  border: 1px solid rgba(15, 23, 42, 0.15);
+  border-radius: 12px;
+  background: #fff;
+  overflow: hidden;
+}
+
+.datePillDisabled {
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.dateCell {
+  appearance: none;
+  border: 0;
+  background: transparent;
+  padding: 14px 16px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.dateCell:hover {
+  background: rgba(15, 23, 42, 0.03);
+}
+
+.dateCellActive {
+  background: rgba(37, 99, 235, 0.06);
+  box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.35);
+}
+
+.dateDivider {
+  width: 1px;
+  background: rgba(15, 23, 42, 0.12);
+}
+
+.dateLabel {
+  display: block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  opacity: 0.85;
+}
+
+.dateValue {
+  display: block;
+  margin-top: 6px;
+  font-size: 18px;
+  font-weight: 600;
+}
+

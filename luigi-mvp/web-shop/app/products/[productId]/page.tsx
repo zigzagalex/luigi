@@ -142,20 +142,6 @@ export default async function ProductPage({
     fetchInventory(product.shop_id),
   ]);
 
-  console.log(
-    "ProductPage data",
-    JSON.stringify(
-      {
-        productId,
-        variants,
-        imagesPerVariant,
-        variantsWithImages,
-      },
-      null,
-      2
-    )
-  );
-
   return (
     <main className="page product-detail-page">
       <div className="page-inner">
