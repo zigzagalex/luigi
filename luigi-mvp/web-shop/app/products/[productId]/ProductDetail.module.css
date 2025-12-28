@@ -331,3 +331,28 @@
   font-weight: 600;
 }
 
+
+/* The block that contains the pill + popover must be the positioning context */
+.dateBlock {
+  position: relative;
+}
+
+/* Popover anchored under the pill */
+.calendarPopover {
+  margin-top: 10px;
+  width: 100%;
+  padding: 14px;
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: 0 18px 60px rgba(15, 23, 42, 0.16);
+  border: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+/* Mobile: just fill the sidebar width */
+@media (max-width: 640px) {
+  .calendarPopover {
+    width: 100%;
+    max-width: 100%;
+  }
+}
+

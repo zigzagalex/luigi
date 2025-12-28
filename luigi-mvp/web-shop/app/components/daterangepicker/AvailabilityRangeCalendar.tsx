@@ -82,14 +82,13 @@ export function AvailabilityRangeCalendar({
     <div className={`${styles.wrapper} ${className ?? ""}`}>
       <DayPicker
         mode="range"
-        numberOfMonths={1}
+        numberOfMonths={2}
         locale={de}
         selected={selected}
         month={month}
         onMonthChange={setMonth}
         pagedNavigation
         weekStartsOn={1}
-        showOutsideDays
         startMonth={today}
         disabled={disabled}
         excludeDisabled

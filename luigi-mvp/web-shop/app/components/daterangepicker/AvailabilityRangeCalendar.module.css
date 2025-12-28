@@ -18,6 +18,27 @@
   .unavailableDay:global(.rdp-day_selected) {
     background: none;
   }
+
+  /* the in-between days */
+  .wrapper :global(.rdp-range_middle .rdp-day_button) {
+    background: rgba(59, 130, 246, 0.14); /* lower than 0.28 */
+    color: #0f172a;
+    border-radius: 9999px;
+  }
+
+  .wrapper :global(.rdp-day_button:hover) {
+    background: rgba(59, 130, 246, 0.18);
+  }
+
+.wrapper :global(.rdp-range_start .rdp-day_button),
+.wrapper :global(.rdp-range_end .rdp-day_button),
+.wrapper :global(.rdp-selected .rdp-day_button) {
+  background: rgba(59, 130, 246, 0.28); /* light blue, LOW */
+  color: #0f172a;                       /* readable text */
+  border-radius: 9999px;
+}
+
+
   
   .loading {
     margin-top: 8px;
@@ -61,8 +82,28 @@
     border: 1px solid rgba(15, 23, 42, 0.12);
   }
   
-  @media (max-width: 640px) {
-    .calendarPopover {
-      width: 100%;
-    }
+  /* Make the two months sit next to each other */
+:global(.rdp-months) {
+  display: flex;
+  flex-wrap: nowrap;  /* <- key: stop stacking */
+  gap: var(--rdp-months-gap);
+}
+
+/* Optional: make it fit nicer in your sidebar by shrinking day cells */
+.wrapper :global(.rdp-root) {
+  --rdp-day-width: 36px;
+  --rdp-day-height: 36px;
+  --rdp-months-gap: 18px;
+}
+
+/* Mobile: one month already, but keep it safe */
+@media (max-width: 640px) {
+  :global(.rdp-months) {
+    flex-wrap: wrap;
   }
+
+  .wrapper :global(.rdp-root) {
+    --rdp-day-width: 40px;
+    --rdp-day-height: 40px;
+  }
+}
