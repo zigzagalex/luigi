@@ -1,0 +1,33 @@
+.page {
+    /* keep it consistent with the rest of the site */
+    width: 100%;
+  }
+  
+  .inner {
+    max-width: 1200px;
+    margin: 0 auto;
+  
+    /* this is the “not cramped” part */
+    padding: 0 24px 64px;
+  }
+  
+  /* Force the ProductGrid instance on /search to be 3 columns */
+  :global(.product-grid-search) {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 24px;
+  }
+  
+  /* Responsive so it doesn’t break on smaller screens */
+  @media (max-width: 1024px) {
+    :global(.product-grid-search) {
+      grid-template-columns: repeat(1, minmax(0, 1fr));
+    }
+  }
+  
+  @media (max-width: 640px) {
+    :global(.product-grid-search) {
+      grid-template-columns: 1fr;
+    }
+  }
+  

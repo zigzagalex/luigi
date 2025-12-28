@@ -20,23 +20,32 @@
 }
 
 .scroll {
+  --gap: 16px;
+  --cols: 3;
+
   display: flex;
-  gap: 16px;
+  gap: var(--gap);
   overflow-x: auto;
   padding-bottom: 8px;
 
+  /* optional but makes the arrows feel “pagey” */
+  scroll-snap-type: x mandatory;
+  scroll-behavior: smooth;
+
   /* hide scrollbar */
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
 }
 
 .scroll::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
+  display: none;
 }
 
+/* 👇 THIS is the key: exactly 3 visible cards */
 .item {
-  min-width: 220px;
-  max-width: 260px;
-  flex-shrink: 0;
+  flex: 0 0 calc((100% - (var(--gap) * (var(--cols) - 1))) / var(--cols));
+  max-width: calc((100% - (var(--gap) * (var(--cols) - 1))) / var(--cols));
+  scroll-snap-align: start;
+  scroll-snap-stop: always;
 }
 
 /* Arrow buttons */
@@ -74,9 +83,13 @@
   right: -16px;
 }
 
-/* On small screens, arrows are annoying—hide them */
+/* Responsive: 2 per row */
+@media (max-width: 1024px) {
+  .scroll { --cols: 2; }
+}
+
+/* Mobile: 1 per row + hide arrows */
 @media (max-width: 640px) {
-  .arrow {
-    display: none;
-  }
+  .scroll { --cols: 1; }
+  .arrow { display: none; }
 }
