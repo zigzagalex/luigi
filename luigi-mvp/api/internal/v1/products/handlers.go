@@ -42,20 +42,30 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 		offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 
+		// shop_id optional
 		var shopIDPtr *int64
 		if s := strings.TrimSpace(r.URL.Query().Get("shop_id")); s != "" {
 			v, err := strconv.ParseInt(s, 10, 64)
-			if err != nil || v <= 0 {
-				httpx.Fail(w, http.StatusBadRequest, "invalid_shop_id", nil)
+			if err != nil {
+				httpx.Fail(w, http.StatusBadRequest, "invalid_shop_id", err.Error())
 				return
 			}
-			shopIDPtr = &v
+			shopID := v
+			shopIDPtr = &shopID
+		}
+
+		// ids optional (comma separated)
+		ids, err := parseInt64CSV(r.URL.Query().Get("ids"))
+		if err != nil {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_ids", err.Error())
+			return
 		}
 
 		items, err := svc.ListWithPrimaryImageDTO(
 			r.Context(),
 			productsvc.ListWithImageInput{
 				ShopID: shopIDPtr,
+				Ids:    ids,
 				Limit:  int32(limit),
 				Offset: int32(offset),
 			},
@@ -95,7 +105,6 @@ func getHandler(svc *productsvc.Service) http.HandlerFunc {
 		httpx.JSON(w, http.StatusOK, dto)
 	}
 }
-
 
 type createReq struct {
 	ShopID        int64   `json:"shop_id"`
@@ -208,4 +217,34 @@ func deleteHandler(svc *productsvc.Service) http.HandlerFunc {
 		}
 		httpx.JSON(w, http.StatusOK, item)
 	}
+}
+
+func parseInt64CSV(s string) ([]int64, error) {
+	s = strings.TrimSpace(s)
+	if s == "" {
+		return nil, nil // IMPORTANT: nil => SQL NULL => disables filter
+	}
+
+	parts := strings.Split(s, ",")
+	out := make([]int64, 0, len(parts))
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		if p == "" {
+			continue
+		}
+		id, err := strconv.ParseInt(p, 10, 64)
+		if err != nil {
+			return nil, err
+		}
+		out = append(out, id)
+	}
+
+	// If user provided ids but all were empty/invalid, choose:
+	// - nil (treat like no filter) OR
+	// - error (stricter). I recommend error.
+	if len(out) == 0 {
+		return nil, nil
+	}
+
+	return out, nil
 }

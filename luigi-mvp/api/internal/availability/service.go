@@ -30,8 +30,8 @@ type SearchInput struct {
 	StoreID     *int64
 	ProductIDs  []int64
 	CategoryIDs []int64
-	StartDate   time.Time // date-only
-	EndDate     time.Time // date-only (checkout date; exclusive)
+	StartDate   time.Time 
+	EndDate     time.Time 
 	Quantity    int32
 }
 

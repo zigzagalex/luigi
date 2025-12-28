@@ -126,7 +126,7 @@ WITH candidate_items AS (
       OR p.id = ANY(sqlc.narg(product_ids))
     )
     AND (
-      sqlc.arg(category_ids)::bigint[] IS NULL
+      sqlc.narg(category_ids)::bigint[] IS NULL
       OR pca.category_id = ANY(sqlc.narg(category_ids))
     )
 ),

@@ -9,6 +9,8 @@ import (
 	"context"
 	"database/sql"
 	"time"
+
+	"github.com/lib/pq"
 )
 
 const createProduct = `-- name: CreateProduct :one
@@ -219,14 +221,21 @@ LEFT JOIN LATERAL (
   LIMIT 1
 ) AS pi ON TRUE
 WHERE
-  $1::bigint IS NULL
-  OR shop_id = $1::bigint
+  (
+    $1::bigint IS NULL 
+    OR p.shop_id = $1::bigint
+  )
+  AND (
+    $2::bigint[] IS NULL
+    OR p.id = ANY($2)
+  )
 ORDER BY p.id
-LIMIT $3 OFFSET $2
+LIMIT $4 OFFSET $3
 `
 
 type ListProductsWithPrimaryImageParams struct {
 	ShopID     sql.NullInt64 `json:"shop_id"`
+	Ids        []int64       `json:"ids"`
 	PageOffset int32         `json:"page_offset"`
 	PageLimit  int32         `json:"page_limit"`
 }
@@ -245,7 +254,12 @@ type ListProductsWithPrimaryImageRow struct {
 }
 
 func (q *Queries) ListProductsWithPrimaryImage(ctx context.Context, arg *ListProductsWithPrimaryImageParams) ([]ListProductsWithPrimaryImageRow, error) {
-	rows, err := q.db.QueryContext(ctx, listProductsWithPrimaryImage, arg.ShopID, arg.PageOffset, arg.PageLimit)
+	rows, err := q.db.QueryContext(ctx, listProductsWithPrimaryImage,
+		arg.ShopID,
+		pq.Array(arg.Ids),
+		arg.PageOffset,
+		arg.PageLimit,
+	)
 	if err != nil {
 		return nil, err
 	}

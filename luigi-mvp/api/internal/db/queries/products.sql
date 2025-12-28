@@ -105,8 +105,14 @@ LEFT JOIN LATERAL (
   LIMIT 1
 ) AS pi ON TRUE
 WHERE
-  sqlc.narg(shop_id)::bigint IS NULL
-  OR shop_id = sqlc.narg(shop_id)::bigint
+  (
+    sqlc.narg(shop_id)::bigint IS NULL 
+    OR p.shop_id = sqlc.narg(shop_id)::bigint
+  )
+  AND (
+    sqlc.narg(ids)::bigint[] IS NULL
+    OR p.id = ANY(sqlc.narg(ids))
+  )
 ORDER BY p.id
 LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
 

@@ -17,7 +17,7 @@ type productQuerier interface {
 	DeleteProduct(ctx context.Context, id int64) (db.Product, error)
 	ListCategoriesForProduct(ctx context.Context, productID int64) ([]db.ProductCategory, error)
 
-	GetProduct(ctx context.Context, id int64) (db.Product, error) 
+	GetProduct(ctx context.Context, id int64) (db.Product, error)
 }
 
 type Service struct {
@@ -50,7 +50,7 @@ func (s *Service) List(ctx context.Context, in ListInput) ([]db.Product, error) 
 }
 
 func (s *Service) Get(ctx context.Context, id int64) (db.Product, error) {
-    return s.q.GetProduct(ctx, id)
+	return s.q.GetProduct(ctx, id)
 }
 
 type CreateInput struct {
@@ -104,6 +104,7 @@ func (s *Service) Delete(ctx context.Context, id int64) (db.Product, error) {
 
 type ListWithImageInput struct {
 	ShopID *int64
+	Ids    []int64
 	Limit  int32
 	Offset int32
 }
@@ -119,6 +120,7 @@ func (s *Service) ListWithPrimaryImage(ctx context.Context, in ListWithImageInpu
 
 	return s.q.ListProductsWithPrimaryImage(ctx, &db.ListProductsWithPrimaryImageParams{
 		ShopID:     u.ToNullInt64(in.ShopID),
+		Ids:        in.Ids,
 		PageOffset: in.Offset,
 		PageLimit:  in.Limit,
 	})
@@ -178,7 +180,6 @@ func (s *Service) GetDTO(ctx context.Context, id int64) (ProductDTO, error) {
 
 	return dto, nil
 }
-
 
 func (s *Service) attachCategories(ctx context.Context, dto *ProductDTO) error {
 	cats, err := s.q.ListCategoriesForProduct(ctx, dto.ID)

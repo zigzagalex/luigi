@@ -3,6 +3,7 @@ package availabilityv1
 
 import (
 	"encoding/json"
+	"log"
 	"net/http"
 	"strconv"
 	"time"
@@ -47,6 +48,10 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		httpx.Fail(w, http.StatusBadRequest, "invalid_json", err.Error())
 		return
 	}
+
+	log.Printf("availability search: shop=%v store=%v categories=%v from=%s to=%s qty=%d",
+		req.ShopID, req.StoreID, req.CategoryIDs, req.StartDate, req.EndDate, req.Quantity,
+	)
 
 	if req.Quantity <= 0 {
 		httpx.Fail(w, http.StatusBadRequest, "invalid_quantity", "quantity must be > 0")

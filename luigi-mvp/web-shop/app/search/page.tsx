@@ -1,11 +1,12 @@
 // app/search/page.tsx
+import styles from "./page.module.css";
 import ProductGrid from "../components/products/ProductGrid";
 import { fetchApi } from "utils/fetchAPI";
 import { fetchProducts, type Product } from "@/../utils/products";
 
 type RawSearchParams = {
   shop_id?: string;
-  store_id?: string;     // <-- NEW
+  store_id?: string;
   category_id?: string;
   from?: string;
   to?: string;
@@ -13,7 +14,6 @@ type RawSearchParams = {
 };
 
 type SearchPageProps = {
-  // Next 16 passes searchParams as a Promise
   searchParams: Promise<RawSearchParams>;
 };
 
@@ -31,61 +31,50 @@ type AvailabilityRow = {
   variants: AvailabilityVariant[];
 };
 
+type AvailabilitySearchBody = {
+  shop_id: number;
+  store_id: number;
+  start_date: string;
+  end_date: string;
+  quantity: number;
+  category_ids?: number[];
+};
+
 export default async function SearchPage({ searchParams }: SearchPageProps) {
   const sp: RawSearchParams = (await searchParams) ?? {};
 
   const shopId = Number(sp.shop_id ?? "1");
+  const storeIdRaw = sp.store_id;
+  const storeId = Number(storeIdRaw ?? "");
+  const storeOk = Number.isFinite(storeId) && storeId > 0;
 
-  const storeIdStr = sp.store_id;
   const categoryId = sp.category_id ? Number(sp.category_id) : undefined;
   const from = sp.from;
   const to = sp.to;
   const quantity = Number(sp.quantity ?? "1");
 
-  let availability: AvailabilityRow[] = [];
   let products: Product[] = [];
-  let availabilityInfo: Record<
-    number,
-    { minPriceCents: number; availableQuantity: number }
-  > = {};
+  let availabilityInfo: Record<number, { minPriceCents: number; availableQuantity: number }> = {};
   let error: string | null = null;
+  let info: string | null = null;
 
-  // Require store_id
-  if (!storeIdStr) {
-    return (
-      <main className="page">
-        <div className="page-inner">
-          <h1>Available bikes</h1>
-          <p>Please select a pickup location in the header first.</p>
-        </div>
-      </main>
-    );
-  }
-
-  const storeId = Number(storeIdStr);
-  if (!Number.isFinite(storeId) || storeId <= 0) {
-    return (
-      <main className="page">
-        <div className="page-inner">
-          <h1>Available bikes</h1>
-          <p>Invalid store selected.</p>
-        </div>
-      </main>
-    );
-  }
-
-  if (from && to) {
+  // Basic input checks (but keep one consistent layout)
+  if (!storeIdRaw) {
+    info = "Please select a pickup location in the header first.";
+  } else if (!storeOk) {
+    info = "Invalid store selected.";
+  } else if (!from || !to) {
+    info = "Please choose dates in the search bar first.";
+  } else {
     try {
-      const body: any = {
+      const body: AvailabilitySearchBody = {
         shop_id: shopId,
-        store_id: storeId,     // <-- ALWAYS pass store to availability search
+        store_id: storeId,
         start_date: from,
         end_date: to,
         quantity,
+        ...(categoryId ? { category_ids: [categoryId] } : {}),
       };
-      if (categoryId) {
-        body.category_ids = [categoryId];
-      }
 
       const res = await fetchApi("/v1/availability/search", {
         method: "POST",
@@ -96,17 +85,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         const text = await res.text();
         error = `API error ${res.status}: ${text}`;
       } else {
-        availability = (await res.json()) as AvailabilityRow[];
+        const availability = (await res.json()) as AvailabilityRow[];
 
         if (availability.length) {
           // Build availabilityInfo per product
           for (const row of availability) {
-            const totalAvailable = row.variants.reduce(
-              (sum, v) => sum + v.available_quantity,
-              0
-            );
-            const existing = availabilityInfo[row.product_id];
+            const totalAvailable = row.variants.reduce((sum, v) => sum + v.available_quantity, 0);
 
+            const existing = availabilityInfo[row.product_id];
             if (!existing || row.min_price_cents < existing.minPriceCents) {
               availabilityInfo[row.product_id] = {
                 minPriceCents: row.min_price_cents,
@@ -115,9 +101,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             }
           }
 
-          const productIds = Array.from(
-            new Set(availability.map((a) => a.product_id))
-          );
+          const productIds = Array.from(new Set(availability.map((a) => a.product_id)));
 
           products = await fetchProducts({
             shop_id: shopId,
@@ -132,12 +116,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   }
 
   return (
-    <main className="page">
-      <div className="page-inner">
+    <main className={styles.page}>
+      <div className={styles.inner}>
         <h1>Available bikes</h1>
 
-        {!from || !to ? (
-          <p>Please choose dates in the search bar first.</p>
+        {info ? (
+          <p>{info}</p>
         ) : error ? (
           <p style={{ color: "red" }}>{error}</p>
         ) : products.length === 0 ? (
