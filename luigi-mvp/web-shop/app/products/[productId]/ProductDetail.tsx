@@ -1,9 +1,12 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Product } from "@/../utils/products";
 import styles from "./ProductDetail.module.css";
-import { AvailabilityRangeCalendar, type RangeValue } from "@/components/daterangepicker/AvailabilityRangeCalendar";
+import {
+  AvailabilityRangeCalendar,
+  type RangeValue,
+} from "@/components/daterangepicker/AvailabilityRangeCalendar";
 
 type VariantImage = {
   id: number;
@@ -58,59 +61,34 @@ function formatDateForApi(date: Date): string {
   return date.toISOString().slice(0, 10);
 }
 
-function formatRangeLabel(range: RangeValue): string {
-  if (!range.from) return "Add dates";
-  const from = range.from;
-  const to = range.to ?? range.from;
-
-  const fmt = new Intl.DateTimeFormat("de-CH", { day: "2-digit", month: "short" });
-  const fromStr = fmt.format(from);
-  const toStr = fmt.format(to);
-
-  if (from.getMonth() === to.getMonth() && from.getFullYear() === to.getFullYear()) {
-    return `${from.getDate()}.–${toStr}`;
-  }
-  return `${fromStr}–${toStr}`;
+function formatPillDate(d?: Date) {
+  if (!d) return "Add date";
+  // dd.mm.yyyy
+  return new Intl.DateTimeFormat("de-CH", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric",
+  }).format(d);
 }
 
 export default function ProductDetail({ product, variants, stores, inventory }: Props) {
-  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(variants[0]?.id ?? null);
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
+    variants[0]?.id ?? null
+  );
   const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
 
   const [range, setRange] = useState<RangeValue>({ from: undefined, to: undefined });
-
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
-
-  // calendar popover
-  const [calendarOpen, setCalendarOpen] = useState(false);
-  const calendarWrapRef = useRef<HTMLDivElement | null>(null);
 
   const selectedVariant = useMemo(
     () => variants.find((v) => v.id === selectedVariantId) ?? variants[0],
     [variants, selectedVariantId]
   );
 
-  const handleRangeChange = useCallback((next: RangeValue) => {
-    setRange(next);
-  
-    // after picking the start date, keep popover open and guide to end date
-    if (next.from && !next.to) {
-      setActiveDateField("to");
-      return;
-    }
-
-    // close only when end date is picked
-    if (next.from && next.to) {
-      setCalendarOpen(false);
-    }
-  }, []);
-  
-
-  const canPickDates = selectedVariant?.id != null && selectedStoreId != null;
-
   const images = selectedVariant?.images ?? [];
 
+  // Build size map (S/M/L -> variant)
   const sizeMap = useMemo(() => {
     const map = new Map<string, VariantWithImages>();
     variants.forEach((v) => {
@@ -120,8 +98,12 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     return map;
   }, [variants]);
 
-  const sizeOptions = useMemo(() => allSizeOptions.filter((s) => sizeMap.has(s)), [sizeMap]);
+  const sizeOptions = useMemo(
+    () => allSizeOptions.filter((s) => sizeMap.has(s)),
+    [sizeMap]
+  );
 
+  // Inventory counts per (variant, store)
   const inventoryMap = useMemo(() => {
     const map = new Map<string, number>();
     inventory.forEach((item) => {
@@ -146,11 +128,12 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     [selectedVariant?.id, selectedStoreId, getAvailableQuantity]
   );
 
-  const storeHasInventoryForSelectedVariant = (storeId: number): boolean => {
-    return getAvailableQuantity(selectedVariant?.id ?? null, storeId) > 0;
-  };
+  const storeHasInventoryForSelectedVariant = useCallback(
+    (storeId: number): boolean => getAvailableQuantity(selectedVariant?.id ?? null, storeId) > 0,
+    [getAvailableQuantity, selectedVariant?.id]
+  );
 
-  // pick a sensible default store+variant combo
+  // Pick a sensible default store+variant combo (first size with stock somewhere)
   useEffect(() => {
     if (!variants.length || !stores.length || !inventory.length) {
       setSelectedVariantId(variants[0]?.id ?? null);
@@ -184,7 +167,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     setCurrentImageIndex(0);
   }, [variants, stores, inventory, sizeOptions, sizeMap, getAvailableQuantity]);
 
-  // clamp quantity to stock
+  // Clamp quantity to stock
   useEffect(() => {
     if (availableQuantity <= 0) {
       setQuantity(1);
@@ -193,10 +176,11 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     }
   }, [availableQuantity]);
 
-  // optional: if store/variant changes, keep range but close the calendar
-  useEffect(() => {
-    setCalendarOpen(false);
-  }, [selectedStoreId, selectedVariantId]);
+  // If store/variant changes, keep range but you MAY want to reset it.
+  // (Optional: uncomment if your availability differs by store/variant.)
+  // useEffect(() => {
+  //   setRange({ from: undefined, to: undefined });
+  // }, [selectedStoreId, selectedVariantId]);
 
   const handlePrevImage = () => {
     if (!images.length) return;
@@ -232,16 +216,8 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
 
   const title = product.name || `Bike #${product.id}`;
   const priceLabel = product.price_category || "standard";
-  const rangeLabel = formatRangeLabel(range);
 
-  type ActiveDateField = "from" | "to";
-
-  function formatPillDate(d?: Date) {
-    if (!d) return "Add date";
-    return new Intl.DateTimeFormat("de-CH", { month: "2-digit", day: "2-digit", year: "numeric" }).format(d);
-  }
-
-  const [activeDateField, setActiveDateField] = useState<ActiveDateField>("from");
+  const canPickDates = selectedVariant?.id != null && selectedStoreId != null;
 
   return (
     <div className={styles.inner}>
@@ -373,68 +349,38 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
             </div>
           </div>
 
-          {/* Dates (Airbnb-style pill + popover) */}
-          <div className={styles.block} ref={calendarWrapRef}>
+          {/* Dates (fixed calendar, always visible) */}
+          <div className={styles.block}>
             <h2 className={styles.blockTitle}>Pick-up &amp; return</h2>
 
-            <div
-              className={[
-                styles.datePill,
-                !canPickDates ? styles.datePillDisabled : "",
-              ].join(" ")}
-            >
-              <button
-                type="button"
-                className={[
-                  styles.dateCell,
-                  activeDateField === "from" && calendarOpen ? styles.dateCellActive : "",
-                ].join(" ")}
-                disabled={!canPickDates}
-                onClick={() => {
-                  if (!canPickDates) return;
-                  setActiveDateField("from");
-                  setCalendarOpen(true);
-                }}
-                aria-label="Select Pickup date"
-              >
-                <span className={styles.dateLabel}>PICK-UP</span>
-                <span className={styles.dateValue}>{formatPillDate(range.from)}</span>
-              </button>
-
-              <div className={styles.dateDivider} />
-
-              <button
-                type="button"
-                className={[
-                  styles.dateCell,
-                  activeDateField === "to" && calendarOpen ? styles.dateCellActive : "",
-                ].join(" ")}
-                disabled={!canPickDates}
-                onClick={() => {
-                  if (!canPickDates) return;
-                  setActiveDateField("to");
-                  setCalendarOpen(true);
-                }}
-                aria-label="Select Return date"
-              >
-                <span className={styles.dateLabel}>RETURN</span>
-                <span className={styles.dateValue}>{formatPillDate(range.to)}</span>
-              </button>
+            {/* optional: tiny summary */}
+            <div className={styles.dateSummary}>
+              <div>
+                <span className={styles.dateSummaryLabel}>PICK-UP</span>
+                <span className={styles.dateSummaryValue}>{formatPillDate(range.from)}</span>
+              </div>
+              <div>
+                <span className={styles.dateSummaryLabel}>RETURN</span>
+                <span className={styles.dateSummaryValue}>{formatPillDate(range.to)}</span>
+              </div>
             </div>
 
-            {calendarOpen && canPickDates && (
-              <div className={styles.calendarPopover}>
-                <AvailabilityRangeCalendar
-                  variantId={selectedVariant!.id}
-                  storeId={selectedStoreId!}
-                  quantity={quantity}
-                  value={range}
-                  onChange={handleRangeChange}
-                />
+            {!canPickDates && (
+              <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>
+                Select a pick-up location to choose dates.
               </div>
             )}
-          </div>
 
+            <div className={styles.calendarInline}>
+              <AvailabilityRangeCalendar
+                variantId={selectedVariant?.id ?? 0}
+                storeId={selectedStoreId ?? 0}
+                quantity={quantity}
+                value={range}
+                onChange={setRange}
+              />
+            </div>
+          </div>
 
           {/* Quantity */}
           <div className={styles.block}>
