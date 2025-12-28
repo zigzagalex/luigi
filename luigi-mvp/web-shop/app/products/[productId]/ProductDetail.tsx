@@ -1,8 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Product } from "@/../utils/products";
 import styles from "./ProductDetail.module.css";
+import { AvailabilityRangeCalendar, type RangeValue } from "@/components/daterangepicker/AvailabilityRangeCalendar";
 
 type VariantImage = {
   id: number;
@@ -53,20 +54,60 @@ function getVariantSize(v?: VariantWithImages | null): string | undefined {
   return typeof raw === "string" ? raw : undefined;
 }
 
+function formatDateForApi(date: Date): string {
+  return date.toISOString().slice(0, 10);
+}
+
+function formatRangeLabel(range: RangeValue): string {
+  if (!range.from) return "Add dates";
+  const from = range.from;
+  const to = range.to ?? range.from;
+
+  const fmt = new Intl.DateTimeFormat("de-CH", { day: "2-digit", month: "short" });
+  const fromStr = fmt.format(from);
+  const toStr = fmt.format(to);
+
+  if (from.getMonth() === to.getMonth() && from.getFullYear() === to.getFullYear()) {
+    return `${from.getDate()}.–${toStr}`;
+  }
+  return `${fromStr}–${toStr}`;
+}
+
 export default function ProductDetail({ product, variants, stores, inventory }: Props) {
-  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
-    variants[0]?.id ?? null
-  );
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(variants[0]?.id ?? null);
   const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
-  const [pickupDate, setPickupDate] = useState("");
-  const [dropoffDate, setDropoffDate] = useState("");
+
+  const [range, setRange] = useState<RangeValue>({ from: undefined, to: undefined });
+
   const [quantity, setQuantity] = useState(1);
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  // calendar popover
+  const [calendarOpen, setCalendarOpen] = useState(false);
+  const calendarWrapRef = useRef<HTMLDivElement | null>(null);
 
   const selectedVariant = useMemo(
     () => variants.find((v) => v.id === selectedVariantId) ?? variants[0],
     [variants, selectedVariantId]
   );
+
+  const handleRangeChange = useCallback((next: RangeValue) => {
+    setRange(next);
+  
+    // after picking the start date, keep popover open and guide to end date
+    if (next.from && !next.to) {
+      setActiveDateField("to");
+      return;
+    }
+
+    // close only when end date is picked
+    if (next.from && next.to) {
+      setCalendarOpen(false);
+    }
+  }, []);
+  
+
+  const canPickDates = selectedVariant?.id != null && selectedStoreId != null;
 
   const images = selectedVariant?.images ?? [];
 
@@ -79,22 +120,16 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     return map;
   }, [variants]);
 
-  const sizeOptions = useMemo(
-    () => allSizeOptions.filter((s) => sizeMap.has(s)),
-    [sizeMap]
-  );
+  const sizeOptions = useMemo(() => allSizeOptions.filter((s) => sizeMap.has(s)), [sizeMap]);
 
   const inventoryMap = useMemo(() => {
     const map = new Map<string, number>();
-
     inventory.forEach((item) => {
       if (item.is_active === false) return;
       if (item.status && item.status !== "active") return;
-
       const key = `${item.product_variant_id}:${item.store_id}`;
       map.set(key, (map.get(key) ?? 0) + 1);
     });
-
     return map;
   }, [inventory]);
 
@@ -115,6 +150,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     return getAvailableQuantity(selectedVariant?.id ?? null, storeId) > 0;
   };
 
+  // pick a sensible default store+variant combo
   useEffect(() => {
     if (!variants.length || !stores.length || !inventory.length) {
       setSelectedVariantId(variants[0]?.id ?? null);
@@ -148,6 +184,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     setCurrentImageIndex(0);
   }, [variants, stores, inventory, sizeOptions, sizeMap, getAvailableQuantity]);
 
+  // clamp quantity to stock
   useEffect(() => {
     if (availableQuantity <= 0) {
       setQuantity(1);
@@ -155,6 +192,11 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
       setQuantity((q) => Math.min(Math.max(1, q), availableQuantity));
     }
   }, [availableQuantity]);
+
+  // optional: if store/variant changes, keep range but close the calendar
+  useEffect(() => {
+    setCalendarOpen(false);
+  }, [selectedStoreId, selectedVariantId]);
 
   const handlePrevImage = () => {
     if (!images.length) return;
@@ -166,22 +208,43 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     setCurrentImageIndex((idx) => (idx === images.length - 1 ? 0 : idx + 1));
   };
 
+  const canAddToCart =
+    !!selectedVariant &&
+    !!selectedStoreId &&
+    availableQuantity > 0 &&
+    !!range.from &&
+    !!range.to &&
+    quantity >= 1 &&
+    quantity <= availableQuantity;
+
   const handleAddToCart = () => {
+    if (!canAddToCart || !selectedVariant || !selectedStoreId || !range.from || !range.to) return;
+
     console.log("Add to cart clicked", {
       productId: product.id,
-      variantId: selectedVariant?.id,
+      variantId: selectedVariant.id,
       storeId: selectedStoreId,
-      pickupDate,
-      dropoffDate,
+      start_date: formatDateForApi(range.from),
+      end_date: formatDateForApi(range.to),
       quantity,
     });
   };
 
   const title = product.name || `Bike #${product.id}`;
   const priceLabel = product.price_category || "standard";
+  const rangeLabel = formatRangeLabel(range);
+
+  type ActiveDateField = "from" | "to";
+
+  function formatPillDate(d?: Date) {
+    if (!d) return "Add date";
+    return new Intl.DateTimeFormat("en-US", { month: "numeric", day: "numeric", year: "numeric" }).format(d);
+  }
+
+  const [activeDateField, setActiveDateField] = useState<ActiveDateField>("from");
 
   return (
-    <div className={styles.page}>
+    <div className={styles.inner}>
       <div className={styles.layout}>
         {/* LEFT: media */}
         <section className={styles.media}>
@@ -236,13 +299,11 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
 
         {/* RIGHT: info + controls */}
         <section className={styles.sidebar}>
-          {/* Title + price pill */}
           <header className={styles.header}>
             <h1 className={styles.title}>{title}</h1>
             <div className={styles.subtitle}>
               <span>Shop #{product.shop_id}</span>
             </div>
-
             <div className={styles.priceRow}>
               <span className={styles.pricePill}>{priceLabel}</span>
             </div>
@@ -251,7 +312,6 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
           {/* Store selector */}
           <div className={styles.block}>
             <h2 className={styles.blockTitle}>Pick-up location</h2>
-
             <div className={styles.chipRow}>
               {stores.map((store) => {
                 const hasInv = storeHasInventoryForSelectedVariant(store.id);
@@ -281,25 +341,23 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
           {/* Size selector */}
           <div className={styles.block}>
             <h2 className={styles.blockTitle}>Size</h2>
-
             <div className={styles.chipRow}>
               {sizeOptions.map((size) => {
                 const variantForSize = sizeMap.get(size);
-                const exists = !!variantForSize;
+                if (!variantForSize) return null;
 
                 const enabled =
-                  exists &&
                   selectedStoreId !== null &&
-                  getAvailableQuantity(variantForSize!.id, selectedStoreId) > 0;
+                  getAvailableQuantity(variantForSize.id, selectedStoreId) > 0;
 
-                const isSelected = enabled && selectedVariantId === variantForSize!.id;
+                const isSelected = enabled && selectedVariantId === variantForSize.id;
 
                 return (
                   <button
                     key={size}
                     type="button"
                     disabled={!enabled}
-                    onClick={() => enabled && setSelectedVariantId(variantForSize!.id)}
+                    onClick={() => enabled && setSelectedVariantId(variantForSize.id)}
                     className={[
                       styles.chip,
                       !enabled ? styles.chipDisabled : "",
@@ -315,30 +373,68 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
             </div>
           </div>
 
-          {/* Dates */}
-          <div className={styles.block}>
+          {/* Dates (Airbnb-style pill + popover) */}
+          <div className={styles.block} ref={calendarWrapRef}>
             <h2 className={styles.blockTitle}>Pick-up &amp; return</h2>
 
-            <div className={styles.dateRow}>
-              <div className={styles.dateField}>
-                <label>Pick-up</label>
-                <input
-                  type="date"
-                  value={pickupDate}
-                  onChange={(e) => setPickupDate(e.target.value)}
-                />
-              </div>
+            <div
+              className={[
+                styles.datePill,
+                !canPickDates ? styles.datePillDisabled : "",
+              ].join(" ")}
+            >
+              <button
+                type="button"
+                className={[
+                  styles.dateCell,
+                  activeDateField === "from" && calendarOpen ? styles.dateCellActive : "",
+                ].join(" ")}
+                disabled={!canPickDates}
+                onClick={() => {
+                  if (!canPickDates) return;
+                  setActiveDateField("from");
+                  setCalendarOpen(true);
+                }}
+                aria-label="Select check-in date"
+              >
+                <span className={styles.dateLabel}>CHECK-IN</span>
+                <span className={styles.dateValue}>{formatPillDate(range.from)}</span>
+              </button>
 
-              <div className={styles.dateField}>
-                <label>Return</label>
-                <input
-                  type="date"
-                  value={dropoffDate}
-                  onChange={(e) => setDropoffDate(e.target.value)}
+              <div className={styles.dateDivider} />
+
+              <button
+                type="button"
+                className={[
+                  styles.dateCell,
+                  activeDateField === "to" && calendarOpen ? styles.dateCellActive : "",
+                ].join(" ")}
+                disabled={!canPickDates}
+                onClick={() => {
+                  if (!canPickDates) return;
+                  setActiveDateField("to");
+                  setCalendarOpen(true);
+                }}
+                aria-label="Select checkout date"
+              >
+                <span className={styles.dateLabel}>CHECKOUT</span>
+                <span className={styles.dateValue}>{formatPillDate(range.to)}</span>
+              </button>
+            </div>
+
+            {calendarOpen && canPickDates && (
+              <div className={styles.calendarPopover}>
+                <AvailabilityRangeCalendar
+                  variantId={selectedVariant!.id}
+                  storeId={selectedStoreId!}
+                  quantity={quantity}
+                  value={range}
+                  onChange={handleRangeChange}
                 />
               </div>
-            </div>
+            )}
           </div>
+
 
           {/* Quantity */}
           <div className={styles.block}>
@@ -378,7 +474,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
               type="button"
               className={styles.addToCart}
               onClick={handleAddToCart}
-              disabled={!selectedVariant || !selectedStoreId || availableQuantity === 0}
+              disabled={!canAddToCart}
             >
               Add to cart
             </button>

@@ -6,6 +6,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	chiMw "github.com/go-chi/chi/v5/middleware"
+	"github.com/rs/cors"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	"github.com/zigzagalex/luigi/api/internal/storage"
@@ -31,6 +32,18 @@ type Deps struct {
 
 func New(d Deps) http.Handler {
 	r := chi.NewRouter()
+	c := cors.New(cors.Options{
+		AllowedOrigins: []string{
+			"http://localhost:3000",
+		},
+		AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},
+		// Only set AllowCredentials=true if you actually use cookies.
+		AllowCredentials: false,
+		MaxAge:           300,
+	})
+
+	r.Use(c.Handler)
 	r.Use(middleware.SecurityHeaders, middleware.RequestLogger, apiVersionHeader("1")) // default header for v1 routes
 	r.Use(chiMw.Recoverer)
 	r.Get("/health", func(w http.ResponseWriter, r *http.Request) {
