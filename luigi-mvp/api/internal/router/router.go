@@ -4,13 +4,16 @@ import (
 	"log"
 	"net/http"
 
+	fbauth "firebase.google.com/go/v4/auth"
 	"github.com/go-chi/chi/v5"
 	chiMw "github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	"github.com/zigzagalex/luigi/api/internal/storage"
+	usersvc "github.com/zigzagalex/luigi/api/internal/users"
 
+	v1auth "github.com/zigzagalex/luigi/api/internal/v1/auth"
 	v1availability "github.com/zigzagalex/luigi/api/internal/v1/availability"
 	v1categories "github.com/zigzagalex/luigi/api/internal/v1/categories"
 	v1customers "github.com/zigzagalex/luigi/api/internal/v1/customers"
@@ -28,6 +31,9 @@ type Deps struct {
 	Q            *db.Queries
 	Storage      storage.Client
 	MediaBaseURL string
+
+	FirebaseAuth *fbauth.Client
+	Env          string
 }
 
 func New(d Deps) http.Handler {
@@ -37,9 +43,9 @@ func New(d Deps) http.Handler {
 			"http://localhost:3000",
 		},
 		AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type"},
+		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		// Only set AllowCredentials=true if you actually use cookies.
-		AllowCredentials: false,
+		AllowCredentials: true,
 		MaxAge:           300,
 	})
 
@@ -50,17 +56,30 @@ func New(d Deps) http.Handler {
 		w.Header().Set("Content-Type", "application/json")
 		_, _ = w.Write([]byte(`{"status":"ok"}`))
 	})
+
 	r.Route("/v1", func(r chi.Router) {
+		// Auth routes (public + /me protected inside the module)
+		v1auth.RegisterRoutes(r, d.FirebaseAuth, d.Q, d.Env)
+
+		// Public routes (shop browsing)
 		v1shops.RegisterRoutes(r, d.Q)
 		v1stores.RegisterRoutes(r, d.Q)
-		v1users.RegisterRoutes(r, d.Q)
-		v1customers.RegisterRoutes(r, d.Q)
 		v1products.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 		v1product_variants.RegisterRoutes(r, d.Q)
-		v1inventory.RegisterRoutes(r, d.Q)
 		v1categories.RegisterRoutes(r, d.Q)
-		v1pricepoints.RegisterRoutes(r, d.Q)
 		v1availability.RegisterRoutes(r, d.Q)
+
+		// Protected routes (admin/management)
+		r.Group(func(r chi.Router) {
+			us := usersvc.NewService(d.Q)
+			r.Use(middleware.RequireSessionCookie(d.FirebaseAuth, us, "luigi_session"))
+
+			v1users.RegisterRoutes(r, d.Q)
+			v1customers.RegisterRoutes(r, d.Q)
+			v1inventory.RegisterRoutes(r, d.Q)
+			v1pricepoints.RegisterRoutes(r, d.Q)
+			v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
+		})
 
 		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 		r.NotFound(func(w http.ResponseWriter, r *http.Request) {

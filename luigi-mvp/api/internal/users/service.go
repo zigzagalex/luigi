@@ -3,6 +3,7 @@ package users
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"strings"
 
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
@@ -14,6 +15,7 @@ type userQuerier interface {
 	CreateUser(ctx context.Context, arg *db.CreateUserParams) (db.User, error)
 	UpdateUser(ctx context.Context, arg *db.UpdateUserParams) (db.User, error)
 	DeleteUser(ctx context.Context, id int64) (db.User, error)
+	GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (db.User, error)
 }
 
 type Service struct {
@@ -92,4 +94,21 @@ func (s *Service) Delete(ctx context.Context, id int64) (db.User, error) {
 	return s.q.DeleteUser(ctx, id)
 }
 
-var ErrNotFound = sql.ErrNoRows
+func (s *Service) GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (db.User, error) {
+	uid := strings.TrimSpace(firebaseUid)
+	if uid == "" {
+		return db.User{}, ErrNotFound
+	}
+
+	user, err := s.q.GetUserByFirebaseUID(ctx, uid)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return db.User{}, ErrNotFound
+		}
+		return db.User{}, err
+	}
+
+	return user, nil
+}
+
+var ErrNotFound = errors.New("user_not_found")

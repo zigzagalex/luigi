@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/zigzagalex/luigi/api/internal/auth"
 	"github.com/zigzagalex/luigi/api/internal/config"
 	dbpool "github.com/zigzagalex/luigi/api/internal/db"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
@@ -44,10 +45,18 @@ func main() {
 		store = gcsClient
 	}
 
+	// Firebase Admin 
+	fbAuth, err := auth.NewFirebaseAuthClient(ctx)
+	if err != nil {
+		log.Fatalf("failed to init firebase auth: %v", err)
+	}
+
 	r := router.New(router.Deps{
 		Q:            q,
 		Storage:      store,
 		MediaBaseURL: cfg.MediaBaseURL,
+		FirebaseAuth: fbAuth, 
+		Env:          cfg.Env,
 	})
 
 	log.Printf("listening on :%s", cfg.Port)
