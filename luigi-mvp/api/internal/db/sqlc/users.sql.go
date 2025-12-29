@@ -110,6 +110,31 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) (User, error) {
 	return i, err
 }
 
+const getUserByFirebaseUID = `-- name: GetUserByFirebaseUID :one
+SELECT
+    id, shop_id, store_id, firebase_uid, email, display_name, role, is_active, created_at, updated_at
+FROM users
+WHERE firebase_uid = $1
+`
+
+func (q *Queries) GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (User, error) {
+	row := q.db.QueryRowContext(ctx, getUserByFirebaseUID, firebaseUid)
+	var i User
+	err := row.Scan(
+		&i.ID,
+		&i.ShopID,
+		&i.StoreID,
+		&i.FirebaseUid,
+		&i.Email,
+		&i.DisplayName,
+		&i.Role,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const listUsers = `-- name: ListUsers :many
 SELECT 
     id,

@@ -163,3 +163,52 @@
     scroll-snap-align: center;
   }
 }
+
+/* Wrap auth + kebab together on the right side of the top row */
+.rightActions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.authButton {
+  display: inline-flex;
+  align-items: center;
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 9999px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  color: #ffffff;
+  background: rgba(255, 255, 255, 0.06);
+  text-decoration: none;
+  font-size: 0.9rem;
+  font-weight: 600;
+  line-height: 1;
+  cursor: pointer;
+  transition: background 120ms ease, border-color 120ms ease, transform 120ms ease;
+}
+
+.authButton:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.34);
+  transform: translateY(-1px);
+}
+
+.authButton:active {
+  transform: translateY(0);
+}
+
+.authButton:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 2px;
+}
+
+/* Optional: keep it tidy on narrow screens */
+@media (max-width: 520px) {
+  .authButton {
+    padding: 0 10px;
+    font-size: 0.85rem;
+  }
+}
+

@@ -85,3 +85,10 @@ RETURNING
   role, 
   is_active, 
   created_at, updated_at;
+
+
+-- name: GetUserByFirebaseUID :one
+SELECT
+    *
+FROM users
+WHERE firebase_uid = sqlc.arg(firebase_uid);

@@ -5,6 +5,7 @@ import Link from "next/link";
 import SearchPill from "../search/SearchPill";
 import type { CategoryOption, StoreOption } from "@/../utils/fetchAPI";
 import styles from "./AppHeader.module.css";
+import AuthModal from "../auth/AuthModal"; 
 
 type Props = {
   categories: CategoryOption[];
@@ -16,17 +17,17 @@ export default function AppHeader({ categories, stores }: Props) {
     () => stores[0] ?? null
   );
 
+  const [authOpen, setAuthOpen] = useState(false);
+
   return (
     <header className={styles.header}>
       <div className={styles.inner}>
-        {/* Top row: logo + store tabs + menu */}
         <div className={styles.topRow}>
           <Link href="/" className={styles.logo}>
             <span className={styles.logoTitle}>Luigi&apos;s Bike Rentals</span>
             <span className={styles.logoSubtitle}>Bern, Zurich, Geneva</span>
           </Link>
 
-          {/* Store tabs */}
           {stores.length > 0 && (
             <nav className={styles.storeNav} aria-label="Choose pickup location">
               {stores.map((store) => {
@@ -46,18 +47,27 @@ export default function AppHeader({ categories, stores }: Props) {
             </nav>
           )}
 
-          <button
-            type="button"
-            className={styles.menuButton}
-            aria-label="Open navigation menu"
-          >
-            <span />
-            <span />
-            <span />
-          </button>
+          <div className={styles.rightActions}>
+            <button
+              type="button"
+              className={styles.authButton}
+              onClick={() => setAuthOpen(true)}
+            >
+              Log in / Sign up
+            </button>
+
+            <button
+              type="button"
+              className={styles.menuButton}
+              aria-label="Open navigation menu"
+            >
+              <span />
+              <span />
+              <span />
+            </button>
+          </div>
         </div>
 
-        {/* Second row: search pill */}
         <div className={styles.searchRow}>
           {selectedStore ? (
             <SearchPill categories={categories} selectedStore={selectedStore} />
@@ -66,6 +76,9 @@ export default function AppHeader({ categories, stores }: Props) {
           )}
         </div>
       </div>
+
+      {/* The modal near the end so it’s not trapped inside layout styling */}
+      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </header>
   );
 }
