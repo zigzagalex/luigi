@@ -50,7 +50,7 @@ func listHandler(svc *customersvc.Service) http.HandlerFunc {
 			return
 		}
 		if items == nil {
-			items = []db.Customer{}
+			items = []db.ListCustomersRow{}
 		}
 		httpx.JSON(w, http.StatusOK, items)
 	}

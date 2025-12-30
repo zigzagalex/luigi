@@ -45,18 +45,18 @@ func main() {
 		store = gcsClient
 	}
 
-	// Firebase Admin 
+	// Firebase Admin
 	fbAuth, err := auth.NewFirebaseAuthClient(ctx, cfg.FirebaseProjectID)
 	if err != nil {
 		log.Fatalf("failed to init firebase auth: %v", err)
 	}
 
-
 	r := router.New(router.Deps{
 		Q:            q,
 		Storage:      store,
 		MediaBaseURL: cfg.MediaBaseURL,
-		FirebaseAuth: fbAuth, 
+		SQLDB:        sqlDB,
+		FirebaseAuth: fbAuth,
 		Env:          cfg.Env,
 	})
 
