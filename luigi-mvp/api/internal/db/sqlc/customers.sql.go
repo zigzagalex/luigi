@@ -8,16 +8,23 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createCustomer = `-- name: CreateCustomer :one
 INSERT INTO customers (
-    shop_id,
-    email,
-    phone,
-    first_name,
-    last_name,
-    notes,
+    shop_id, 
+    user_id, 
+    email, 
+    phone, 
+    first_name, 
+    last_name, 
+    address1, 
+    address2, 
+    postal_code, 
+    city, 
+    country, 
+    notes, 
     is_active
 ) VALUES (
     $1,
@@ -25,39 +32,47 @@ INSERT INTO customers (
     $3,
     $4,
     $5,
-    $6::text,
-    $7::bool
+    $6,
+    $7::text,
+    $8::text,
+    $9::text,
+    $10::text,
+    $11::text,
+    $12::text,
+    $13::bool
 )
-    RETURNING
-    id,
-    shop_id,
-    email,
-    phone,
-    first_name,
-    last_name,
-    notes,
-    is_active,
-    created_at,
-    updated_at
+RETURNING id, shop_id, email, phone, first_name, last_name, notes, is_active, created_at, updated_at, user_id, address1, address2, postal_code, city, country
 `
 
 type CreateCustomerParams struct {
-	ShopID    int64          `json:"shop_id"`
-	Email     sql.NullString `json:"email"`
-	Phone     sql.NullString `json:"phone"`
-	FirstName sql.NullString `json:"first_name"`
-	LastName  sql.NullString `json:"last_name"`
-	Notes     sql.NullString `json:"notes"`
-	IsActive  sql.NullBool   `json:"is_active"`
+	ShopID     int64          `json:"shop_id"`
+	UserID     sql.NullInt64  `json:"user_id"`
+	Email      sql.NullString `json:"email"`
+	Phone      sql.NullString `json:"phone"`
+	FirstName  sql.NullString `json:"first_name"`
+	LastName   sql.NullString `json:"last_name"`
+	Address1   sql.NullString `json:"address1"`
+	Address2   sql.NullString `json:"address2"`
+	PostalCode sql.NullString `json:"postal_code"`
+	City       sql.NullString `json:"city"`
+	Country    sql.NullString `json:"country"`
+	Notes      sql.NullString `json:"notes"`
+	IsActive   sql.NullBool   `json:"is_active"`
 }
 
 func (q *Queries) CreateCustomer(ctx context.Context, arg *CreateCustomerParams) (Customer, error) {
 	row := q.db.QueryRowContext(ctx, createCustomer,
 		arg.ShopID,
+		arg.UserID,
 		arg.Email,
 		arg.Phone,
 		arg.FirstName,
 		arg.LastName,
+		arg.Address1,
+		arg.Address2,
+		arg.PostalCode,
+		arg.City,
+		arg.Country,
 		arg.Notes,
 		arg.IsActive,
 	)
@@ -73,24 +88,20 @@ func (q *Queries) CreateCustomer(ctx context.Context, arg *CreateCustomerParams)
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.UserID,
+		&i.Address1,
+		&i.Address2,
+		&i.PostalCode,
+		&i.City,
+		&i.Country,
 	)
 	return i, err
 }
 
 const deleteCustomer = `-- name: DeleteCustomer :one
 DELETE FROM customers
-WHERE id = $1
-RETURNING
-  id,
-  shop_id,
-  email,
-  phone,
-  first_name,
-  last_name,
-  notes,
-  is_active,
-  created_at,
-  updated_at
+WHERE id = $1 
+RETURNING id, shop_id, email, phone, first_name, last_name, notes, is_active, created_at, updated_at, user_id, address1, address2, postal_code, city, country
 `
 
 func (q *Queries) DeleteCustomer(ctx context.Context, id int64) (Customer, error) {
@@ -107,6 +118,45 @@ func (q *Queries) DeleteCustomer(ctx context.Context, id int64) (Customer, error
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.UserID,
+		&i.Address1,
+		&i.Address2,
+		&i.PostalCode,
+		&i.City,
+		&i.Country,
+	)
+	return i, err
+}
+
+const getCustomerByUserID = `-- name: GetCustomerByUserID :one
+SELECT 
+    id, shop_id, email, phone, first_name, last_name, notes, is_active, created_at, updated_at, user_id, address1, address2, postal_code, city, country 
+FROM customers 
+WHERE 
+    user_id = $1 
+LIMIT 1
+`
+
+func (q *Queries) GetCustomerByUserID(ctx context.Context, userID sql.NullInt64) (Customer, error) {
+	row := q.db.QueryRowContext(ctx, getCustomerByUserID, userID)
+	var i Customer
+	err := row.Scan(
+		&i.ID,
+		&i.ShopID,
+		&i.Email,
+		&i.Phone,
+		&i.FirstName,
+		&i.LastName,
+		&i.Notes,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.Address1,
+		&i.Address2,
+		&i.PostalCode,
+		&i.City,
+		&i.Country,
 	)
 	return i, err
 }
@@ -114,15 +164,21 @@ func (q *Queries) DeleteCustomer(ctx context.Context, id int64) (Customer, error
 const listCustomers = `-- name: ListCustomers :many
 SELECT
     id,
-    shop_id,
-    email,
-    phone,
-    first_name,
-    last_name,
-    notes,
-    is_active,
+    shop_id, 
+    user_id, 
+    email, 
+    phone, 
+    first_name, 
+    last_name, 
+    address1, 
+    address2, 
+    postal_code, 
+    city, 
+    country, 
+    notes, 
     created_at,
-    updated_at
+    updated_at,
+    is_active
 FROM customers
 WHERE (
     $1::bigint IS NULL
@@ -138,26 +194,51 @@ type ListCustomersParams struct {
 	PageLimit  int32         `json:"page_limit"`
 }
 
-func (q *Queries) ListCustomers(ctx context.Context, arg *ListCustomersParams) ([]Customer, error) {
+type ListCustomersRow struct {
+	ID         int64          `json:"id"`
+	ShopID     int64          `json:"shop_id"`
+	UserID     sql.NullInt64  `json:"user_id"`
+	Email      sql.NullString `json:"email"`
+	Phone      sql.NullString `json:"phone"`
+	FirstName  sql.NullString `json:"first_name"`
+	LastName   sql.NullString `json:"last_name"`
+	Address1   sql.NullString `json:"address1"`
+	Address2   sql.NullString `json:"address2"`
+	PostalCode sql.NullString `json:"postal_code"`
+	City       sql.NullString `json:"city"`
+	Country    string         `json:"country"`
+	Notes      sql.NullString `json:"notes"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	IsActive   bool           `json:"is_active"`
+}
+
+func (q *Queries) ListCustomers(ctx context.Context, arg *ListCustomersParams) ([]ListCustomersRow, error) {
 	rows, err := q.db.QueryContext(ctx, listCustomers, arg.ShopID, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Customer
+	var items []ListCustomersRow
 	for rows.Next() {
-		var i Customer
+		var i ListCustomersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.ShopID,
+			&i.UserID,
 			&i.Email,
 			&i.Phone,
 			&i.FirstName,
 			&i.LastName,
+			&i.Address1,
+			&i.Address2,
+			&i.PostalCode,
+			&i.City,
+			&i.Country,
 			&i.Notes,
-			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
+			&i.IsActive,
 		); err != nil {
 			return nil, err
 		}
@@ -179,31 +260,31 @@ SET
     phone       = COALESCE($2::text,  phone),
     first_name  = COALESCE($3::text,  first_name),
     last_name   = COALESCE($4::text,  last_name),
-    notes       = COALESCE($5::text,  notes),
-    is_active   = COALESCE($6::bool,  is_active),
+    address1    = COALESCE($5::text, address1),
+    address2    = COALESCE($6::text, address2),
+    postal_code = COALESCE($7::text, postal_code),
+    city        = COALESCE($8::text, city),
+    country     = COALESCE($9::text, country),
+    notes       = COALESCE($10::text,  notes),
+    is_active   = COALESCE($11::bool,  is_active),
     updated_at  = now()
-WHERE id = $7
-RETURNING
-    id,
-    shop_id,
-    email,
-    phone,
-    first_name,
-    last_name,
-    notes,
-    is_active,
-    created_at,
-    updated_at
+WHERE id = $12
+RETURNING id, shop_id, email, phone, first_name, last_name, notes, is_active, created_at, updated_at, user_id, address1, address2, postal_code, city, country
 `
 
 type UpdateCustomerParams struct {
-	Email     sql.NullString `json:"email"`
-	Phone     sql.NullString `json:"phone"`
-	FirstName sql.NullString `json:"first_name"`
-	LastName  sql.NullString `json:"last_name"`
-	Notes     sql.NullString `json:"notes"`
-	IsActive  sql.NullBool   `json:"is_active"`
-	ID        int64          `json:"id"`
+	Email      sql.NullString `json:"email"`
+	Phone      sql.NullString `json:"phone"`
+	FirstName  sql.NullString `json:"first_name"`
+	LastName   sql.NullString `json:"last_name"`
+	Address1   sql.NullString `json:"address1"`
+	Address2   sql.NullString `json:"address2"`
+	PostalCode sql.NullString `json:"postal_code"`
+	City       sql.NullString `json:"city"`
+	Country    sql.NullString `json:"country"`
+	Notes      sql.NullString `json:"notes"`
+	IsActive   sql.NullBool   `json:"is_active"`
+	ID         int64          `json:"id"`
 }
 
 func (q *Queries) UpdateCustomer(ctx context.Context, arg *UpdateCustomerParams) (Customer, error) {
@@ -212,6 +293,11 @@ func (q *Queries) UpdateCustomer(ctx context.Context, arg *UpdateCustomerParams)
 		arg.Phone,
 		arg.FirstName,
 		arg.LastName,
+		arg.Address1,
+		arg.Address2,
+		arg.PostalCode,
+		arg.City,
+		arg.Country,
 		arg.Notes,
 		arg.IsActive,
 		arg.ID,
@@ -228,6 +314,12 @@ func (q *Queries) UpdateCustomer(ctx context.Context, arg *UpdateCustomerParams)
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.UserID,
+		&i.Address1,
+		&i.Address2,
+		&i.PostalCode,
+		&i.City,
+		&i.Country,
 	)
 	return i, err
 }

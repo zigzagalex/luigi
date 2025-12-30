@@ -1,10 +1,13 @@
 package authv1
 
 import (
+	"database/sql"
 	"encoding/json"
 	"net/http"
 	"strings"
 	"time"
+
+	customersvc "github.com/zigzagalex/luigi/api/internal/customers"
 
 	fbauth "firebase.google.com/go/v4/auth"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
@@ -20,12 +23,14 @@ const cookieName = "luigi_session"
 type Handler struct {
 	fb    *fbauth.Client
 	env   string
+	q     *db.Queries
+	db    *sql.DB
 	users *usersvc.Service
 }
 
-func RegisterRoutes(r chi.Router, fb *fbauth.Client, q db.Querier, env string) {
+func RegisterRoutes(r chi.Router, fb *fbauth.Client, q *db.Queries, sqlDB *sql.DB, env string) {
 	us := usersvc.NewService(q)
-	h := &Handler{fb: fb, env: env, users: us}
+	h := &Handler{fb: fb, env: env, q: q, db: sqlDB}
 
 	r.Route("/auth", func(r chi.Router) {
 		// Public endpoints
@@ -42,17 +47,30 @@ func RegisterRoutes(r chi.Router, fb *fbauth.Client, q db.Querier, env string) {
 
 type createSessionReq struct {
 	IDToken string `json:"idToken"`
+
+	// provisioning fields (only used if user doesn't exist)
+	ShopID     int64  `json:"shop_id"`
+	FirstName  string `json:"first_name"`
+	LastName   string `json:"last_name"`
+	Phone      string `json:"phone"`
+	Address1   string `json:"address1"`
+	Address2   string `json:"address2,omitempty"`
+	PostalCode string `json:"postal_code"`
+	City       string `json:"city"`
+	Country    string `json:"country,omitempty"`
 }
 
 func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
 	var req createSessionReq
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.IDToken) == "" {
 		httpx.Fail(w, http.StatusBadRequest, "invalid_json", nil)
 		return
 	}
 
-	// (Recommended) verify ID token first to get UID/email for provisioning
-	tok, err := h.fb.VerifyIDToken(r.Context(), req.IDToken)
+	// 1) Verify Firebase ID token (proves user identity)
+	tok, err := h.fb.VerifyIDToken(ctx, req.IDToken)
 	if err != nil {
 		httpx.Fail(w, http.StatusUnauthorized, "invalid_id_token", err.Error())
 		return
@@ -64,26 +82,67 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Optional: auto-provision the Postgres user on first login.
-	// If you don’t want auto-provision, delete this block and return 403 later instead.
-	_, err = h.users.GetUserByFirebaseUID(r.Context(), uid)
+	// Pull email from token claims (if present)
+	var emailPtr *string
+	if v, ok := tok.Claims["email"].(string); ok {
+		e := strings.TrimSpace(v)
+		if e != "" {
+			emailPtr = &e
+		}
+	}
+
+	// 2) Transaction: ensure BOTH user + customer exist, atomically.
+	// Why: without a tx you can create a user but fail customer creation and end up with broken state.
+	tx, err := h.db.BeginTx(ctx, nil)
+	if err != nil {
+		httpx.Fail(w, http.StatusInternalServerError, "tx_begin_failed", err.Error())
+		return
+	}
+	defer tx.Rollback()
+
+	qtx := h.q.WithTx(tx)
+
+	us := usersvc.NewService(qtx)
+	cs := customersvc.NewService(qtx)
+
+	// 2a) Ensure user exists
+	user, err := us.GetUserByFirebaseUID(ctx, uid)
 	if err != nil {
 		if err == usersvc.ErrNotFound {
-			var emailPtr *string
-			if v, ok := tok.Claims["email"].(string); ok {
-				e := strings.TrimSpace(v)
-				if e != "" {
-					emailPtr = &e
-				}
+			// First time we've seen this Firebase UID => provisioning is required.
+			// Enforce the profile fields YOU said must exist.
+			if req.ShopID <= 0 ||
+				strings.TrimSpace(req.FirstName) == "" ||
+				strings.TrimSpace(req.LastName) == "" ||
+				strings.TrimSpace(req.Phone) == "" ||
+				strings.TrimSpace(req.Address1) == "" ||
+				strings.TrimSpace(req.PostalCode) == "" ||
+				strings.TrimSpace(req.City) == "" {
+				httpx.Fail(w, http.StatusBadRequest, "missing_profile_fields", map[string]any{
+					"shop_id":     req.ShopID,
+					"first_name":  req.FirstName,
+					"last_name":   req.LastName,
+					"phone":       req.Phone,
+					"address1":    req.Address1,
+					"postal_code": req.PostalCode,
+					"city":        req.City,
+					"country":     req.Country,
+				})
+				return
 			}
 
 			uidCopy := uid
-			_, createErr := h.users.Create(r.Context(), usersvc.CreateInput{
+			display := strings.TrimSpace(req.FirstName) + " " + strings.TrimSpace(req.LastName)
+
+			user, err = us.Create(ctx, usersvc.CreateInput{
+				ShopID:      &req.ShopID,
 				FirebaseUID: &uidCopy,
-				Email:       emailPtr,	
+				Email:       emailPtr,
+				DisplayName: &display,
+				// Role + IsActive can default in service/SQL to "customer" + true
 			})
-			if createErr != nil {
-				httpx.Fail(w, http.StatusInternalServerError, "user_autoprovision_failed", createErr.Error())
+			if err != nil {
+				httpx.Fail(w, http.StatusInternalServerError, "user_autoprovision_failed", err.Error())
 				return
 			}
 		} else {
@@ -92,15 +151,67 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Create session cookie (5min..14 days supported)
+	// 2b) Ensure customer profile exists for this user
+	// - customers.GetCustomerByUserID(ctx, user.ID)
+	// - customers.Create(...) that takes UserID + address fields
+	_, err = cs.GetCustomerByUserID(ctx, user.ID)
+	if err != nil {
+		if err == customersvc.ErrNotFound {
+			// If user existed already but customer missing, either:
+			// - require fields and create now (strict)
+			// - or create a minimal customer and force completion later (looser)
+			// You said you want strict.
+			if strings.TrimSpace(req.FirstName) == "" ||
+				strings.TrimSpace(req.LastName) == "" ||
+				strings.TrimSpace(req.Phone) == "" {
+				httpx.Fail(w, http.StatusBadRequest, "missing_profile_fields", "customer profile required")
+				return
+			}
+
+			country := strings.TrimSpace(req.Country)
+			if country == "" {
+				country = "CH"
+			}
+
+			_, err = cs.Create(ctx, customersvc.CreateInput{
+				ShopID:     req.ShopID, // or derive from user.ShopID if you enforce it
+				UserID:     &user.ID,
+				Email:      emailPtr,
+				Phone:      ptr(strings.TrimSpace(req.Phone)),
+				FirstName:  ptr(strings.TrimSpace(req.FirstName)),
+				LastName:   ptr(strings.TrimSpace(req.LastName)),
+				Address1:   optPtr(strings.TrimSpace(req.Address1)),
+				Address2:   optPtr(req.Address2),
+				PostalCode: optPtr(strings.TrimSpace(req.PostalCode)),
+				City:       optPtr(strings.TrimSpace(req.City)),
+				Country:    optPtr(country),
+				IsActive:   ptrBool(true),
+			})
+			if err != nil {
+				httpx.Fail(w, http.StatusInternalServerError, "customer_autoprovision_failed", err.Error())
+				return
+			}
+		} else {
+			httpx.Fail(w, http.StatusInternalServerError, "get_customer_failed", err.Error())
+			return
+		}
+	}
+
+	// 2c) Commit DB work FIRST (so cookie isn't created for a half-provisioned user)
+	if err := tx.Commit(); err != nil {
+		httpx.Fail(w, http.StatusInternalServerError, "tx_commit_failed", err.Error())
+		return
+	}
+
+	// 3) Create Firebase session cookie AFTER DB is consistent
 	expiresIn := 7 * 24 * time.Hour
-	sessionCookie, err := h.fb.SessionCookie(r.Context(), req.IDToken, expiresIn)
+	sessionCookie, err := h.fb.SessionCookie(ctx, req.IDToken, expiresIn)
 	if err != nil {
 		httpx.Fail(w, http.StatusUnauthorized, "session_cookie_create_failed", err.Error())
 		return
 	}
 
-	secure := h.env != "dev" // local http needs Secure=false or browser may ignore
+	secure := h.env != "dev"
 	http.SetCookie(w, &http.Cookie{
 		Name:     cookieName,
 		Value:    sessionCookie,
@@ -113,6 +224,18 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 
 	httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
 }
+
+func ptr(s string) *string { return &s }
+
+func optPtr(s string) *string {
+	t := strings.TrimSpace(s)
+	if t == "" {
+		return nil
+	}
+	return &t
+}
+
+func ptrBool(v bool) *bool { return &v }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	secure := h.env != "dev"
@@ -137,7 +260,7 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Return a SAFE shape (don’t dump everything)
+	// Return a SAFE shape
 	httpx.JSON(w, http.StatusOK, map[string]any{
 		"id":           user.ID,
 		"email":        user.Email,

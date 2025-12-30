@@ -23,16 +23,22 @@ type Accessory struct {
 }
 
 type Customer struct {
-	ID        int64          `json:"id"`
-	ShopID    int64          `json:"shop_id"`
-	Email     sql.NullString `json:"email"`
-	Phone     sql.NullString `json:"phone"`
-	FirstName sql.NullString `json:"first_name"`
-	LastName  sql.NullString `json:"last_name"`
-	Notes     sql.NullString `json:"notes"`
-	IsActive  bool           `json:"is_active"`
-	CreatedAt time.Time      `json:"created_at"`
-	UpdatedAt time.Time      `json:"updated_at"`
+	ID         int64          `json:"id"`
+	ShopID     int64          `json:"shop_id"`
+	Email      sql.NullString `json:"email"`
+	Phone      sql.NullString `json:"phone"`
+	FirstName  sql.NullString `json:"first_name"`
+	LastName   sql.NullString `json:"last_name"`
+	Notes      sql.NullString `json:"notes"`
+	IsActive   bool           `json:"is_active"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+	UserID     sql.NullInt64  `json:"user_id"`
+	Address1   sql.NullString `json:"address1"`
+	Address2   sql.NullString `json:"address2"`
+	PostalCode sql.NullString `json:"postal_code"`
+	City       sql.NullString `json:"city"`
+	Country    string         `json:"country"`
 }
 
 type Hold struct {

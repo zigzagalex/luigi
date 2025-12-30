@@ -1,6 +1,7 @@
 package router
 
 import (
+	"database/sql"
 	"log"
 	"net/http"
 
@@ -31,6 +32,7 @@ type Deps struct {
 	Q            *db.Queries
 	Storage      storage.Client
 	MediaBaseURL string
+	SQLDB        *sql.DB
 
 	FirebaseAuth *fbauth.Client
 	Env          string
@@ -59,7 +61,7 @@ func New(d Deps) http.Handler {
 
 	r.Route("/v1", func(r chi.Router) {
 		// Auth routes (public + /me protected inside the module)
-		v1auth.RegisterRoutes(r, d.FirebaseAuth, d.Q, d.Env)
+		v1auth.RegisterRoutes(r, d.FirebaseAuth, d.Q, d.SQLDB, d.Env)
 
 		// Public routes (shop browsing)
 		v1shops.RegisterRoutes(r, d.Q)

@@ -6,6 +6,7 @@ package db
 
 import (
 	"context"
+	"database/sql"
 )
 
 type Querier interface {
@@ -38,6 +39,7 @@ type Querier interface {
 	DeleteProductVariantImage(ctx context.Context, id int64) error
 	DeleteStore(ctx context.Context, id int64) (Store, error)
 	DeleteUser(ctx context.Context, id int64) (User, error)
+	GetCustomerByUserID(ctx context.Context, userID sql.NullInt64) (Customer, error)
 	GetPriceCategoryForVariant(ctx context.Context, productVariantID int64) (string, error)
 	GetPricePoint(ctx context.Context, arg *GetPricePointParams) (PricePoint, error)
 	GetPrimaryImageByVariantID(ctx context.Context, productVariantID int64) (ProductVariantImage, error)
@@ -49,7 +51,7 @@ type Querier interface {
 	ListActiveInventoryForVariantStore(ctx context.Context, arg *ListActiveInventoryForVariantStoreParams) ([]InventoryItem, error)
 	ListCategoriesByShop(ctx context.Context, shopID int64) ([]ProductCategory, error)
 	ListCategoriesForProduct(ctx context.Context, productID int64) ([]ProductCategory, error)
-	ListCustomers(ctx context.Context, arg *ListCustomersParams) ([]Customer, error)
+	ListCustomers(ctx context.Context, arg *ListCustomersParams) ([]ListCustomersRow, error)
 	ListImagesByVariantID(ctx context.Context, productVariantID int64) ([]ProductVariantImage, error)
 	ListInventoryItems(ctx context.Context, arg *ListInventoryItemsParams) ([]InventoryItem, error)
 	ListPricePoints(ctx context.Context) ([]PricePoint, error)
