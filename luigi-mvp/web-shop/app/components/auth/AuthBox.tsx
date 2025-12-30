@@ -17,7 +17,7 @@ export function AuthBox() {
 
     const idToken = await user.getIdToken();
 
-    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL}/v1/auth/session`, {
+    const res = await fetch(`${process.env.NEXT_PUBLIC_API_BASE}/v1/auth/session`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       credentials: "include",

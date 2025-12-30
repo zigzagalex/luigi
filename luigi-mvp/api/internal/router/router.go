@@ -68,6 +68,9 @@ func New(d Deps) http.Handler {
 		v1product_variants.RegisterRoutes(r, d.Q)
 		v1categories.RegisterRoutes(r, d.Q)
 		v1availability.RegisterRoutes(r, d.Q)
+		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
+		v1inventory.RegisterRoutes(r, d.Q)
+		v1pricepoints.RegisterRoutes(r, d.Q)
 
 		// Protected routes (admin/management)
 		r.Group(func(r chi.Router) {
@@ -76,12 +79,8 @@ func New(d Deps) http.Handler {
 
 			v1users.RegisterRoutes(r, d.Q)
 			v1customers.RegisterRoutes(r, d.Q)
-			v1inventory.RegisterRoutes(r, d.Q)
-			v1pricepoints.RegisterRoutes(r, d.Q)
-			v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 		})
 
-		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 		r.NotFound(func(w http.ResponseWriter, r *http.Request) {
 			// this log will tell us if the router failed to match
 			log.Printf("[V1 NOT FOUND] %s %s", r.Method, r.URL.Path)

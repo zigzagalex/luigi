@@ -34,8 +34,8 @@ INSERT INTO users (
     sqlc.narg(firebase_uid)::text,
     sqlc.arg(email),
     sqlc.arg(display_name),
-    sqlc.arg(role)::text,
-    sqlc.narg(is_active)::bool
+    COALESCE(NULLIF(sqlc.narg(role)::text, ''), 'customer'),
+    COALESCE(sqlc.narg(is_active)::bool, TRUE)
 )
 RETURNING
     id,

@@ -18,8 +18,8 @@ import (
 const cookieName = "luigi_session"
 
 type Handler struct {
-	fb   *fbauth.Client
-	env  string
+	fb    *fbauth.Client
+	env   string
 	users *usersvc.Service
 }
 
@@ -80,9 +80,7 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 			uidCopy := uid
 			_, createErr := h.users.Create(r.Context(), usersvc.CreateInput{
 				FirebaseUID: &uidCopy,
-				Email:       emailPtr,
-				// Role nil -> your SQL default
-				// IsActive nil -> your SQL default
+				Email:       emailPtr,	
 			})
 			if createErr != nil {
 				httpx.Fail(w, http.StatusInternalServerError, "user_autoprovision_failed", createErr.Error())

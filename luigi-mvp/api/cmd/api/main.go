@@ -46,10 +46,11 @@ func main() {
 	}
 
 	// Firebase Admin 
-	fbAuth, err := auth.NewFirebaseAuthClient(ctx)
+	fbAuth, err := auth.NewFirebaseAuthClient(ctx, cfg.FirebaseProjectID)
 	if err != nil {
 		log.Fatalf("failed to init firebase auth: %v", err)
 	}
+
 
 	r := router.New(router.Deps{
 		Q:            q,
