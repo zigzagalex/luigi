@@ -25,8 +25,8 @@ INSERT INTO users (
     $3::text,
     $4,
     $5,
-    $6::text,
-    $7::bool
+    COALESCE(NULLIF($6::text, ''), 'customer'),
+    COALESCE($7::bool, TRUE)
 )
 RETURNING
     id,
@@ -47,7 +47,7 @@ type CreateUserParams struct {
 	FirebaseUid sql.NullString `json:"firebase_uid"`
 	Email       sql.NullString `json:"email"`
 	DisplayName sql.NullString `json:"display_name"`
-	Role        string         `json:"role"`
+	Role        sql.NullString `json:"role"`
 	IsActive    sql.NullBool   `json:"is_active"`
 }
 

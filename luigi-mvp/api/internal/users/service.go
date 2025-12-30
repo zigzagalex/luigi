@@ -61,14 +61,28 @@ type CreateInput struct {
 }
 
 func (s *Service) Create(ctx context.Context, in CreateInput) (db.User, error) {
+	// Default is_active
+	isActive := in.IsActive
+	if isActive == nil {
+		v := true
+		isActive = &v
+	}
+
+	// Default role
+	role := in.Role
+	if role == nil || strings.TrimSpace(*role) == "" {
+		v := "customer"
+		role = &v
+	}
+
 	return s.q.CreateUser(ctx, &db.CreateUserParams{
 		ShopID:      u.ToNullInt64(in.ShopID),
 		StoreID:     u.ToNullInt64(in.StoreID),
 		FirebaseUid: u.ToNullString(in.FirebaseUID),
 		Email:       u.ToNullString(in.Email),
 		DisplayName: u.ToNullString(in.DisplayName),
-		Role:        strings.TrimSpace(u.DerefOr(in.Role, "")),
-		IsActive:    u.ToNullBool(in.IsActive),
+		Role:        u.ToNullString(role),
+		IsActive:    u.ToNullBool(isActive),
 	})
 }
 

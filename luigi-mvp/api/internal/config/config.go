@@ -17,6 +17,8 @@ type Config struct {
 
 	GCSBucketName string
 	MediaBaseURL  string
+
+	FirebaseProjectID string
 }
 
 // soft-get with default
@@ -73,6 +75,7 @@ func base(env, port, url string) Config {
 	var (
 		gcsBucket    string
 		mediaBaseURL string
+		firebaseProdjectId string
 	)
 
 	if env == "prod" {
@@ -83,6 +86,7 @@ func base(env, port, url string) Config {
 		// DEV
 		gcsBucket = get("GCS_BUCKET_NAME", "")
 		mediaBaseURL = get("MEDIA_BASE_URL", "http://localhost:8080/media")
+		firebaseProdjectId = must("FIREBASE_PROJECT_ID")
 	}
 
 	return Config{
@@ -95,5 +99,6 @@ func base(env, port, url string) Config {
 		ConnMaxLifetime: 30 * time.Minute,
 		GCSBucketName:   gcsBucket,
 		MediaBaseURL:    mediaBaseURL,
+		FirebaseProjectID: firebaseProdjectId,
 	}
 }
