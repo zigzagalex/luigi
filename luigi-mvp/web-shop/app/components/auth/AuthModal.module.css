@@ -1,87 +1,152 @@
-.dialog {
-    border: none;
-    padding: 0;
-    background: transparent;
-    width: min(560px, calc(100vw - 32px));
-    margin: auto; /* center */
+.overlay {
+    position: fixed;
+    inset: 0;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background: rgba(12, 18, 28, 0.55);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
   }
   
-  .dialog::backdrop {
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(10px);
+  .modal {
+    position: relative;
+    width: min(560px, 100%);
+    background: #ffffff;
+    color: #0b1220;
+    border-radius: 20px;
+    box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+    padding: 34px 34px 28px;
   }
   
-  
-  /* Panel */
-  .panel {
-    border-radius: 18px;
-    padding: 22px;
-    color: #fff;
-  
-    /* subtle depth */
-    box-shadow:
-      0 28px 90px rgba(0, 0, 0, 0.55),
-      0 0 0 1px rgba(255, 255, 255, 0.10);
-  
-    /* modern “dark glass” */
-    background:
-      radial-gradient(1000px 400px at 15% 0%, rgba(255,255,255,0.09) 0%, rgba(255,255,255,0) 55%),
-      radial-gradient(800px 420px at 85% 100%, rgba(255,255,255,0.06) 0%, rgba(255,255,255,0) 60%),
-      #0b1220;
+  .close {
+    position: absolute;
+    top: 14px;
+    right: 14px;
+    width: 40px;
+    height: 40px;
+    border: 0;
+    border-radius: 999px;
+    background: rgba(11, 18, 32, 0.06);
+    cursor: pointer;
+    font-size: 24px;
+    line-height: 40px;
   }
   
-  .headerRow {
-    display: flex;
-    justify-content: space-between;
-    align-items: flex-start;
-    gap: 14px;
-    margin-bottom: 16px;
+  .close:hover {
+    background: rgba(11, 18, 32, 0.10);
   }
   
   .title {
-    margin: 0;
-    font-size: 1.25rem;
-    font-weight: 750;
-    letter-spacing: -0.02em;
+    margin: 0 0 10px;
+    font-size: 34px;
+    letter-spacing: 0.02em;
+    font-weight: 800;
   }
   
   .subtitle {
-    margin: 6px 0 0;
-    opacity: 0.78;
-    font-size: 0.95rem;
-    line-height: 1.35;
+    margin: 0 0 22px;
+    color: rgba(11, 18, 32, 0.72);
+    line-height: 1.4;
   }
   
-  .closeButton {
-    width: 38px;
-    height: 38px;
-    border-radius: 9999px;
-    border: 1px solid rgba(255, 255, 255, 0.16);
-    background: rgba(255, 255, 255, 0.06);
-    color: #ffffff;
-    cursor: pointer;
+  .form {
     display: grid;
-    place-items: center;
+    gap: 14px;
   }
   
-  .closeButton:hover {
-    background: rgba(255, 255, 255, 0.12);
+  .twoCol {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
   }
   
-  .closeButton:focus-visible {
-    outline: 2px solid rgba(255, 255, 255, 0.55);
-    outline-offset: 2px;
+  .field {
+    display: grid;
+    gap: 8px;
   }
   
-  /* Optional: small motion = modern */
-  @media (prefers-reduced-motion: no-preference) {
-    .panel {
-      animation: popIn 140ms ease-out;
-      transform-origin: 50% 40%;
+  .label {
+    font-size: 13px;
+    font-weight: 600;
+    color: rgba(11, 18, 32, 0.78);
+  }
+  
+  .input {
+    height: 46px;
+    border-radius: 12px;
+    border: 1px solid rgba(11, 18, 32, 0.14);
+    padding: 0 14px;
+    font-size: 15px;
+    outline: none;
+    transition: border-color 140ms ease, box-shadow 140ms ease;
+  }
+  
+  .input:focus {
+    border-color:  #0099ff;
+    box-shadow: 0 0 0 4px rgba(255, 90, 0, 0.15);
+  }
+  
+  .rowBetween {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: -6px;
+  }
+  
+  .primary {
+    margin-top: 4px;
+    height: 50px;
+    border: 0;
+    border-radius: 14px;
+    font-weight: 700;
+    font-size: 15px;
+    cursor: pointer;
+    color: #fff;
+    background: #0099ff;
+    box-shadow: 0 10px 22px rgba(255, 90, 0, 0.25);
+  }
+  
+  .primary:hover {
+    filter: brightness(0.98);
+  }
+  
+  .switchRow {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    font-size: 14px;
+    color: rgba(11, 18, 32, 0.7);
+    margin-top: 4px;
+  }
+  
+  .link {
+    border: 0;
+    background: transparent;
+    padding: 0;
+    cursor: pointer;
+    color: #0b1220;
+    font-weight: 700;
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+  
+  .status {
+    margin-top: 8px;
+    font-size: 14px;
+    color: rgba(11, 18, 32, 0.75);
+  }
+  
+  @media (max-width: 520px) {
+    .modal {
+      padding: 26px 20px 20px;
+      border-radius: 18px;
     }
-    @keyframes popIn {
-      from { transform: translateY(8px) scale(0.98); opacity: 0; }
-      to   { transform: translateY(0) scale(1); opacity: 1; }
+    .title {
+      font-size: 28px;
+    }
+    .twoCol {
+      grid-template-columns: 1fr;
     }
   }
   
