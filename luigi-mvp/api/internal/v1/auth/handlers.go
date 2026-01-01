@@ -69,7 +69,7 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// 1) Verify Firebase ID token (proves user identity)
+	// 1) Verify Firebase ID token (proves identity)
 	tok, err := h.fb.VerifyIDToken(ctx, req.IDToken)
 	if err != nil {
 		httpx.Fail(w, http.StatusUnauthorized, "invalid_id_token", err.Error())
@@ -82,7 +82,7 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Pull email from token claims (if present)
+	// Pull email from token claims (required for your flow)
 	var emailPtr *string
 	if v, ok := tok.Claims["email"].(string); ok {
 		e := strings.TrimSpace(v)
@@ -90,9 +90,12 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 			emailPtr = &e
 		}
 	}
+	if emailPtr == nil {
+		httpx.Fail(w, http.StatusBadRequest, "email_missing", "firebase token has no email claim")
+		return
+	}
 
-	// 2) Transaction: ensure BOTH user + customer exist, atomically.
-	// Why: without a tx you can create a user but fail customer creation and end up with broken state.
+	// 2) Transaction: ensure BOTH user + customer exist (atomic)
 	tx, err := h.db.BeginTx(ctx, nil)
 	if err != nil {
 		httpx.Fail(w, http.StatusInternalServerError, "tx_begin_failed", err.Error())
@@ -101,103 +104,96 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 	defer tx.Rollback()
 
 	qtx := h.q.WithTx(tx)
-
 	us := usersvc.NewService(qtx)
 	cs := customersvc.NewService(qtx)
 
 	// 2a) Ensure user exists
 	user, err := us.GetUserByFirebaseUID(ctx, uid)
 	if err != nil {
-		if err == usersvc.ErrNotFound {
-			// First time we've seen this Firebase UID => provisioning is required.
-			// Enforce the profile fields YOU said must exist.
-			if req.ShopID <= 0 ||
-				strings.TrimSpace(req.FirstName) == "" ||
-				strings.TrimSpace(req.LastName) == "" ||
-				strings.TrimSpace(req.Phone) == "" ||
-				strings.TrimSpace(req.Address1) == "" ||
-				strings.TrimSpace(req.PostalCode) == "" ||
-				strings.TrimSpace(req.City) == "" {
-				httpx.Fail(w, http.StatusBadRequest, "missing_profile_fields", map[string]any{
-					"shop_id":     req.ShopID,
-					"first_name":  req.FirstName,
-					"last_name":   req.LastName,
-					"phone":       req.Phone,
-					"address1":    req.Address1,
-					"postal_code": req.PostalCode,
-					"city":        req.City,
-					"country":     req.Country,
-				})
-				return
-			}
-
-			uidCopy := uid
-			display := strings.TrimSpace(req.FirstName) + " " + strings.TrimSpace(req.LastName)
-
-			user, err = us.Create(ctx, usersvc.CreateInput{
-				ShopID:      &req.ShopID,
-				FirebaseUID: &uidCopy,
-				Email:       emailPtr,
-				DisplayName: &display,
-				// Role + IsActive can default in service/SQL to "customer" + true
-			})
-			if err != nil {
-				httpx.Fail(w, http.StatusInternalServerError, "user_autoprovision_failed", err.Error())
-				return
-			}
-		} else {
+		if err != usersvc.ErrNotFound {
 			httpx.Fail(w, http.StatusInternalServerError, "get_user_failed", err.Error())
 			return
 		}
-	}
 
-	// 2b) Ensure customer profile exists for this user
-	// - customers.GetCustomerByUserID(ctx, user.ID)
-	// - customers.Create(...) that takes UserID + address fields
-	_, err = cs.GetCustomerByUserID(ctx, user.ID)
-	if err != nil {
-		if err == customersvc.ErrNotFound {
-			// If user existed already but customer missing, either:
-			// - require fields and create now (strict)
-			// - or create a minimal customer and force completion later (looser)
-			// You said you want strict.
-			if strings.TrimSpace(req.FirstName) == "" ||
-				strings.TrimSpace(req.LastName) == "" ||
-				strings.TrimSpace(req.Phone) == "" {
-				httpx.Fail(w, http.StatusBadRequest, "missing_profile_fields", "customer profile required")
-				return
-			}
-
-			country := strings.TrimSpace(req.Country)
-			if country == "" {
-				country = "CH"
-			}
-
-			_, err = cs.Create(ctx, customersvc.CreateInput{
-				ShopID:     req.ShopID, // or derive from user.ShopID if you enforce it
-				UserID:     &user.ID,
-				Email:      emailPtr,
-				Phone:      ptr(strings.TrimSpace(req.Phone)),
-				FirstName:  ptr(strings.TrimSpace(req.FirstName)),
-				LastName:   ptr(strings.TrimSpace(req.LastName)),
-				Address1:   optPtr(strings.TrimSpace(req.Address1)),
-				Address2:   optPtr(req.Address2),
-				PostalCode: optPtr(strings.TrimSpace(req.PostalCode)),
-				City:       optPtr(strings.TrimSpace(req.City)),
-				Country:    optPtr(country),
-				IsActive:   ptrBool(true),
+		// provisioning required
+		if req.ShopID <= 0 ||
+			strings.TrimSpace(req.FirstName) == "" ||
+			strings.TrimSpace(req.LastName) == "" ||
+			strings.TrimSpace(req.Phone) == "" {
+			httpx.Fail(w, http.StatusBadRequest, "missing_profile_fields", map[string]any{
+				"shop_id":    req.ShopID,
+				"first_name": req.FirstName,
+				"last_name":  req.LastName,
+				"phone":      req.Phone,
+				"email":      *emailPtr,
 			})
-			if err != nil {
-				httpx.Fail(w, http.StatusInternalServerError, "customer_autoprovision_failed", err.Error())
-				return
-			}
-		} else {
-			httpx.Fail(w, http.StatusInternalServerError, "get_customer_failed", err.Error())
+			return
+		}
+
+		uidCopy := uid
+		display := strings.TrimSpace(req.FirstName) + " " + strings.TrimSpace(req.LastName)
+
+		user, err = us.Create(ctx, usersvc.CreateInput{
+			ShopID:      &req.ShopID,
+			FirebaseUID: &uidCopy,
+			Email:       emailPtr,
+			DisplayName: &display,
+		})
+		if err != nil {
+			httpx.Fail(w, http.StatusInternalServerError, "user_autoprovision_failed", err.Error())
 			return
 		}
 	}
 
-	// 2c) Commit DB work FIRST (so cookie isn't created for a half-provisioned user)
+	// Choose shop_id for customer creation:
+	// - prefer request (your frontend sends it)
+	// - otherwise fallback to user's shop_id if you have it
+	shopID := req.ShopID
+	if shopID <= 0 {
+		if user.ShopID.Valid {
+			shopID = user.ShopID.Int64
+		}
+	}
+
+	// 2b) Ensure customer exists for this user
+	_, err = cs.GetCustomerByUserID(ctx, user.ID)
+	if err != nil {
+		if err != customersvc.ErrNotFound {
+			httpx.Fail(w, http.StatusInternalServerError, "get_customer_failed", err.Error())
+			return
+		}
+
+		// provisioning customer profile (strict fields)
+		if shopID <= 0 ||
+			strings.TrimSpace(req.FirstName) == "" ||
+			strings.TrimSpace(req.LastName) == "" ||
+			strings.TrimSpace(req.Phone) == "" {
+			httpx.Fail(w, http.StatusBadRequest, "missing_profile_fields", map[string]any{
+				"shop_id":    shopID,
+				"first_name": req.FirstName,
+				"last_name":  req.LastName,
+				"phone":      req.Phone,
+			})
+			return
+		}
+
+		_, err = cs.Create(ctx, customersvc.CreateInput{
+			ShopID:    shopID,
+			UserID:    &user.ID,
+			Email:     emailPtr,
+			Phone:     ptr(strings.TrimSpace(req.Phone)),
+			FirstName: ptr(strings.TrimSpace(req.FirstName)),
+			LastName:  ptr(strings.TrimSpace(req.LastName)),
+			// address fields optional for now => leave nil
+			IsActive: ptrBool(true),
+		})
+		if err != nil {
+			httpx.Fail(w, http.StatusInternalServerError, "customer_autoprovision_failed", err.Error())
+			return
+		}
+	}
+
+	// 2c) Commit DB work first
 	if err := tx.Commit(); err != nil {
 		httpx.Fail(w, http.StatusInternalServerError, "tx_commit_failed", err.Error())
 		return
@@ -226,14 +222,6 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 }
 
 func ptr(s string) *string { return &s }
-
-func optPtr(s string) *string {
-	t := strings.TrimSpace(s)
-	if t == "" {
-		return nil
-	}
-	return &t
-}
 
 func ptrBool(v bool) *bool { return &v }
 
