@@ -10,12 +10,12 @@ import (
 	customersvc "github.com/zigzagalex/luigi/api/internal/customers"
 
 	fbauth "firebase.google.com/go/v4/auth"
+	"github.com/go-chi/chi/v5"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	usersvc "github.com/zigzagalex/luigi/api/internal/users"
-
-	"github.com/go-chi/chi/v5"
+	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
 
 const cookieName = "luigi_session"
@@ -252,8 +252,8 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 	httpx.JSON(w, http.StatusOK, map[string]any{
 		"id":           user.ID,
 		"email":        user.Email,
-		"display_name": user.DisplayName,
-		"role":         user.Role,
+		"display_name": u.NullStringPtr(user.DisplayName),
+		"role":         u.NullStringPtr(user.Role),
 		"shop_id":      user.ShopID,
 		"store_id":     user.StoreID,
 	})

@@ -2,10 +2,13 @@
 
 import { useState } from "react";
 import Link from "next/link";
+
 import SearchPill from "../search/SearchPill";
 import type { CategoryOption, StoreOption } from "@/../utils/fetchAPI";
 import styles from "./AppHeader.module.css";
-import AuthModal from "../auth/AuthModal"; 
+
+import AuthModal from "../auth/AuthModal";
+import UserMenu from "../auth/UserMenu";
 
 type Props = {
   categories: CategoryOption[];
@@ -13,10 +16,7 @@ type Props = {
 };
 
 export default function AppHeader({ categories, stores }: Props) {
-  const [selectedStore, setSelectedStore] = useState<StoreOption | null>(
-    () => stores[0] ?? null
-  );
-
+  const [selectedStore, setSelectedStore] = useState<StoreOption | null>(() => stores[0] ?? null);
   const [authOpen, setAuthOpen] = useState(false);
 
   return (
@@ -48,19 +48,10 @@ export default function AppHeader({ categories, stores }: Props) {
           )}
 
           <div className={styles.rightActions}>
-            <button
-              type="button"
-              className={styles.authButton}
-              onClick={() => setAuthOpen(true)}
-            >
-              Log in / Sign up
-            </button>
+            {/* Replaces the old "Log in / Sign up" button */}
+            <UserMenu onOpenAuth={() => setAuthOpen(true)} />
 
-            <button
-              type="button"
-              className={styles.menuButton}
-              aria-label="Open navigation menu"
-            >
+            <button type="button" className={styles.menuButton} aria-label="Open navigation menu">
               <span />
               <span />
               <span />
@@ -77,7 +68,7 @@ export default function AppHeader({ categories, stores }: Props) {
         </div>
       </div>
 
-      {/* The modal near the end so it’s not trapped inside layout styling */}
+      {/* Keep modal here so it's not trapped inside layout styling */}
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </header>
   );

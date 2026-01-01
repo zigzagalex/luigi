@@ -1,76 +1,66 @@
-// src/lib/authSession.ts
 import { auth } from "@/lib/firebaseClient";
 
-type Provisioning = {
-  shopId: number;
-  firstName?: string;
-  lastName?: string;
+const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
+if (!API_BASE) throw new Error("NEXT_PUBLIC_API_BASE is not set");
+
+export const SHOP_ID = 1;
+
+export type Me = {
+  id: number;
+  email: string | null;
+  display_name: string | null;
+  role: string | null;
+  shop_id: number | null;
+  store_id: number | null;
+};
+
+export type Provisioning = {
+  shop_id: number;
+  first_name?: string;
+  last_name?: string;
   phone?: string;
 };
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
-
-/**
- * Exchanges the current Firebase ID token for your httpOnly session cookie.
- * Sends provisioning fields only when provided (signup flow).
- */
-export async function exchangeIdTokenForSessionCookie(input: Provisioning) {
-  if (!API_BASE) {
-    // This is exactly what causes `/undefined/v1/...`
-    throw new Error("NEXT_PUBLIC_API_BASE is not set (got undefined).");
-  }
-
+export async function exchangeIdTokenForSessionCookie(input?: Provisioning) {
   const user = auth.currentUser;
-  if (!user) throw new Error("No currentUser. Did Firebase login succeed?");
+  if (!user) throw new Error("No Firebase currentUser");
 
-  // forceRefresh=true avoids stale tokens when you just signed up / signed in
-  const idToken = await user.getIdToken(true);
-
-  const payload: Record<string, any> = {
-    idToken,
-    shop_id: input.shopId,
-  };
-
-  // Only send these if present (login doesn't need them)
-  if (input.firstName) payload.first_name = input.firstName;
-  if (input.lastName) payload.last_name = input.lastName;
-  if (input.phone) payload.phone = input.phone;
+  const idToken = await user.getIdToken();
 
   const res = await fetch(`${API_BASE}/v1/auth/session`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify(payload),
+    body: JSON.stringify({
+      idToken,
+      ...(input ?? {}),
+    }),
   });
 
   if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Session exchange failed: ${res.status} ${text}`);
+    const body = await res.text();
+    throw new Error(`Session exchange failed: ${res.status} ${body}`);
   }
 }
 
-export async function logoutSession() {
-  if (!API_BASE) throw new Error("NEXT_PUBLIC_API_BASE is not set.");
+export async function fetchMe(): Promise<Me | null> {
+  const res = await fetch(`${API_BASE}/v1/auth/me`, {
+    method: "GET",
+    credentials: "include",
+    headers: { "Accept": "application/json" },
+  });
 
+  if (res.status === 401) return null;
+  if (!res.ok) throw new Error(`/me failed: ${res.status} ${await res.text()}`);
+
+  return (await res.json()) as Me;
+}
+
+export async function logoutSession() {
   const res = await fetch(`${API_BASE}/v1/auth/logout`, {
     method: "POST",
     credentials: "include",
   });
 
-  if (!res.ok) {
-    const text = await res.text().catch(() => "");
-    throw new Error(`Logout failed: ${res.status} ${text}`);
-  }
-}
-
-export async function getMe() {
-  if (!API_BASE) throw new Error("NEXT_PUBLIC_API_BASE is not set.");
-
-  const res = await fetch(`${API_BASE}/v1/auth/me`, {
-    method: "GET",
-    credentials: "include",
-  });
-
-  if (!res.ok) return null;
-  return res.json();
+  if (!res.ok) throw new Error(`Logout failed: ${res.status} ${await res.text()}`);
 }

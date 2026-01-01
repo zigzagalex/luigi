@@ -64,3 +64,14 @@ func TrimOrNil(p *string) *string {
 	}
 	return &s
 }
+
+func NullStringPtr(ns sql.NullString) *string {
+	if !ns.Valid {
+		return nil
+	}
+	v := strings.TrimSpace(ns.String)
+	if v == "" {
+		return nil
+	}
+	return &v
+}
