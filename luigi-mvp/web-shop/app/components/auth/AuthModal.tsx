@@ -4,9 +4,9 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebaseClient";
 import { exchangeIdTokenForSessionCookie } from "@/lib/AuthSession";
-import styles from "./AuthModal.module.css";
 import PhoneField from "./PhoneField";
-import { isValidPhoneNumber } from "libphonenumber-js";
+import styles from "./AuthModal.module.css";
+import { useAuth } from "@/components/auth/AuthContext";
 
 type Mode = "login" | "signup";
 
@@ -16,7 +16,6 @@ type Props = {
   open: boolean;
   onClose: () => void;
 
-  // keep these if you still want to override behavior from a parent
   onLogin?: (input: { email: string; password: string }) => Promise<void> | void;
   onSignup?: (input: {
     firstName: string;
@@ -26,6 +25,10 @@ type Props = {
     password: string;
   }) => Promise<void> | void;
 };
+
+function clean(s: string) {
+  return s.trim();
+}
 
 export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
   const [mode, setMode] = useState<Mode>("login");
@@ -42,6 +45,8 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
   const [lastName, setLastName] = useState("");
 
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
+
+  const { refresh } = useAuth();
 
   useEffect(() => setStatus(""), [open, mode]);
 
@@ -79,44 +84,52 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
     setBusy(true);
 
     try {
+      const eMail = clean(email);
+
       if (mode === "login") {
-        if (!email || !password) {
+        if (!eMail || !password) {
           setStatus("Please enter email + password.");
           return;
         }
 
-        if (onLogin) await onLogin({ email, password });
-        else await signInWithEmailAndPassword(auth, email, password);
+        if (onLogin) await onLogin({ email: eMail, password });
+        else await signInWithEmailAndPassword(auth, eMail, password);
 
-        await exchangeIdTokenForSessionCookie({ shopId: SHOP_ID });
+        await exchangeIdTokenForSessionCookie({ shop_id: SHOP_ID });
 
         setStatus("Success. Session cookie set.");
+        await refresh();
         onClose();
         return;
       }
 
       // signup
-      if (!firstName || !lastName || !phone || !email || !password) {
+      const fn = clean(firstName);
+      const ln = clean(lastName);
+      const ph = clean(phone);
+
+      if (!fn || !ln || !ph || !eMail || !password) {
         setStatus("Please fill in all fields.");
         return;
       }
 
-      if (!isValidPhoneNumber(phone)) {
-        setStatus("That phone number looks fake. Fix it.");
+      if (!phoneValid) {
+        setStatus("That phone number is not valid.");
         return;
-      }      
+      }
 
-      if (onSignup) await onSignup({ firstName, lastName, phone, email, password });
-      else await createUserWithEmailAndPassword(auth, email, password);
+      if (onSignup) await onSignup({ firstName: fn, lastName: ln, phone: ph, email: eMail, password });
+      else await createUserWithEmailAndPassword(auth, eMail, password);
 
       await exchangeIdTokenForSessionCookie({
-        shopId: SHOP_ID,
-        firstName,
-        lastName,
-        phone,
+        shop_id: SHOP_ID,
+        first_name: fn,
+        last_name: ln,
+        phone: ph,
       });
 
       setStatus("Success. Account created & session cookie set.");
+      await refresh();
       onClose();
     } catch (err: any) {
       setStatus(err?.message ?? "Something went wrong.");
@@ -129,6 +142,14 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
     setMode(next);
     setStatus("");
     setPassword("");
+
+    // optional cleanup: don’t drag signup junk into login and vice versa
+    if (next === "login") {
+      setFirstName("");
+      setLastName("");
+      setPhone("");
+      setPhoneValid(false);
+    }
   }
 
   return (
@@ -145,18 +166,14 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
           ×
         </button>
 
-        <h2 id="auth-title" className={styles.title}>
-          {title}
-        </h2>
-        <p id="auth-subtitle" className={styles.subtitle}>
-          {subtitle}
-        </p>
+        <h2 id="auth-title" className={styles.title}>{title}</h2>
+        <p id="auth-subtitle" className={styles.subtitle}>{subtitle}</p>
 
-        <form className={styles.form} onSubmit={handleSubmit}>
+        <form className={styles.form} onSubmit={handleSubmit} noValidate>
           {mode === "signup" && (
             <>
               <div className={styles.twoCol}>
-                <label className={styles.field}>
+                <label htmlFor="first_name" className={styles.field}>
                   <span className={styles.label}>First name</span>
                   <input
                     ref={firstFieldRef}
@@ -165,10 +182,12 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
                     onChange={(e) => setFirstName(e.target.value)}
                     autoComplete="given-name"
                     disabled={busy}
+                    id="first_name" 
+                    name="first_name"
                   />
                 </label>
 
-                <label className={styles.field}>
+                <label htmlFor="last_name" className={styles.field}>
                   <span className={styles.label}>Last name</span>
                   <input
                     className={styles.input}
@@ -176,23 +195,25 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
                     onChange={(e) => setLastName(e.target.value)}
                     autoComplete="family-name"
                     disabled={busy}
+                    id="last_name" 
+                    name="last_name"
                   />
                 </label>
               </div>
 
-              <label className={styles.field}>
+              <label htmlFor="phone" className={styles.field}>
                 <span className={styles.label}>Phone number</span>
                 <PhoneField
-                    value={phone}
-                    onChange={setPhone}
-                    defaultCountry="CH"
-                    onValidityChange={setPhoneValid}
+                  value={phone}
+                  onChange={setPhone}
+                  defaultCountry="CH"
+                  onValidityChange={setPhoneValid}
                 />
               </label>
             </>
           )}
 
-          <label className={styles.field}>
+          <label htmlFor="email" className={styles.field}>
             <span className={styles.label}>Email address</span>
             <input
               ref={mode === "login" ? firstFieldRef : undefined}
@@ -202,10 +223,12 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
               disabled={busy}
+              id="email" 
+              name="email" 
             />
           </label>
 
-          <label className={styles.field}>
+          <label htmlFor="password" className={styles.field}>
             <span className={styles.label}>Password</span>
             <input
               className={styles.input}
@@ -214,13 +237,20 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
               onChange={(e) => setPassword(e.target.value)}
               autoComplete={mode === "login" ? "current-password" : "new-password"}
               disabled={busy}
+              id="password"
+              name="password"
             />
           </label>
 
           {mode === "login" && (
             <div className={styles.rowBetween}>
               <span />
-              <button type="button" className={styles.link} onClick={() => setStatus("Forgot password: TODO")} disabled={busy}>
+              <button
+                type="button"
+                className={styles.link}
+                onClick={() => setStatus("Forgot password: TODO")}
+                disabled={busy}
+              >
                 Forgot password?
               </button>
             </div>

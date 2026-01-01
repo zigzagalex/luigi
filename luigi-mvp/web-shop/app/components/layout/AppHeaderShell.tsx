@@ -1,5 +1,6 @@
 // app/components/layout/AppHeaderShell.tsx
 import AppHeader from "./AppHeader";
+import { AuthProvider } from "../auth/AuthContext";
 import {
   fetchCategoryOptions,
   fetchStoreOptions,
@@ -15,9 +16,11 @@ export default async function AppHeaderShell() {
   ]);
 
   return (
-    <AppHeader
-      categories={categoryOptions}
-      stores={storeOptions}
-    />
+    <AuthProvider>
+      <AppHeader
+            categories={categoryOptions}
+            stores={storeOptions}
+          />
+    </AuthProvider> 
   );
 }

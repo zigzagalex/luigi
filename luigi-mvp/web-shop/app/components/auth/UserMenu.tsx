@@ -1,0 +1,95 @@
+"use client";
+
+import { useEffect, useMemo, useRef, useState } from "react";
+import Link from "next/link";
+import { useAuth } from "./AuthContext";
+import styles from "./UserMenu.module.css";
+
+type Props = {
+  onOpenAuth: () => void;
+};
+
+export default function UserMenu({ onOpenAuth }: Props) {
+  const { me, loading, logout } = useAuth();
+  const [open, setOpen] = useState(false);
+  const wrapRef = useRef<HTMLDivElement | null>(null);
+
+  const firstName = useMemo(() => {
+    const dn = me?.display_name?.trim();
+    if (!dn) return null;
+    return dn.split(/\s+/)[0] ?? null;
+  }, [me]);
+
+  // close on click outside
+  useEffect(() => {
+    if (!open) return;
+    const onDown = (e: MouseEvent) => {
+      if (!wrapRef.current) return;
+      if (!wrapRef.current.contains(e.target as Node)) setOpen(false);
+    };
+    document.addEventListener("mousedown", onDown);
+    return () => document.removeEventListener("mousedown", onDown);
+  }, [open]);
+
+  // close on ESC
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setOpen(false);
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [open]);
+
+  if (loading) {
+    return (
+      <button className={styles.button} type="button" disabled>
+        …
+      </button>
+    );
+  }
+
+  if (!me) {
+    return (
+      <button className={styles.button} type="button" onClick={onOpenAuth}>
+        Log in / Sign up
+      </button>
+    );
+  }
+
+  return (
+    <div className={styles.wrap} ref={wrapRef}>
+      <button
+        type="button"
+        className={styles.button}
+        onClick={() => setOpen((v) => !v)}
+        aria-haspopup="menu"
+        aria-expanded={open}
+      >
+        Hi, {firstName ?? "there"}
+      </button>
+
+      {open && (
+        <div className={styles.popover} role="menu" aria-label="Account menu">
+          <Link className={styles.item} role="menuitem" href="/reservations" onClick={() => setOpen(false)}>
+            Reservations
+          </Link>
+          <Link className={styles.item} role="menuitem" href="/profile" onClick={() => setOpen(false)}>
+            Profile Settings
+          </Link>
+          <button
+            className={`${styles.item} ${styles.danger}`}
+            role="menuitem"
+            type="button"
+            onClick={async () => {
+              setOpen(false);
+              await logout();
+            }}
+          >
+            Logout
+          </button>
+        </div>
+      )}
+    </div>
+  );
+}

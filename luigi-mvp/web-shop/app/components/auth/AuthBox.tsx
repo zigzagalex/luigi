@@ -1,23 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebaseClient";
 import { exchangeIdTokenForSessionCookie } from "@/lib/AuthSession";
+import PhoneField from "./PhoneField";
 import styles from "./AuthBox.module.css";
+import { useAuth } from "@/components/auth/AuthContext";
+
+type Mode = "login" | "signup";
 
 const SHOP_ID = 1;
 
+function clean(s: string) {
+  return s.trim();
+}
+
 export function AuthBox() {
+  const [mode, setMode] = useState<Mode>("login");
+
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [phone, setPhone] = useState("");
+  const [phoneValid, setPhoneValid] = useState(false);
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+
+  const { refresh } = useAuth();
+
+  const canSubmit = useMemo(() => {
+    const e = clean(email);
+    const p = password; // don't trim passwords
+    if (!e || !p) return false;
+
+    if (mode === "login") return true;
+
+    return (
+      clean(firstName) !== "" &&
+      clean(lastName) !== "" &&
+      clean(phone) !== "" &&
+      phoneValid
+    );
+  }, [mode, email, password, firstName, lastName, phone, phoneValid]);
 
   async function run(fn: () => Promise<void>) {
     setMsg(null);
@@ -33,62 +61,100 @@ export function AuthBox() {
   }
 
   async function doLogin() {
-    await signInWithEmailAndPassword(auth, email, password);
-    await exchangeIdTokenForSessionCookie({ shopId: SHOP_ID });
+    const e = clean(email);
+    if (!e || !password) throw new Error("Email + password required.");
+
+    await signInWithEmailAndPassword(auth, e, password);
+    await exchangeIdTokenForSessionCookie({ shop_id: SHOP_ID });
+    await refresh();
   }
 
   async function doSignup() {
-    if (!firstName || !lastName || !phone) {
-      throw new Error("First name, last name, and phone are required for signup.");
-    }
-    await createUserWithEmailAndPassword(auth, email, password);
+    const fn = clean(firstName);
+    const ln = clean(lastName);
+    const ph = clean(phone);
+    const e = clean(email);
+
+    if (!fn || !ln || !ph) throw new Error("First name, last name, and phone are required.");
+    if (!phoneValid) throw new Error("That phone number is not valid.");
+    if (!e || !password) throw new Error("Email + password required.");
+
+    await createUserWithEmailAndPassword(auth, e, password);
     await exchangeIdTokenForSessionCookie({
-      shopId: SHOP_ID,
-      firstName,
-      lastName,
-      phone,
+      shop_id: SHOP_ID,
+      first_name: fn,
+      last_name: ln,
+      phone: ph,
     });
+    await refresh();
   }
 
   return (
     <div className={styles.wrap}>
-      {/* Signup-only fields (not required for login, but you can still show them) */}
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="auth-first">First name (signup)</label>
-        <input
-          id="auth-first"
-          className={styles.input}
-          value={firstName}
-          onChange={(e) => setFirstName(e.target.value)}
-          autoComplete="given-name"
+      {/* Mode switch */}
+      <div className={styles.actions}>
+        <button
+          type="button"
+          className={mode === "login" ? styles.primary : styles.secondary}
           disabled={busy}
-        />
+          onClick={() => {
+            setMode("login");
+            setMsg(null);
+          }}
+        >
+          Log in
+        </button>
+
+        <button
+          type="button"
+          className={mode === "signup" ? styles.primary : styles.secondary}
+          disabled={busy}
+          onClick={() => {
+            setMode("signup");
+            setMsg(null);
+          }}
+        >
+          Sign up
+        </button>
       </div>
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="auth-last">Last name (signup)</label>
-        <input
-          id="auth-last"
-          className={styles.input}
-          value={lastName}
-          onChange={(e) => setLastName(e.target.value)}
-          autoComplete="family-name"
-          disabled={busy}
-        />
-      </div>
+      {mode === "signup" && (
+        <>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="auth-first">First name</label>
+            <input
+              id="auth-first"
+              className={styles.input}
+              value={firstName}
+              onChange={(e) => setFirstName(e.target.value)}
+              autoComplete="given-name"
+              disabled={busy}
+            />
+          </div>
 
-      <div className={styles.field}>
-        <label className={styles.label} htmlFor="auth-phone">Phone (signup)</label>
-        <input
-          id="auth-phone"
-          className={styles.input}
-          value={phone}
-          onChange={(e) => setPhone(e.target.value)}
-          autoComplete="tel"
-          inputMode="tel"
-          disabled={busy}
-        />
-      </div>
+          <div className={styles.field}>
+            <label className={styles.label} htmlFor="auth-last">Last name</label>
+            <input
+              id="auth-last"
+              className={styles.input}
+              value={lastName}
+              onChange={(e) => setLastName(e.target.value)}
+              autoComplete="family-name"
+              disabled={busy}
+            />
+          </div>
+
+          <div className={styles.field}>
+            <label className={styles.label}>Phone</label>
+            <PhoneField
+              value={phone}
+              onChange={setPhone}
+              defaultCountry="CH"
+              onValidityChange={setPhoneValid}
+            />
+          </div>
+        </>
+      )}
 
       <div className={styles.field}>
         <label className={styles.label} htmlFor="auth-email">Email</label>
@@ -113,18 +179,19 @@ export function AuthBox() {
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
-          autoComplete="current-password"
+          autoComplete={mode === "login" ? "current-password" : "new-password"}
           disabled={busy}
         />
       </div>
 
       <div className={styles.actions}>
-        <button type="button" className={styles.secondary} disabled={busy} onClick={() => run(doSignup)}>
-          Sign up
-        </button>
-
-        <button type="button" className={styles.primary} disabled={busy} onClick={() => run(doLogin)}>
-          Log in
+        <button
+          type="button"
+          className={styles.primary}
+          disabled={busy || !canSubmit}
+          onClick={() => run(mode === "login" ? doLogin : doSignup)}
+        >
+          {mode === "login" ? "Log in" : "Create account"}
         </button>
       </div>
 
