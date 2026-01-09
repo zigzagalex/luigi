@@ -35,4 +35,21 @@ cd /luigi-mvp/web-shop
 pnpm dev
 ```
 
+The next.js app runs on localhost with port 3030.
+
 Now you are ready to go. 
+
+Once the docker volume is mounted you can stop and start the containers without loosing any info: 
+```
+docker stop luigi-api-dev luigi-postgres-dev
+```
+
+Since the auth uses the google identity client be sure to login into gcloud and have the gcloud auth in the ADC (application default credentials). See the docker-compose.dev.yml for where the ADC json should be located. Here is the command for logging in and setting the default. 
+```
+gcloud auth application-default login
+```
+
+An example user is: 
+Username: Adrian Babbage
+Email: marktgasse20@gmail.com
+Password: z^fWq1C1a=%5
