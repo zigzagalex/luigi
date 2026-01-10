@@ -243,3 +243,19 @@ export async function fetchStoreOptions(
     return [];
   }
 }
+
+// Quote types
+export type QuoteRequest = {
+  product_variant_id: number;
+  store_id: number;
+  start_date: string; // YYYY-MM-DD
+  end_date: string;   // YYYY-MM-DD
+  quantity: number;
+};
+
+export type QuoteResponse = {
+  currency: string;
+  total_price_cents: number;
+  // add whatever your service returns
+};
+

@@ -139,21 +139,39 @@
   font-size: 13px;
   color: #6b7280;
 }
-
-.priceRow {
+.priceBlock {
   margin-top: 8px;
+  margin-bottom: 12px;
 }
 
-.pricePill {
-  display: inline-flex;
-  align-items: center;
-  padding: 4px 10px;
-  border-radius: 9999px;
-  background: #0f172a;
-  color: #f9fafb;
-  font-size: 12px;
-  text-transform: capitalize;
+.priceBig {
+  font-size: 26px;
+  font-weight: 700;
+  line-height: 1.1;
 }
+
+.priceLoading {
+  font-size: 14px;
+  opacity: 0.7;
+}
+
+.pricePlaceholder {
+  font-size: 14px;
+  opacity: 0.55;
+}
+
+.priceHint {
+  margin-top: 4px;
+  font-size: 12px;
+  opacity: 0.6;
+}
+
+.priceError {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #c03434;
+}
+
 
 /* Blocks */
 

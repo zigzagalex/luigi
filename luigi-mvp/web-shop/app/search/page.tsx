@@ -131,6 +131,14 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             products={products}
             availabilityInfo={availabilityInfo}
             className="product-grid-search"
+            linkSearchParams={{
+              shop_id: String(shopId),
+              store_id: storeIdRaw,         
+              category_id: sp.category_id,
+              from,
+              to,
+              quantity: String(quantity),
+            }}
           />
         )}
       </div>

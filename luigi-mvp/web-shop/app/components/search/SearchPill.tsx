@@ -16,8 +16,11 @@ type SearchPillProps = {
 
 const DEFAULT_SHOP_ID = 1;
 
-function formatDateForApi(date: Date): string {
-  return date.toISOString().slice(0, 10); // YYYY-MM-DD
+function formatDateForApiLocal(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
 export default function SearchPill({ categories, selectedStore }: SearchPillProps) {
@@ -86,9 +89,9 @@ export default function SearchPill({ categories, selectedStore }: SearchPillProp
     if (selectedCategory.id) params.set("category_id", String(selectedCategory.id));
 
     if (range?.from) {
-      params.set("from", formatDateForApi(range.from));
+      params.set("from", formatDateForApiLocal(range.from));
       const toDate = range.to ?? range.from;
-      params.set("to", formatDateForApi(toDate));
+      params.set("to", formatDateForApiLocal(toDate));
     }
 
     params.set("quantity", String(quantity));

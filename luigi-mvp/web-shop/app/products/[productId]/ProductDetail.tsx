@@ -2,12 +2,14 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Product } from "@/../utils/products";
+import { useSearchParams } from "next/navigation";
 import styles from "./ProductDetail.module.css";
 import {
   AvailabilityRangeCalendar,
   type RangeValue,
 } from "@/components/daterangepicker/AvailabilityRangeCalendar";
 
+/** ---------- Types (as in your original) ---------- */
 type VariantImage = {
   id: number;
   url: string;
@@ -50,6 +52,9 @@ type Props = {
 
 const allSizeOptions = ["S", "M", "L"] as const;
 
+/** ---------- Helpers ---------- */
+
+/** Extracts size from variant attributes (supports your RawMessage nesting) */
 function getVariantSize(v?: VariantWithImages | null): string | undefined {
   if (!v || !v.attributes) return undefined;
   const attrs = v.attributes as any;
@@ -57,13 +62,40 @@ function getVariantSize(v?: VariantWithImages | null): string | undefined {
   return typeof raw === "string" ? raw : undefined;
 }
 
-function formatDateForApi(date: Date): string {
-  return date.toISOString().slice(0, 10);
+/** YYYY-MM-DD for API */
+function formatDateForApiLocal(date: Date): string {
+  const y = date.getFullYear();
+  const m = String(date.getMonth() + 1).padStart(2, "0");
+  const d = String(date.getDate()).padStart(2, "0");
+  return `${y}-${m}-${d}`;
 }
 
+/** From date to RFC local midnight */
+function toRFC3339LocalMidnight(d: Date): string {
+  // Create local midnight for that calendar day
+  const dt = new Date(d.getFullYear(), d.getMonth(), d.getDate(), 0, 0, 0, 0);
+  return dt.toISOString(); // RFC3339 in UTC; backend parses RFC3339 fine
+}
+
+
+/**
+ * Parse "YYYY-MM-DD" coming from query params.
+ * We use UTC so we don't get a timezone shift that changes the day.
+ */
+function parseYYYYMMDDLocal(s: string | null): Date | undefined {
+  if (!s) return undefined;
+  const [y, m, d] = s.split("-").map(Number);
+  if (!y || !m || !d) return undefined;
+
+  // Local midnight (no UTC conversion)
+  const dt = new Date(y, m - 1, d);
+  return Number.isNaN(dt.getTime()) ? undefined : dt;
+}
+
+
+/** Display dd.mm.yyyy for the little summary pills */
 function formatPillDate(d?: Date) {
   if (!d) return "Add date";
-  // dd.mm.yyyy
   return new Intl.DateTimeFormat("de-CH", {
     day: "2-digit",
     month: "2-digit",
@@ -72,23 +104,56 @@ function formatPillDate(d?: Date) {
 }
 
 export default function ProductDetail({ product, variants, stores, inventory }: Props) {
-  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(
-    variants[0]?.id ?? null
-  );
-  const [selectedStoreId, setSelectedStoreId] = useState<number | null>(null);
+  /** ---------- Read incoming query params from URL ---------- */
+  const sp = useSearchParams();
 
-  const [range, setRange] = useState<RangeValue>({ from: undefined, to: undefined });
-  const [quantity, setQuantity] = useState(1);
+  // Read initial values from search params (if present)
+  const initialFrom = useMemo(() => parseYYYYMMDDLocal(sp.get("from")), [sp]);
+  const initialTo = useMemo(() => parseYYYYMMDDLocal(sp.get("to")), [sp]);
+
+  const initialStoreId = useMemo(() => {
+    const id = Number(sp.get("store_id") ?? "");
+    return Number.isFinite(id) && id > 0 ? id : null;
+  }, [sp]);
+
+  const initialQuantity = useMemo(() => {
+    const q = Number(sp.get("quantity") ?? "1");
+    return Number.isFinite(q) && q > 0 ? q : 1;
+  }, [sp]);
+
+  /** ---------- Component state ---------- */
+
+  // Variant defaults to first variant, your logic later may change it to one with stock
+  const [selectedVariantId, setSelectedVariantId] = useState<number | null>(variants[0]?.id ?? null);
+
+  // If URL had a store_id, preselect it (we validate it later against inventory)
+  const [selectedStoreId, setSelectedStoreId] = useState<number | null>(initialStoreId);
+
+  // If URL had dates, prefill range
+  const [range, setRange] = useState<RangeValue>({ from: initialFrom, to: initialTo });
+
+  // If URL had quantity, prefill quantity
+  const [quantity, setQuantity] = useState<number>(initialQuantity);
+
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
+  /** Quote state */
+  const [quote, setQuote] = useState<{ currency: string; totalPriceCents: number } | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteError, setQuoteError] = useState<string | null>(null);
+
+  /** ---------- Derived values ---------- */
+
+  // Selected variant object
   const selectedVariant = useMemo(
     () => variants.find((v) => v.id === selectedVariantId) ?? variants[0],
     [variants, selectedVariantId]
   );
 
+  // Images for carousel
   const images = selectedVariant?.images ?? [];
 
-  // Build size map (S/M/L -> variant)
+  // Map size -> variant
   const sizeMap = useMemo(() => {
     const map = new Map<string, VariantWithImages>();
     variants.forEach((v) => {
@@ -98,23 +163,25 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     return map;
   }, [variants]);
 
-  const sizeOptions = useMemo(
-    () => allSizeOptions.filter((s) => sizeMap.has(s)),
-    [sizeMap]
-  );
+  // Only show sizes that exist
+  const sizeOptions = useMemo(() => allSizeOptions.filter((s) => sizeMap.has(s)), [sizeMap]);
 
-  // Inventory counts per (variant, store)
+  // Inventory count map: "variantId:storeId" -> count
   const inventoryMap = useMemo(() => {
     const map = new Map<string, number>();
     inventory.forEach((item) => {
+      // Skip inactive items
       if (item.is_active === false) return;
+      // Skip items not in active status (if status exists)
       if (item.status && item.status !== "active") return;
+
       const key = `${item.product_variant_id}:${item.store_id}`;
       map.set(key, (map.get(key) ?? 0) + 1);
     });
     return map;
   }, [inventory]);
 
+  // Helper to get available quantity for a given (variant, store)
   const getAvailableQuantity = useCallback(
     (variantId: number | null | undefined, storeId: number | null | undefined): number => {
       if (!variantId || !storeId) return 0;
@@ -123,17 +190,19 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     [inventoryMap]
   );
 
+  // Quantity available for current selection
   const availableQuantity = useMemo(
     () => getAvailableQuantity(selectedVariant?.id ?? null, selectedStoreId),
     [selectedVariant?.id, selectedStoreId, getAvailableQuantity]
   );
 
+  // Used to disable store chips without stock (for the currently selected variant)
   const storeHasInventoryForSelectedVariant = useCallback(
     (storeId: number): boolean => getAvailableQuantity(selectedVariant?.id ?? null, storeId) > 0,
     [getAvailableQuantity, selectedVariant?.id]
   );
 
-  // Pick a sensible default store+variant combo (first size with stock somewhere)
+  /** ---------- Initialization: choose sensible store+variant without overwriting URL intent ---------- */
   useEffect(() => {
     if (!variants.length || !stores.length || !inventory.length) {
       setSelectedVariantId(variants[0]?.id ?? null);
@@ -141,33 +210,55 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
       return;
     }
 
+    // Try to respect the store from URL if it exists and has stock for ANY size.
+    const preferredStoreId = initialStoreId;
+
     let newVariantId: number | null = null;
     let newStoreId: number | null = null;
 
-    for (const size of sizeOptions) {
-      const v = sizeMap.get(size);
-      if (!v) continue;
+    // A) If URL store exists, try to find a variant that has stock in that store
+    if (preferredStoreId) {
+      for (const size of sizeOptions) {
+        const v = sizeMap.get(size);
+        if (!v) continue;
 
-      const storeWithStock = stores.find((s) => getAvailableQuantity(v.id, s.id) > 0);
-      if (storeWithStock) {
-        newVariantId = v.id;
-        newStoreId = storeWithStock.id;
-        break;
+        if (getAvailableQuantity(v.id, preferredStoreId) > 0) {
+          newVariantId = v.id;
+          newStoreId = preferredStoreId;
+          break;
+        }
       }
     }
 
+    // B) Fallback: find first store with stock for any size
     if (newVariantId === null) {
-      setSelectedVariantId(variants[0]?.id ?? null);
-      setSelectedStoreId(null);
-      return;
+      for (const size of sizeOptions) {
+        const v = sizeMap.get(size);
+        if (!v) continue;
+
+        const storeWithStock = stores.find((s) => getAvailableQuantity(v.id, s.id) > 0);
+        if (storeWithStock) {
+          newVariantId = v.id;
+          newStoreId = storeWithStock.id;
+          break;
+        }
+      }
     }
 
-    setSelectedVariantId(newVariantId);
-    setSelectedStoreId(newStoreId);
-    setCurrentImageIndex(0);
-  }, [variants, stores, inventory, sizeOptions, sizeMap, getAvailableQuantity]);
+    // Apply results (only once when data is ready)
+    setSelectedVariantId(newVariantId ?? variants[0]?.id ?? null);
 
-  // Clamp quantity to stock
+    // Only override selectedStoreId if:
+    // - we found a valid one, OR
+    // - the current one is null
+    setSelectedStoreId((prev) => (prev == null ? newStoreId : prev));
+
+    setCurrentImageIndex(0);
+    // NOTE: we intentionally depend on initialStoreId here, but do NOT include selectedStoreId,
+    // so we don't "fight" the user's clicks.
+  }, [variants, stores, inventory, sizeOptions, sizeMap, getAvailableQuantity, initialStoreId]);
+
+  /** ---------- Clamp quantity to stock ---------- */
   useEffect(() => {
     if (availableQuantity <= 0) {
       setQuantity(1);
@@ -176,12 +267,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     }
   }, [availableQuantity]);
 
-  // If store/variant changes, keep range but you MAY want to reset it.
-  // (Optional: uncomment if your availability differs by store/variant.)
-  // useEffect(() => {
-  //   setRange({ from: undefined, to: undefined });
-  // }, [selectedStoreId, selectedVariantId]);
-
+  /** ---------- Image navigation ---------- */
   const handlePrevImage = () => {
     if (!images.length) return;
     setCurrentImageIndex((idx) => (idx === 0 ? images.length - 1 : idx - 1));
@@ -192,6 +278,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     setCurrentImageIndex((idx) => (idx === images.length - 1 ? 0 : idx + 1));
   };
 
+  /** ---------- Add to cart ---------- */
   const canAddToCart =
     !!selectedVariant &&
     !!selectedStoreId &&
@@ -208,17 +295,89 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
       productId: product.id,
       variantId: selectedVariant.id,
       storeId: selectedStoreId,
-      start_date: formatDateForApi(range.from),
-      end_date: formatDateForApi(range.to),
+      start_date: formatDateForApiLocal(range.from),
+      end_date: formatDateForApiLocal(range.to),
       quantity,
     });
   };
 
+  /** ---------- UI labels ---------- */
   const title = product.name || `Bike #${product.id}`;
   const priceLabel = product.price_category || "standard";
 
+  // We only want to let users pick dates if store + variant are selected
   const canPickDates = selectedVariant?.id != null && selectedStoreId != null;
 
+  /** Quote */
+  const isValidRange =
+    !!range.from &&
+    !!range.to &&
+    range.to.getTime() > range.from.getTime(); // safer than direct Date comparison
+
+  const canQuote =
+    !!selectedVariant?.id &&
+    !!selectedStoreId &&
+    isValidRange &&
+    quantity > 0;
+
+  useEffect(() => {
+    if (!canQuote) {
+      // Selection incomplete → clear quote UI
+      setQuote(null);
+      setQuoteError(null);
+      return;
+    }
+
+    const controller = new AbortController();
+
+    async function run() {
+      try {
+        setQuoteLoading(true);
+        setQuoteError(null);
+
+        const payload = {
+          product_variant_id: selectedVariant!.id,
+          store_id: selectedStoreId!,
+          start_at: toRFC3339LocalMidnight(range.from!),
+          end_at: toRFC3339LocalMidnight(range.to!),
+          quantity,
+        };
+
+        // Call Next.js route proxy (server will call your API via fetchApi)
+        const res = await fetch("/api/availability/quote", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+          signal: controller.signal,
+        });
+
+        if (!res.ok) {
+          const text = await res.text();
+          throw new Error(`Quote failed (${res.status}): ${text}`);
+        }
+
+        const data = await res.json();
+
+        // Adapt fields to match your actual API response
+        setQuote({
+          currency: data.currency ?? "CHF",
+          totalPriceCents: data.price_total_cents,
+        });
+      } catch (e: any) {
+        if (e?.name === "AbortError") return; // ignore rapid changes
+        setQuote(null);
+        setQuoteError(e?.message ?? "Failed to fetch price");
+      } finally {
+        setQuoteLoading(false);
+      }
+    }
+
+    run();
+    return () => controller.abort();
+  }, [canQuote, selectedVariant?.id, selectedStoreId, range.from, range.to, quantity]);
+
+
+  /** ---------- Render ---------- */
   return (
     <div className={styles.inner}>
       <div className={styles.layout}>
@@ -280,9 +439,6 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
             <div className={styles.subtitle}>
               <span>Shop #{product.shop_id}</span>
             </div>
-            <div className={styles.priceRow}>
-              <span className={styles.pricePill}>{priceLabel}</span>
-            </div>
           </header>
 
           {/* Store selector */}
@@ -322,6 +478,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
                 const variantForSize = sizeMap.get(size);
                 if (!variantForSize) return null;
 
+                // Enable size only if selectedStore has stock for that size
                 const enabled =
                   selectedStoreId !== null &&
                   getAvailableQuantity(variantForSize.id, selectedStoreId) > 0;
@@ -349,11 +506,11 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
             </div>
           </div>
 
-          {/* Dates (fixed calendar, always visible) */}
+          {/* Dates */}
           <div className={styles.block}>
             <h2 className={styles.blockTitle}>Pick-up &amp; return</h2>
 
-            {/* optional: tiny summary */}
+            {/* Summary row that should now show query-param values when present */}
             <div className={styles.dateSummary}>
               <div>
                 <span className={styles.dateSummaryLabel}>PICK-UP</span>
@@ -413,6 +570,23 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
               </button>
             </div>
           </div>
+
+          {/* Price */}
+          <div className={styles.priceBlock}>
+            {quoteLoading ? (
+              <div className={styles.priceLoading}>Calculating…</div>
+            ) : quote && Number.isFinite(quote.totalPriceCents) ? (
+              <div className={styles.priceBig}>
+                {quote.currency} {(quote.totalPriceCents / 100).toFixed(2)}
+              </div>
+            ) : (
+              <div className={styles.pricePlaceholder}>Select dates to see price</div>
+            )}
+
+            <div className={styles.priceHint}>Price updates with your dates & quantity.</div>
+            {quoteError && <div className={styles.priceError}>{quoteError}</div>}
+          </div>
+
 
           {/* Add to cart */}
           <div className={styles.block}>
