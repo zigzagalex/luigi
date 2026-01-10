@@ -11,7 +11,8 @@ type Props = {
   products: Product[];
   availabilityInfo?: Record<number, AvailabilityInfo>;
   className?: string; // optional extra class from caller
-  variant?: "default" | "search"; // 👈 add this
+  variant?: "default" | "search"; 
+  linkSearchParams?: Record<string, string | undefined>;
 };
 
 export default function ProductGrid({
@@ -19,6 +20,7 @@ export default function ProductGrid({
   availabilityInfo,
   className,
   variant = "default",
+  linkSearchParams,
 }: Props) {
   if (!products.length) return null;
 
@@ -35,6 +37,7 @@ export default function ProductGrid({
             product={product}
             minPriceCents={info?.minPriceCents}
             availableQuantity={info?.availableQuantity}
+            linkSearchParams={linkSearchParams}
           />
         );
       })}

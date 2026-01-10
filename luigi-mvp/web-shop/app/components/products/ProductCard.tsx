@@ -8,20 +8,46 @@ type Props = {
   minPriceCents?: number;
   /** Optional: total available quantity for this product */
   availableQuantity?: number;
+  /** Optional: search parameters from search pill */
+  linkSearchParams?: Record<string, string | undefined>;
+
 };
 
 const FALLBACK_IMAGE =
   "https://images.pexels.com/photos/276517/pexels-photo-276517.jpeg?auto=compress&cs=tinysrgb&w=800";
 
+function buildProductHref(
+    productId: number,
+    linkSearchParams?: Record<string, string | undefined>
+  ) {
+    const base = `/products/${productId}`;
+    if (!linkSearchParams) return base;
+  
+    const params = new URLSearchParams();
+  
+    for (const [key, value] of Object.entries(linkSearchParams)) {
+      if (value == null) continue;
+      const v = value.trim();
+      if (v === "") continue;
+      params.set(key, v);
+    }
+  
+    const qs = params.toString();
+    return qs ? `${base}?${qs}` : base;
+  }
+  
+
 export default function ProductCard({
   product,
   minPriceCents,
   availableQuantity,
+  linkSearchParams,
 }: Props) {
   const imageUrl = product.primary_image_url ?? FALLBACK_IMAGE;
+  const href = buildProductHref(product.id, linkSearchParams);
 
   return (
-    <Link href={`/products/${product.id}`} className={styles.card}>
+    <Link href={href} className={styles.card}>
       <div className={styles.imageWrapper}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
