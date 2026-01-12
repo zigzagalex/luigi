@@ -148,13 +148,18 @@ func (h *Handler) Calendar(w http.ResponseWriter, r *http.Request) {
 }
 
 // ---------- Quote ----------
-
 type quoteRequest struct {
-	ProductVariantID int64  `json:"product_variant_id"`
-	StoreID          int64  `json:"store_id"`
-	StartAt          string `json:"start_at"` // RFC3339
-	EndAt            string `json:"end_at"`   // RFC3339
-	Quantity         int32  `json:"quantity"`
+	ProductVariantID int64 `json:"product_variant_id"`
+	StoreID          int64 `json:"store_id"`
+	Quantity         int32 `json:"quantity"`
+
+	// Preferred (date-only) — matches your UI and avoids timezone drift
+	StartDate string `json:"start_date,omitempty"` // "YYYY-MM-DD"
+	EndDate   string `json:"end_date,omitempty"`   // "YYYY-MM-DD"
+
+	// Legacy (datetime) — keep for backwards compatibility
+	StartAt string `json:"start_at,omitempty"` // RFC3339
+	EndAt   string `json:"end_at,omitempty"`   // RFC3339
 }
 
 func (h *Handler) Quote(w http.ResponseWriter, r *http.Request) {
@@ -176,15 +181,45 @@ func (h *Handler) Quote(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	startAt, err := time.Parse(time.RFC3339, req.StartAt)
-	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_start_at", err.Error())
-		return
-	}
-	endAt, err := time.Parse(time.RFC3339, req.EndAt)
-	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_end_at", err.Error())
-		return
+	// We prefer date-only (start_date/end_date) because rentals are “calendar days”
+	// and it avoids off-by-one / DST issues.
+	var startAt time.Time
+	var endAt time.Time
+
+	if req.StartDate != "" && req.EndDate != "" {
+		start, err := time.Parse("2006-01-02", req.StartDate)
+		if err != nil {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_start_date", err.Error())
+			return
+		}
+		end, err := time.Parse("2006-01-02", req.EndDate)
+		if err != nil {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_end_date", err.Error())
+			return
+		}
+
+		// Interpret as local shop day boundaries (simple version).
+		// If you want “Europe/Zurich”, use time.LoadLocation + time.Date with that location.
+		//
+		// For now: treat start/end as midnight UTC or local depending on how your service expects it.
+		// Better: use shop timezone (Europe/Zurich) consistently.
+		loc, _ := time.LoadLocation("Europe/Zurich")
+		startAt = time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, loc)
+		endAt = time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, loc)
+
+	} else {
+		// Fallback to legacy RFC3339
+		var err error
+		startAt, err = time.Parse(time.RFC3339, req.StartAt)
+		if err != nil {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_start_at", err.Error())
+			return
+		}
+		endAt, err = time.Parse(time.RFC3339, req.EndAt)
+		if err != nil {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_end_at", err.Error())
+			return
+		}
 	}
 
 	in := availability.QuoteInput{
