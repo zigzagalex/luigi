@@ -10,7 +10,9 @@ import (
 )
 
 type Querier interface {
+	AllocateInventoryItemsForHold(ctx context.Context, arg *AllocateInventoryItemsForHoldParams) ([]int64, error)
 	AssignProductToCategory(ctx context.Context, arg *AssignProductToCategoryParams) error
+	CartTotals(ctx context.Context, cartID int64) (CartTotalsRow, error)
 	ClearProductCategories(ctx context.Context, productID int64) error
 	// Count how many inventory items of a given variant+store
 	// are available for a requested time range.
@@ -21,7 +23,11 @@ type Querier interface {
 	//   - in (non-cancelled) reservations via reservation_items.padded_range
 	//   - in non-expired holds
 	CountAvailableInventoryForRange(ctx context.Context, arg *CountAvailableInventoryForRangeParams) (int32, error)
+	CreateCartForCustomer(ctx context.Context, arg *CreateCartForCustomerParams) (Cart, error)
+	CreateCartForSession(ctx context.Context, arg *CreateCartForSessionParams) (Cart, error)
+	CreateCartItem(ctx context.Context, arg *CreateCartItemParams) (CartItem, error)
 	CreateCustomer(ctx context.Context, arg *CreateCustomerParams) (Customer, error)
+	CreateHoldForCartItem(ctx context.Context, arg *CreateHoldForCartItemParams) (Hold, error)
 	CreateInventoryItem(ctx context.Context, arg *CreateInventoryItemParams) (InventoryItem, error)
 	CreateProduct(ctx context.Context, arg *CreateProductParams) (Product, error)
 	CreateProductCategory(ctx context.Context, arg *CreateProductCategoryParams) (ProductCategory, error)
@@ -30,7 +36,9 @@ type Querier interface {
 	CreateShop(ctx context.Context, arg *CreateShopParams) (Shop, error)
 	CreateStore(ctx context.Context, arg *CreateStoreParams) (Store, error)
 	CreateUser(ctx context.Context, arg *CreateUserParams) (User, error)
+	DeleteCartItem(ctx context.Context, cartItemID int64) error
 	DeleteCustomer(ctx context.Context, id int64) (Customer, error)
+	DeleteHoldsByCartItem(ctx context.Context, cartItemID int64) error
 	DeleteInventoryItem(ctx context.Context, id int64) (InventoryItem, error)
 	DeletePricePoint(ctx context.Context, arg *DeletePricePointParams) error
 	DeleteProduct(ctx context.Context, id int64) (Product, error)
@@ -39,7 +47,13 @@ type Querier interface {
 	DeleteProductVariantImage(ctx context.Context, id int64) error
 	DeleteStore(ctx context.Context, id int64) (Store, error)
 	DeleteUser(ctx context.Context, id int64) (User, error)
+	ExpireOpenCarts(ctx context.Context) error
+	GetCartByID(ctx context.Context, cartID int64) (Cart, error)
+	GetCartItemByID(ctx context.Context, cartItemID int64) (CartItem, error)
+	GetCartItemWithCart(ctx context.Context, cartItemID int64) (GetCartItemWithCartRow, error)
 	GetCustomerByUserID(ctx context.Context, userID sql.NullInt64) (Customer, error)
+	GetOpenCartByCustomerID(ctx context.Context, customerID int64) (Cart, error)
+	GetOpenCartBySessionID(ctx context.Context, sessionID string) (Cart, error)
 	GetPriceCategoryForVariant(ctx context.Context, productVariantID int64) (string, error)
 	GetPricePoint(ctx context.Context, arg *GetPricePointParams) (PricePoint, error)
 	GetPrimaryImageByVariantID(ctx context.Context, productVariantID int64) (ProductVariantImage, error)
@@ -49,9 +63,14 @@ type Querier interface {
 	GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (User, error)
 	// List active inventory items for a given variant+store.
 	ListActiveInventoryForVariantStore(ctx context.Context, arg *ListActiveInventoryForVariantStoreParams) ([]InventoryItem, error)
+	// -------------------------------------------------------
+	// Cart items
+	// -------------------------------------------------------
+	ListCartItems(ctx context.Context, cartID int64) ([]CartItem, error)
 	ListCategoriesByShop(ctx context.Context, shopID int64) ([]ProductCategory, error)
 	ListCategoriesForProduct(ctx context.Context, productID int64) ([]ProductCategory, error)
 	ListCustomers(ctx context.Context, arg *ListCustomersParams) ([]ListCustomersRow, error)
+	ListHoldsByCartItem(ctx context.Context, cartItemID sql.NullInt64) ([]Hold, error)
 	ListImagesByVariantID(ctx context.Context, productVariantID int64) ([]ProductVariantImage, error)
 	ListInventoryItems(ctx context.Context, arg *ListInventoryItemsParams) ([]InventoryItem, error)
 	ListPricePoints(ctx context.Context) ([]PricePoint, error)
@@ -71,6 +90,10 @@ type Querier interface {
 	//   - quantity       (required, minimum units needed)
 	// Returns one row per (product, variant, store) that has COUNT(*) >= quantity.
 	SearchAvailableVariants(ctx context.Context, arg *SearchAvailableVariantsParams) ([]SearchAvailableVariantsRow, error)
+	TouchCartUpdatedAt(ctx context.Context, cartID int64) error
+	UpdateCartItemCore(ctx context.Context, arg *UpdateCartItemCoreParams) error
+	UpdateCartStatus(ctx context.Context, arg *UpdateCartStatusParams) error
+	UpdateCartStore(ctx context.Context, arg *UpdateCartStoreParams) error
 	UpdateCustomer(ctx context.Context, arg *UpdateCustomerParams) (Customer, error)
 	UpdateInventoryItem(ctx context.Context, arg *UpdateInventoryItemParams) (InventoryItem, error)
 	UpdateProduct(ctx context.Context, arg *UpdateProductParams) (Product, error)

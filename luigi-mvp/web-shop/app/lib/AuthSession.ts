@@ -64,3 +64,12 @@ export async function logoutSession() {
 
   if (!res.ok) throw new Error(`Logout failed: ${res.status} ${await res.text()}`);
 }
+
+export async function ensureGuestSession() {
+  const res = await fetch(`${API_BASE}/v1/auth/guest`, {
+    method: "POST",
+    credentials: "include",
+  });
+
+  if (!res.ok) throw new Error(`Guest session failed: ${res.status} ${await res.text()}`);
+}

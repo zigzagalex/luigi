@@ -22,6 +22,33 @@ type Accessory struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
+type Cart struct {
+	ID         int64          `json:"id"`
+	ShopID     int64          `json:"shop_id"`
+	StoreID    int64          `json:"store_id"`
+	CustomerID sql.NullInt64  `json:"customer_id"`
+	SessionID  sql.NullString `json:"session_id"`
+	Status     interface{}    `json:"status"`
+	ExpiresAt  time.Time      `json:"expires_at"`
+	CreatedAt  time.Time      `json:"created_at"`
+	UpdatedAt  time.Time      `json:"updated_at"`
+}
+
+type CartItem struct {
+	ID              int64         `json:"id"`
+	CartID          int64         `json:"cart_id"`
+	ProductID       sql.NullInt64 `json:"product_id"`
+	VariantID       sql.NullInt64 `json:"variant_id"`
+	InventoryItemID int64         `json:"inventory_item_id"`
+	StartAt         time.Time     `json:"start_at"`
+	EndAt           time.Time     `json:"end_at"`
+	DesiredRange    interface{}   `json:"desired_range"`
+	UnitPriceCents  int32         `json:"unit_price_cents"`
+	Currency        string        `json:"currency"`
+	Quantity        int32         `json:"quantity"`
+	CreatedAt       time.Time     `json:"created_at"`
+}
+
 type Customer struct {
 	ID         int64          `json:"id"`
 	ShopID     int64          `json:"shop_id"`
@@ -50,6 +77,8 @@ type Hold struct {
 	HoldRange       interface{}   `json:"hold_range"`
 	ExpiresAt       time.Time     `json:"expires_at"`
 	CreatedAt       time.Time     `json:"created_at"`
+	CartID          sql.NullInt64 `json:"cart_id"`
+	CartItemID      sql.NullInt64 `json:"cart_item_id"`
 }
 
 type InventoryItem struct {

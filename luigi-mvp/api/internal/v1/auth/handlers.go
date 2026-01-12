@@ -7,6 +7,7 @@ import (
 	"strings"
 	"time"
 
+	"github.com/google/uuid"
 	customersvc "github.com/zigzagalex/luigi/api/internal/customers"
 
 	fbauth "firebase.google.com/go/v4/auth"
@@ -19,6 +20,7 @@ import (
 )
 
 const cookieName = "luigi_session"
+const guestCookieName = "luigi_guest" // NEW (your own)
 
 type Handler struct {
 	fb    *fbauth.Client
@@ -34,6 +36,7 @@ func RegisterRoutes(r chi.Router, fb *fbauth.Client, q *db.Queries, sqlDB *sql.D
 
 	r.Route("/auth", func(r chi.Router) {
 		// Public endpoints
+		r.Post("/guest", h.GuestSession)
 		r.Post("/session", h.CreateSession)
 		r.Post("/logout", h.Logout)
 
@@ -257,4 +260,34 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		"shop_id":      user.ShopID,
 		"store_id":     user.StoreID,
 	})
+}
+
+func (h *Handler) GuestSession(w http.ResponseWriter, r *http.Request) {
+	secure := h.env != "dev"
+
+	// If already present, no-op
+	if c, err := r.Cookie(guestCookieName); err == nil {
+		if strings.TrimSpace(c.Value) != "" {
+			httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
+			return
+		}
+	}
+
+	// Create new guest session id
+	sid := uuid.NewString()
+
+	// Keep guest sessions reasonably long-lived (e.g., 30 days)
+	maxAge := int((30 * 24 * time.Hour).Seconds())
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     guestCookieName,
+		Value:    sid,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   maxAge,
+	})
+
+	httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
 }
