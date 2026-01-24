@@ -9,6 +9,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	chiMw "github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
+	avSvc "github.com/zigzagalex/luigi/api/internal/availability"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	"github.com/zigzagalex/luigi/api/internal/storage"
@@ -16,6 +17,7 @@ import (
 
 	v1auth "github.com/zigzagalex/luigi/api/internal/v1/auth"
 	v1availability "github.com/zigzagalex/luigi/api/internal/v1/availability"
+	v1cart "github.com/zigzagalex/luigi/api/internal/v1/cart"
 	v1categories "github.com/zigzagalex/luigi/api/internal/v1/categories"
 	v1customers "github.com/zigzagalex/luigi/api/internal/v1/customers"
 	v1inventory "github.com/zigzagalex/luigi/api/internal/v1/inventory"
@@ -60,6 +62,9 @@ func New(d Deps) http.Handler {
 	})
 
 	r.Route("/v1", func(r chi.Router) {
+		// Shared services
+		avService := avSvc.NewService(d.Q)
+
 		// Auth routes (public + /me protected inside the module)
 		v1auth.RegisterRoutes(r, d.FirebaseAuth, d.Q, d.SQLDB, d.Env)
 
@@ -73,6 +78,7 @@ func New(d Deps) http.Handler {
 		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 		v1inventory.RegisterRoutes(r, d.Q)
 		v1pricepoints.RegisterRoutes(r, d.Q)
+		v1cart.RegisterRoutes(r, d.Q, d.SQLDB, avService)
 
 		// Protected routes (admin/management)
 		r.Group(func(r chi.Router) {

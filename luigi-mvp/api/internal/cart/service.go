@@ -107,7 +107,7 @@ func (s *Service) AddItem(ctx context.Context, owner Owner, in AddItemInput) (*C
 	//    - quote price for quantity=1 (simple and avoids division assumptions)
 	//    - insert cart_item with quantity=1
 	//    - create hold tied to cart_item (1:1)
-	holdExpires := time.Now().Add(15 * time.Minute)
+	holdExpires := time.Now().Add(15 * time.Second)
 
 	var customerID sql.NullInt64
 	if owner.CustomerID != nil {
@@ -219,7 +219,7 @@ func (s *Service) UpdateItem(ctx context.Context, owner Owner, in UpdateItemInpu
 		return nil, errors.New("cart item missing variant_id")
 	}
 
-	// IMPORTANT choice:
+	// IMPORTANT:
 	// We keep the SAME inventory_item_id (same physical bike).
 	// If it isn't available for the new dates, we fail the update.
 	// (Alternative is to re-allocate + swap inventory item. We are NOT doing that here.)
@@ -231,7 +231,7 @@ func (s *Service) UpdateItem(ctx context.Context, owner Owner, in UpdateItemInpu
 	// - delete old hold
 	// - attempt insert new hold on same inventory id
 	// - if insert fails due to conflict, rollback tx => old hold returns
-	
+
 	quote, err := s.av.Quote(ctx, availability.QuoteInput{
 		ProductVariantID: row.VariantID.Int64,
 		StoreID:          in.StoreID,
@@ -381,7 +381,6 @@ func (s *Service) getOrCreateOpenCart(ctx context.Context, owner Owner, shopID, 
 	if owner.CustomerID != nil {
 		c, err := s.q.GetOpenCartByCustomerID(ctx, *owner.CustomerID)
 		if err == nil {
-			// Optionally: ensure store matches current store selection
 			return c, nil
 		}
 		exp := time.Now().Add(2 * time.Hour)

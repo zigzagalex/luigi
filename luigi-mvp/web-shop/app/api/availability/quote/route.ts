@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { fetchApi } from "@/../utils/fetchAPI";
 
-// This runs on the server (Route Handler), so fetchApi is safe here.
+// This runs on the server (Route Handler)
 export async function POST(req: Request) {
   try {
     const body = await req.json();
