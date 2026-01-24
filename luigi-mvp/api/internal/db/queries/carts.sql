@@ -142,3 +142,12 @@ FROM cart_items ci
 JOIN carts c ON c.id = ci.cart_id
 WHERE ci.id = sqlc.arg(cart_item_id)
 LIMIT 1;
+
+
+-- name: AttachCartToCustomer :exec
+UPDATE carts
+SET customer_id = sqlc.arg(customer_id)::bigint,
+    session_id = NULL,
+    updated_at = now()
+WHERE id = sqlc.arg(cart_id)::bigint
+  AND status = 'open';

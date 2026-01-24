@@ -331,6 +331,40 @@ func (s *Service) DeleteItem(ctx context.Context, owner Owner, cartItemID int64)
 	return s.buildCartView(ctx, row.CartID)
 }
 
+func (s *Service) AttachGuestCartToCustomer(ctx context.Context, guestSessionID string, customerID int64) error {
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	qtx := s.q.WithTx(tx)
+
+	// 1) Find guest cart
+	guestCart, err := qtx.GetOpenCartBySessionID(ctx, guestSessionID)
+	if err != nil {
+		return nil
+	}
+
+	// 2) If user already has a cart, close it
+	if _, err := qtx.GetOpenCartByCustomerID(ctx, customerID); err == nil {
+		_ = qtx.UpdateCartStatus(ctx, &db.UpdateCartStatusParams{
+			CartID: guestCart.ID,
+			Status: "abandoned",
+		})
+	}
+
+	// 3) Reassign guest cart
+	if err := qtx.AttachCartToCustomer(ctx, &db.AttachCartToCustomerParams{
+		CartID:     guestCart.ID,
+		CustomerID: customerID,
+	}); err != nil {
+		return err
+	}
+
+	return tx.Commit()
+}
+
 // ------------------- helpers -------------------
 
 func assertOwner(owner Owner, cartCustomerID sql.NullInt64, cartSessionID sql.NullString) error {
