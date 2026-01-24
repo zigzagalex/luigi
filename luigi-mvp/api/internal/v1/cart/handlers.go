@@ -47,12 +47,10 @@ func RegisterRoutes(
 
 		// Delete one cart_item
 		r.Delete("/items/{cart_item_id}", h.DeleteItem)
-	})
-}
 
-type getCartRequest struct {
-	ShopID  int64 `json:"shop_id"`
-	StoreID int64 `json:"store_id"`
+		// Attach guest cart to customer cart
+		r.Post("/attach-guest-cart", h.AttachGuestCart)
+	})
 }
 
 type addItemRequest struct {
@@ -205,6 +203,35 @@ func (h *Handler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 
 	httpx.JSON(w, http.StatusOK, res)
 }
+
+func (h *Handler) AttachGuestCart(w http.ResponseWriter, r *http.Request) {
+	owner, ok := middleware.UserFromContext(r.Context())
+	if !ok {
+	  httpx.Fail(w, http.StatusUnauthorized, "not_authenticated", nil)
+	  return
+	}
+  
+	c, err := r.Cookie("luigi_guest")
+	if err != nil || strings.TrimSpace(c.Value) == "" {
+	  httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
+	  return
+	}
+  
+	cust, err := h.custSvc.GetCustomerByUserID(r.Context(), owner.ID)
+	if err != nil {
+	  httpx.Fail(w, 500, "customer_missing", err.Error())
+	  return
+	}
+  
+	_ = h.svc.AttachGuestCartToCustomer(
+	  r.Context(),
+	  c.Value,
+	  cust.ID,
+	)
+  
+	httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
+  }
+  
 
 // Helpers
 func (h *Handler) ownerFromRequest(r *http.Request) (cart.Owner, error) {

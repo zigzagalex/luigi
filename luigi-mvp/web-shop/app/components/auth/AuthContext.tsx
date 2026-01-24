@@ -21,6 +21,7 @@ type AuthCtx = {
   me: Me | null;
   loading: boolean;
   refresh: () => Promise<void>;
+  onLoginSuccess: () => Promise<void>;
   logout: () => Promise<void>;
 };
 
@@ -63,6 +64,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  const onLoginSuccess = useCallback(async () => {
+    // 1) Attach guest cart → user cart (idempotent endpoint)
+    await fetch("/api/cart/attach-guest=cart", {
+      method: "POST",
+      credentials: "include",
+    });
+     
+  
+    // 2) Refresh user state
+    await refresh();
+  }, [refresh]);
+
   /**
    * Logs out the user session (server cookie) and Firebase client auth.
    * We intentionally do NOT clear the guest cookie so the cart can remain.
@@ -86,8 +99,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [refresh]);
 
   const value = useMemo(
-    () => ({ me, loading, refresh, logout }),
-    [me, loading, refresh, logout]
+    () => ({ me, loading, refresh, onLoginSuccess, logout }),
+    [me, loading, refresh, onLoginSuccess, logout]
   );
 
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;

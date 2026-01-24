@@ -12,6 +12,7 @@ import (
 type Querier interface {
 	AllocateInventoryItemsForHold(ctx context.Context, arg *AllocateInventoryItemsForHoldParams) ([]int64, error)
 	AssignProductToCategory(ctx context.Context, arg *AssignProductToCategoryParams) error
+	AttachCartToCustomer(ctx context.Context, arg *AttachCartToCustomerParams) error
 	CartTotals(ctx context.Context, cartID int64) (CartTotalsRow, error)
 	ClearProductCategories(ctx context.Context, productID int64) error
 	// Count how many inventory items of a given variant+store

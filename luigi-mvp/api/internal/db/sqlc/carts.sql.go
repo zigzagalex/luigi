@@ -11,6 +11,25 @@ import (
 	"time"
 )
 
+const attachCartToCustomer = `-- name: AttachCartToCustomer :exec
+UPDATE carts
+SET customer_id = $1::bigint,
+    session_id = NULL,
+    updated_at = now()
+WHERE id = $2::bigint
+  AND status = 'open'
+`
+
+type AttachCartToCustomerParams struct {
+	CustomerID int64 `json:"customer_id"`
+	CartID     int64 `json:"cart_id"`
+}
+
+func (q *Queries) AttachCartToCustomer(ctx context.Context, arg *AttachCartToCustomerParams) error {
+	_, err := q.db.ExecContext(ctx, attachCartToCustomer, arg.CustomerID, arg.CartID)
+	return err
+}
+
 const cartTotals = `-- name: CartTotals :one
 SELECT
   COALESCE(SUM(unit_price_cents * quantity), 0)::bigint AS subtotal_cents,
