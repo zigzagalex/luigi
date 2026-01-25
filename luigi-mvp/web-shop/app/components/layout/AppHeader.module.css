@@ -212,3 +212,12 @@
   }
 }
 
+.rightActions {
+  justify-self: end;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+
+  position: relative; /* ← THIS IS IT */
+}
+

@@ -25,7 +25,7 @@ type Accessory struct {
 type Cart struct {
 	ID         int64          `json:"id"`
 	ShopID     int64          `json:"shop_id"`
-	StoreID    int64          `json:"store_id"`
+	StoreID    sql.NullInt64  `json:"store_id"`
 	CustomerID sql.NullInt64  `json:"customer_id"`
 	SessionID  sql.NullString `json:"session_id"`
 	Status     interface{}    `json:"status"`

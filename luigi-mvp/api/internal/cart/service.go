@@ -44,8 +44,8 @@ type CartView struct {
 	Currency      string        `json:"currency"`
 }
 
-func (s *Service) GetCart(ctx context.Context, owner Owner, shopID, storeID int64) (*CartView, error) {
-	c, err := s.getOrCreateOpenCart(ctx, owner, shopID, storeID)
+func (s *Service) GetCart(ctx context.Context, owner Owner, shopID int64) (*CartView, error) {
+	c, err := s.getOrCreateOpenCart(ctx, owner, shopID)
 	if err != nil {
 		return nil, err
 	}
@@ -82,7 +82,7 @@ func (s *Service) AddItem(ctx context.Context, owner Owner, in AddItemInput) (*C
 	qtx := s.q.WithTx(tx)
 
 	// 1) Get or create open cart for this owner
-	cartRow, err := s.getOrCreateOpenCartTx(ctx, qtx, owner, in.ShopID, in.StoreID)
+	cartRow, err := s.getOrCreateOpenCartTx(ctx, qtx, owner, in.ShopID)
 	if err != nil {
 		return nil, err
 	}
@@ -331,7 +331,7 @@ func (s *Service) DeleteItem(ctx context.Context, owner Owner, cartItemID int64)
 	return s.buildCartView(ctx, row.CartID)
 }
 
-func (s *Service) AttachGuestCartToCustomer(ctx context.Context, guestSessionID string, customerID int64) error {
+func (s *Service) AttachGuestCartToCustomer(ctx context.Context, shopID int64, guestSessionID string, customerID int64) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -341,13 +341,16 @@ func (s *Service) AttachGuestCartToCustomer(ctx context.Context, guestSessionID 
 	qtx := s.q.WithTx(tx)
 
 	// 1) Find guest cart
-	guestCart, err := qtx.GetOpenCartBySessionID(ctx, guestSessionID)
-	if err != nil {
-		return nil
-	}
+	guestCart, err := qtx.GetOpenCartBySessionID(ctx, &db.GetOpenCartBySessionIDParams{
+		SessionID: guestSessionID,
+		ShopID:    shopID,
+	})
 
 	// 2) If user already has a cart, close it
-	if _, err := qtx.GetOpenCartByCustomerID(ctx, customerID); err == nil {
+	if _, err := qtx.GetOpenCartByCustomerID(ctx, &db.GetOpenCartByCustomerIDParams{
+		CustomerID: customerID,
+		ShopID:     shopID,
+	}); err == nil {
 		_ = qtx.UpdateCartStatus(ctx, &db.UpdateCartStatusParams{
 			CartID: guestCart.ID,
 			Status: "abandoned",
@@ -407,65 +410,78 @@ func (s *Service) buildCartView(ctx context.Context, cartID int64) (*CartView, e
 	}, nil
 }
 
-func (s *Service) getOrCreateOpenCart(ctx context.Context, owner Owner, shopID, storeID int64) (db.Cart, error) {
-	if owner.CustomerID == nil && owner.SessionID == nil {
-		return db.Cart{}, ErrNoOwner
-	}
+func (s *Service) getOrCreateOpenCart(
+	ctx context.Context,
+	owner Owner,
+	shopID int64,
+) (db.Cart, error) {
 
 	if owner.CustomerID != nil {
-		c, err := s.q.GetOpenCartByCustomerID(ctx, *owner.CustomerID)
+		c, err := s.q.GetOpenCartByCustomerID(ctx, &db.GetOpenCartByCustomerIDParams{
+			CustomerID: *owner.CustomerID,
+			ShopID:     shopID,
+		})
 		if err == nil {
 			return c, nil
 		}
-		exp := time.Now().Add(2 * time.Hour)
+
 		return s.q.CreateCartForCustomer(ctx, &db.CreateCartForCustomerParams{
 			ShopID:     shopID,
-			StoreID:    storeID,
 			CustomerID: *owner.CustomerID,
-			ExpiresAt:  exp,
+			ExpiresAt:  time.Now().Add(2 * time.Hour),
 		})
 	}
 
-	c, err := s.q.GetOpenCartBySessionID(ctx, *owner.SessionID)
-	if err == nil {
-		return c, nil
+	if owner.SessionID != nil {
+		c, err := s.q.GetOpenCartBySessionID(ctx, &db.GetOpenCartBySessionIDParams{
+			SessionID: *owner.SessionID,
+			ShopID:    shopID,
+		})
+		if err == nil {
+			return c, nil
+		}
+
+		return s.q.CreateCartForSession(ctx, &db.CreateCartForSessionParams{
+			ShopID:    shopID,
+			SessionID: *owner.SessionID,
+			ExpiresAt: time.Now().Add(2 * time.Hour),
+		})
 	}
-	exp := time.Now().Add(2 * time.Hour)
-	return s.q.CreateCartForSession(ctx, &db.CreateCartForSessionParams{
-		ShopID:    shopID,
-		StoreID:   storeID,
-		SessionID: *owner.SessionID,
-		ExpiresAt: exp,
-	})
+
+	return db.Cart{}, ErrNoOwner
 }
 
-func (s *Service) getOrCreateOpenCartTx(ctx context.Context, qtx *db.Queries, owner Owner, shopID, storeID int64) (db.Cart, error) {
+func (s *Service) getOrCreateOpenCartTx(ctx context.Context, qtx *db.Queries, owner Owner, shopID int64) (db.Cart, error) {
 	if owner.CustomerID == nil && owner.SessionID == nil {
 		return db.Cart{}, ErrNoOwner
 	}
 
 	if owner.CustomerID != nil {
-		c, err := qtx.GetOpenCartByCustomerID(ctx, *owner.CustomerID)
+		c, err := qtx.GetOpenCartByCustomerID(ctx, &db.GetOpenCartByCustomerIDParams{
+			CustomerID: *owner.CustomerID,
+			ShopID:     shopID,
+		})
 		if err == nil {
 			return c, nil
 		}
 		exp := time.Now().Add(2 * time.Hour)
 		return qtx.CreateCartForCustomer(ctx, &db.CreateCartForCustomerParams{
 			ShopID:     shopID,
-			StoreID:    storeID,
 			CustomerID: *owner.CustomerID,
 			ExpiresAt:  exp,
 		})
 	}
 
-	c, err := qtx.GetOpenCartBySessionID(ctx, *owner.SessionID)
+	c, err := qtx.GetOpenCartBySessionID(ctx, &db.GetOpenCartBySessionIDParams{
+		SessionID: *owner.SessionID,
+		ShopID:    shopID,
+	})
 	if err == nil {
 		return c, nil
 	}
 	exp := time.Now().Add(2 * time.Hour)
 	return qtx.CreateCartForSession(ctx, &db.CreateCartForSessionParams{
 		ShopID:    shopID,
-		StoreID:   storeID,
 		SessionID: *owner.SessionID,
 		ExpiresAt: exp,
 	})

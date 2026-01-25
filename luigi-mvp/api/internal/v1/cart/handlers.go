@@ -79,21 +79,19 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	}
 
 	shopID, err := parseIntQuery(r, "shop_id")
-	storeID, err2 := parseIntQuery(r, "store_id")
-	if err != nil || err2 != nil {
+	if err != nil {
 		httpx.Fail(w, http.StatusBadRequest, "missing_params", nil)
 		return
 	}
 
-	if shopID <= 0 || storeID <= 0 {
+	if shopID <= 0 {
 		httpx.Fail(w, http.StatusBadRequest, "missing_params", map[string]any{
-			"shop_id":  shopID,
-			"store_id": storeID,
+			"shop_id": shopID,
 		})
 		return
 	}
 
-	res, err := h.svc.GetCart(r.Context(), owner, shopID, storeID)
+	res, err := h.svc.GetCart(r.Context(), owner, shopID)
 	if err != nil {
 		httpx.Fail(w, http.StatusInternalServerError, "cart_failed", err.Error())
 		return
@@ -207,31 +205,37 @@ func (h *Handler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AttachGuestCart(w http.ResponseWriter, r *http.Request) {
 	owner, ok := middleware.UserFromContext(r.Context())
 	if !ok {
-	  httpx.Fail(w, http.StatusUnauthorized, "not_authenticated", nil)
-	  return
+		httpx.Fail(w, http.StatusUnauthorized, "not_authenticated", nil)
+		return
 	}
-  
+
 	c, err := r.Cookie("luigi_guest")
 	if err != nil || strings.TrimSpace(c.Value) == "" {
-	  httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
-	  return
+		httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
+		return
 	}
-  
+
 	cust, err := h.custSvc.GetCustomerByUserID(r.Context(), owner.ID)
 	if err != nil {
-	  httpx.Fail(w, 500, "customer_missing", err.Error())
-	  return
+		httpx.Fail(w, 500, "customer_missing", err.Error())
+		return
 	}
-  
+
+	shopID, err := parseIntQuery(r, "shop_id")
+	if err != nil || shopID <= 0 {
+		httpx.Fail(w, http.StatusBadRequest, "missing_shop_id", nil)
+		return
+	}
+
 	_ = h.svc.AttachGuestCartToCustomer(
-	  r.Context(),
-	  c.Value,
-	  cust.ID,
+		r.Context(),
+		shopID,
+		c.Value,
+		cust.ID,
 	)
-  
+
 	httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
-  }
-  
+}
 
 // Helpers
 func (h *Handler) ownerFromRequest(r *http.Request) (cart.Owner, error) {
