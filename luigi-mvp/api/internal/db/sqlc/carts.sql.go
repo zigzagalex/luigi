@@ -51,32 +51,31 @@ func (q *Queries) CartTotals(ctx context.Context, cartID int64) (CartTotalsRow, 
 }
 
 const createCartForCustomer = `-- name: CreateCartForCustomer :one
-INSERT INTO carts (shop_id, store_id, customer_id, session_id, status, expires_at)
+INSERT INTO carts (
+  shop_id,
+  customer_id,
+  session_id,
+  status,
+  expires_at
+)
 VALUES (
-  $1,
-  $2,
-  $3::bigint,
+  $1::bigint,
+  $2::bigint,
   NULL,
   'open',
-  $4
+  $3
 )
 RETURNING id, shop_id, store_id, customer_id, session_id, status, expires_at, created_at, updated_at
 `
 
 type CreateCartForCustomerParams struct {
 	ShopID     int64     `json:"shop_id"`
-	StoreID    int64     `json:"store_id"`
 	CustomerID int64     `json:"customer_id"`
 	ExpiresAt  time.Time `json:"expires_at"`
 }
 
 func (q *Queries) CreateCartForCustomer(ctx context.Context, arg *CreateCartForCustomerParams) (Cart, error) {
-	row := q.db.QueryRowContext(ctx, createCartForCustomer,
-		arg.ShopID,
-		arg.StoreID,
-		arg.CustomerID,
-		arg.ExpiresAt,
-	)
+	row := q.db.QueryRowContext(ctx, createCartForCustomer, arg.ShopID, arg.CustomerID, arg.ExpiresAt)
 	var i Cart
 	err := row.Scan(
 		&i.ID,
@@ -93,32 +92,31 @@ func (q *Queries) CreateCartForCustomer(ctx context.Context, arg *CreateCartForC
 }
 
 const createCartForSession = `-- name: CreateCartForSession :one
-INSERT INTO carts (shop_id, store_id, customer_id, session_id, status, expires_at)
+INSERT INTO carts (
+  shop_id,
+  customer_id,
+  session_id,
+  status,
+  expires_at
+)
 VALUES (
-  $1,
-  $2,
+  $1::bigint,
   NULL,
-  $3::text,
+  $2::text,
   'open',
-  $4
+  $3
 )
 RETURNING id, shop_id, store_id, customer_id, session_id, status, expires_at, created_at, updated_at
 `
 
 type CreateCartForSessionParams struct {
 	ShopID    int64     `json:"shop_id"`
-	StoreID   int64     `json:"store_id"`
 	SessionID string    `json:"session_id"`
 	ExpiresAt time.Time `json:"expires_at"`
 }
 
 func (q *Queries) CreateCartForSession(ctx context.Context, arg *CreateCartForSessionParams) (Cart, error) {
-	row := q.db.QueryRowContext(ctx, createCartForSession,
-		arg.ShopID,
-		arg.StoreID,
-		arg.SessionID,
-		arg.ExpiresAt,
-	)
+	row := q.db.QueryRowContext(ctx, createCartForSession, arg.ShopID, arg.SessionID, arg.ExpiresAt)
 	var i Cart
 	err := row.Scan(
 		&i.ID,
@@ -307,7 +305,7 @@ type GetCartItemWithCartRow struct {
 	CartID_2        int64          `json:"cart_id_2"`
 	CartStatus      interface{}    `json:"cart_status"`
 	CartShopID      int64          `json:"cart_shop_id"`
-	CartStoreID     int64          `json:"cart_store_id"`
+	CartStoreID     sql.NullInt64  `json:"cart_store_id"`
 	CartCustomerID  sql.NullInt64  `json:"cart_customer_id"`
 	CartSessionID   sql.NullString `json:"cart_session_id"`
 }
@@ -342,12 +340,18 @@ const getOpenCartByCustomerID = `-- name: GetOpenCartByCustomerID :one
 SELECT id, shop_id, store_id, customer_id, session_id, status, expires_at, created_at, updated_at
 FROM carts
 WHERE customer_id = $1::bigint
+  AND shop_id     = $2::bigint
   AND status = 'open'
 LIMIT 1
 `
 
-func (q *Queries) GetOpenCartByCustomerID(ctx context.Context, customerID int64) (Cart, error) {
-	row := q.db.QueryRowContext(ctx, getOpenCartByCustomerID, customerID)
+type GetOpenCartByCustomerIDParams struct {
+	CustomerID int64 `json:"customer_id"`
+	ShopID     int64 `json:"shop_id"`
+}
+
+func (q *Queries) GetOpenCartByCustomerID(ctx context.Context, arg *GetOpenCartByCustomerIDParams) (Cart, error) {
+	row := q.db.QueryRowContext(ctx, getOpenCartByCustomerID, arg.CustomerID, arg.ShopID)
 	var i Cart
 	err := row.Scan(
 		&i.ID,
@@ -367,12 +371,18 @@ const getOpenCartBySessionID = `-- name: GetOpenCartBySessionID :one
 SELECT id, shop_id, store_id, customer_id, session_id, status, expires_at, created_at, updated_at
 FROM carts
 WHERE session_id = $1::text
+  AND shop_id = $2::bigint
   AND status = 'open'
 LIMIT 1
 `
 
-func (q *Queries) GetOpenCartBySessionID(ctx context.Context, sessionID string) (Cart, error) {
-	row := q.db.QueryRowContext(ctx, getOpenCartBySessionID, sessionID)
+type GetOpenCartBySessionIDParams struct {
+	SessionID string `json:"session_id"`
+	ShopID    int64  `json:"shop_id"`
+}
+
+func (q *Queries) GetOpenCartBySessionID(ctx context.Context, arg *GetOpenCartBySessionIDParams) (Cart, error) {
+	row := q.db.QueryRowContext(ctx, getOpenCartBySessionID, arg.SessionID, arg.ShopID)
 	var i Cart
 	err := row.Scan(
 		&i.ID,
@@ -503,8 +513,8 @@ WHERE id = $2
 `
 
 type UpdateCartStoreParams struct {
-	StoreID int64 `json:"store_id"`
-	CartID  int64 `json:"cart_id"`
+	StoreID sql.NullInt64 `json:"store_id"`
+	CartID  int64         `json:"cart_id"`
 }
 
 func (q *Queries) UpdateCartStore(ctx context.Context, arg *UpdateCartStoreParams) error {

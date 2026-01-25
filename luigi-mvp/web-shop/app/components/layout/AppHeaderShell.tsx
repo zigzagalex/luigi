@@ -16,11 +16,9 @@ export default async function AppHeaderShell() {
   ]);
 
   return (
-    <AuthProvider>
-      <AppHeader
+          <AppHeader
             categories={categoryOptions}
             stores={storeOptions}
-          />
-    </AuthProvider> 
+          />    
   );
 }

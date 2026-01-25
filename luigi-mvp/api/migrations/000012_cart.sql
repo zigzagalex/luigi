@@ -11,7 +11,7 @@ END $$;
 CREATE TABLE carts (
     id           BIGSERIAL PRIMARY KEY,
     shop_id      BIGINT NOT NULL REFERENCES shops(id) ON DELETE CASCADE,
-    store_id     BIGINT NOT NULL REFERENCES stores(id) ON DELETE CASCADE,
+    store_id     BIGINT REFERENCES stores(id) ON DELETE CASCADE,
 
     -- owner (guest or logged in)
     customer_id  BIGINT REFERENCES customers(id) ON DELETE SET NULL,

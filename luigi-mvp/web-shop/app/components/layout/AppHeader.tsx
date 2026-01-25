@@ -9,6 +9,9 @@ import styles from "./AppHeader.module.css";
 
 import AuthModal from "../auth/AuthModal";
 import UserMenu from "../auth/UserMenu";
+import { CartButton } from "../cart/CartButton";
+import { CartPopover } from "../cart/CartPopover";
+import { useCart } from "../cart/CartContext";
 
 type Props = {
   categories: CategoryOption[];
@@ -18,6 +21,12 @@ type Props = {
 export default function AppHeader({ categories, stores }: Props) {
   const [selectedStore, setSelectedStore] = useState<StoreOption | null>(() => stores[0] ?? null);
   const [authOpen, setAuthOpen] = useState(false);
+  const [cartOpen, setCartOpen] = useState(false);
+  const { cart } = useCart();
+
+  const items = cart?.items ?? [];
+  const itemCount = items.length;
+
 
   return (
     <header className={styles.header}>
@@ -51,6 +60,16 @@ export default function AppHeader({ categories, stores }: Props) {
             {/* Replaces the old "Log in / Sign up" button */}
             <UserMenu onOpenAuth={() => setAuthOpen(true)} />
 
+            <CartButton  
+              count={itemCount}
+              onClick={() => setCartOpen((v) => !v)}
+            />
+            {cartOpen && (
+              <CartPopover
+                onClose={() => setCartOpen(false)}
+              />
+            )}
+
             <button type="button" className={styles.menuButton} aria-label="Open navigation menu">
               <span />
               <span />
@@ -58,6 +77,8 @@ export default function AppHeader({ categories, stores }: Props) {
             </button>
           </div>
         </div>
+
+        
 
         <div className={styles.searchRow}>
           {selectedStore ? (

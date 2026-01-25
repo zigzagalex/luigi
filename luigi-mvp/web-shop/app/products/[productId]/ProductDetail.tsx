@@ -8,6 +8,8 @@ import {
   AvailabilityRangeCalendar,
   type RangeValue,
 } from "@/components/daterangepicker/AvailabilityRangeCalendar";
+import { useCart } from "@/components/cart/CartContext"; 
+
 
 /** ---------- Types (as in your original) ---------- */
 type VariantImage = {
@@ -279,6 +281,10 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   };
 
   /** ---------- Add to cart ---------- */
+  const { addItems } = useCart(); 
+  const [addError, setAddError] = useState<string | null>(null);
+  const [adding, setAdding] = useState(false);
+
   const canAddToCart =
     !!selectedVariant &&
     !!selectedStoreId &&
@@ -288,18 +294,40 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     quantity >= 1 &&
     quantity <= availableQuantity;
 
-  const handleAddToCart = () => {
-    if (!canAddToCart || !selectedVariant || !selectedStoreId || !range.from || !range.to) return;
-
-    console.log("Add to cart clicked", {
-      productId: product.id,
-      variantId: selectedVariant.id,
-      storeId: selectedStoreId,
-      start_date: formatDateForApiLocal(range.from),
-      end_date: formatDateForApiLocal(range.to),
+    const handleAddToCart = useCallback(async () => {
+      if (!canAddToCart || !selectedVariant || !selectedStoreId || !range.from || !range.to) return;
+    
+      setAddError(null);
+      setAdding(true);
+      try {
+        await addItems({
+          shop_id: product.shop_id,          // or product.shop_id / DEFAULT_SHOP_ID
+          store_id: selectedStoreId,
+          product_id: product.id,
+          variant_id: selectedVariant.id,
+          start_date: formatDateForApiLocal(range.from),
+          end_date: formatDateForApiLocal(range.to),
+          quantity,
+        });
+    
+        // optional: open cart popover / toast "added"
+      } catch (e: any) {
+        setAddError(e?.message ?? "Failed to add to cart");
+      } finally {
+        setAdding(false);
+      }
+    }, [
+      addItems,
+      canAddToCart,
+      product.shop_id,
+      product.id,
+      selectedVariant,
+      selectedStoreId,
+      range.from,
+      range.to,
       quantity,
-    });
-  };
+    ]);
+    
 
   /** ---------- UI labels ---------- */
   const title = product.name || `Bike #${product.id}`;
@@ -590,13 +618,13 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
 
           {/* Add to cart */}
           <div className={styles.block}>
-            <button
+          <button
               type="button"
               className={styles.addToCart}
               onClick={handleAddToCart}
-              disabled={!canAddToCart}
+              disabled={!canAddToCart || adding}
             >
-              Add to cart
+              {adding ? "Adding…" : "Add to cart"}
             </button>
           </div>
         </section>
