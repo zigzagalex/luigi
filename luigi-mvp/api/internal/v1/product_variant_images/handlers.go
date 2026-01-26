@@ -25,12 +25,8 @@ func RegisterRoutes(r chi.Router, q *db.Queries, store storage.Client, mediaBase
 	svc := images.NewService(q, store, mediaBaseURL)
 	h := NewProductVariantImageHandler(svc)
 
-	// /v1 prefix is already applied in router.New, so here we only add the rest.
-	r.Route("/product_variants/{variantID}", func(r chi.Router) {
-		r.Post("/images", h.Upload)
-		r.Get("/images", h.List)
-	})
-
+	r.Post("/product_variants/{variantID}/images", h.Upload)
+	r.Get("/product_variants/{variantID}/images", h.List)
 	r.Delete("/product_variants/{variantID}/images/{imageID}", h.Delete)
 }
 

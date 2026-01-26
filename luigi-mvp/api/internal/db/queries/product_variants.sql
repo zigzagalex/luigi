@@ -65,3 +65,9 @@ RETURNING
   is_active,
   created_at,
   updated_at;
+
+-- name: GetProductVariantByID :one
+SELECT *
+FROM product_variants
+WHERE id = sqlc.arg(id)::bigint
+LIMIT 1;

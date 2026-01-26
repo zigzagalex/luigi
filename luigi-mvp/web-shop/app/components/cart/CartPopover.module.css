@@ -11,6 +11,7 @@
     z-index: 50;
   }
   
+  /* Header */
   .head {
     display: flex;
     justify-content: space-between;
@@ -18,35 +19,113 @@
     margin-bottom: 10px;
   }
   
-  .title { font-size: 18px; font-weight: 650; }
-  .close { background: transparent; border: 0; font-size: 22px; cursor: pointer; }
+  .title {
+    font-size: 18px;
+    font-weight: 650;
+  }
   
-  .list { display: grid; gap: 10px; margin: 10px 0; }
+  .close {
+    background: transparent;
+    border: 0;
+    font-size: 22px;
+    cursor: pointer;
+  }
+  
+  /* Items */
+  .list {
+    display: grid;
+    gap: 10px;
+    margin: 10px 0;
+  }
   
   .row {
     display: grid;
-    grid-template-columns: 1fr auto;
+    grid-template-columns: auto 1fr auto;
     gap: 10px;
     padding: 10px;
     border: 1px solid #eee;
     border-radius: 12px;
+    align-items: center;
   }
   
-  .rowTitle { font-weight: 600; }
-  .rowMeta { font-size: 12px; color: rgba(0,0,0,0.6); margin-top: 2px; }
+  .thumbWrap {
+    width: 52px;
+    height: 52px;
+    border-radius: 8px;
+    overflow: hidden;
+    background: #f4f4f4;
+  }
   
-  .rowRight { display: grid; justify-items: end; gap: 6px; }
-  .price { font-weight: 600; }
-  .trash { background: transparent; border: 0; cursor: pointer; opacity: 0.7; }
-  .trash:hover { opacity: 1; }
+  .thumbWrap img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
   
-  .muted { font-size: 13px; color: rgba(0,0,0,0.6); padding: 8px 0; }
-  .error { font-size: 13px; color: #b00020; padding: 8px 0; }
+  /* Info */
+  .rowMain {
+    min-width: 0;
+  }
   
-  .footer { border-top: 1px solid #eee; padding-top: 12px; margin-top: 12px; }
-  .totalRow { display: flex; justify-content: space-between; margin-bottom: 12px; }
-  .totalLabel { color: rgba(0,0,0,0.7); }
-  .totalValue { font-weight: 650; }
+  .rowTitle {
+    font-weight: 600;
+  }
+  
+  .rowMeta {
+    font-size: 12px;
+    color: rgba(0,0,0,0.6);
+    margin-top: 2px;
+  }
+  
+  /* Right side */
+  .rowRight {
+    display: grid;
+    justify-items: end;
+    gap: 6px;
+  }
+  
+  .price {
+    font-weight: 600;
+  }
+  
+  .trash {
+    background: transparent;
+    border: 0;
+    cursor: pointer;
+    opacity: 0.6;
+  }
+  
+  .trash:hover {
+    opacity: 1;
+  }
+  
+  /* Empty / errors */
+  .muted {
+    font-size: 13px;
+    color: rgba(0,0,0,0.6);
+    padding: 8px 0;
+  }
+  
+  /* Footer */
+  .footer {
+    border-top: 1px solid #eee;
+    padding-top: 12px;
+    margin-top: 12px;
+  }
+  
+  .totalRow {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+  
+  .totalLabel {
+    color: rgba(0,0,0,0.7);
+  }
+  
+  .totalValue {
+    font-weight: 650;
+  }
   
   .cta {
     display: block;

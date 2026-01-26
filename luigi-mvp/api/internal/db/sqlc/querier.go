@@ -60,6 +60,7 @@ type Querier interface {
 	GetPrimaryImageByVariantID(ctx context.Context, productVariantID int64) (ProductVariantImage, error)
 	GetProduct(ctx context.Context, id int64) (Product, error)
 	GetProductCategory(ctx context.Context, id int64) (ProductCategory, error)
+	GetProductVariantByID(ctx context.Context, id int64) (ProductVariant, error)
 	GetProductVariantImage(ctx context.Context, id int64) (ProductVariantImage, error)
 	GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (User, error)
 	// List active inventory items for a given variant+store.
