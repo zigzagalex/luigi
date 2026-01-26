@@ -2,6 +2,7 @@ package productvariantsv1
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
@@ -18,7 +19,8 @@ func RegisterRoutes(r chi.Router, q db.Querier) {
 	svc := variantsvc.NewService(q)
 
 	r.Route("/product_variants", func(r chi.Router) {
-		r.Get("/", listHandler(svc))                 // GET /product_variants?limit=&offset=&product_id=
+		r.Get("/", listHandler(svc)) // GET /product_variants?limit=&offset=&product_id=
+		r.Get("/{variantID}", GetByID(svc))
 		r.Post("/", createHandler(svc))              // POST /product_variants
 		r.Put("/{variantID}", updateHandler(svc))    // PUT /product_variants/{variantID}
 		r.Delete("/{variantID}", deleteHandler(svc)) // DELETE /product_variants/{variantID}
@@ -153,5 +155,32 @@ func deleteHandler(svc *variantsvc.Service) http.HandlerFunc {
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
+	}
+}
+
+func GetByID(svc *variantsvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		idStr := chi.URLParam(r, "variantID")
+		id, err := strconv.ParseInt(idStr, 10, 64)
+		if err != nil || id <= 0 {
+			httpx.Fail(w, http.StatusBadRequest, "invalid variant id", map[string]any{
+				"variant_id": idStr,
+			})
+			return
+		}
+
+		v, err := svc.GetByID(r.Context(), id)
+		if err != nil {
+			if errors.Is(err, variantsvc.ErrNotFound) {
+				httpx.Fail(w, http.StatusNotFound, "variant not found", map[string]any{
+					"variant_id": id,
+				})
+				return
+			}
+			httpx.Fail(w, http.StatusInternalServerError, "failed to get variant", err.Error())
+			return
+		}
+
+		httpx.JSON(w, http.StatusOK, v)
 	}
 }

@@ -16,6 +16,7 @@ type variantQuerier interface {
 	ListProductVariants(ctx context.Context, arg *db.ListProductVariantsParams) ([]db.ProductVariant, error)
 	UpdateProductVariant(ctx context.Context, arg *db.UpdateProductVariantParams) (db.ProductVariant, error)
 	DeleteProductVariant(ctx context.Context, id int64) (db.ProductVariant, error)
+	GetProductVariantByID(ctx context.Context, id int64) (db.ProductVariant, error)
 }
 
 type Service struct {
@@ -107,4 +108,8 @@ func (s *Service) Update(ctx context.Context, in UpdateInput) (db.ProductVariant
 
 func (s *Service) Delete(ctx context.Context, id int64) (db.ProductVariant, error) {
 	return s.q.DeleteProductVariant(ctx, id)
+}
+
+func (s *Service) GetByID(ctx context.Context, id int64) (db.ProductVariant, error) {
+	return s.q.GetProductVariantByID(ctx, id)
 }

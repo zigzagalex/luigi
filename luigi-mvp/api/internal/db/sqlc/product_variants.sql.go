@@ -89,6 +89,28 @@ func (q *Queries) DeleteProductVariant(ctx context.Context, id int64) (ProductVa
 	return i, err
 }
 
+const getProductVariantByID = `-- name: GetProductVariantByID :one
+SELECT id, product_id, label, attributes, is_active, created_at, updated_at
+FROM product_variants
+WHERE id = $1::bigint
+LIMIT 1
+`
+
+func (q *Queries) GetProductVariantByID(ctx context.Context, id int64) (ProductVariant, error) {
+	row := q.db.QueryRowContext(ctx, getProductVariantByID, id)
+	var i ProductVariant
+	err := row.Scan(
+		&i.ID,
+		&i.ProductID,
+		&i.Label,
+		&i.Attributes,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const listProductVariants = `-- name: ListProductVariants :many
 SELECT
   id,
