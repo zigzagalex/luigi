@@ -66,7 +66,7 @@ func New(d Deps) http.Handler {
 		avService := avSvc.NewService(d.Q)
 
 		// Auth routes (public + /me protected inside the module)
-		v1auth.RegisterRoutes(r, d.FirebaseAuth, d.Q, d.SQLDB, d.Env)
+		v1auth.RegisterRoutes(r, d.FirebaseAuth, d.Q, d.SQLDB, d.Env, avService)
 
 		// Public routes (shop browsing)
 		v1shops.RegisterRoutes(r, d.Q)
@@ -78,7 +78,12 @@ func New(d Deps) http.Handler {
 		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 		v1inventory.RegisterRoutes(r, d.Q)
 		v1pricepoints.RegisterRoutes(r, d.Q)
-		v1cart.RegisterRoutes(r, d.Q, d.SQLDB, avService)
+		
+		r.Group(func(r chi.Router) {
+			us := usersvc.NewService(d.Q)
+			r.Use(middleware.OptionalSessionCookie(d.FirebaseAuth, us, "luigi_session"))
+			v1cart.RegisterRoutes(r, d.Q, d.SQLDB, avService)
+		})
 
 		// Protected routes (admin/management)
 		r.Group(func(r chi.Router) {

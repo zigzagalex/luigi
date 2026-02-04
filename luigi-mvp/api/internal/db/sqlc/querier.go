@@ -24,6 +24,7 @@ type Querier interface {
 	//   - in (non-cancelled) reservations via reservation_items.padded_range
 	//   - in non-expired holds
 	CountAvailableInventoryForRange(ctx context.Context, arg *CountAvailableInventoryForRangeParams) (int32, error)
+	CountCartItems(ctx context.Context, cartID int64) (int64, error)
 	CreateCartForCustomer(ctx context.Context, arg *CreateCartForCustomerParams) (Cart, error)
 	CreateCartForSession(ctx context.Context, arg *CreateCartForSessionParams) (Cart, error)
 	CreateCartItem(ctx context.Context, arg *CreateCartItemParams) (CartItem, error)

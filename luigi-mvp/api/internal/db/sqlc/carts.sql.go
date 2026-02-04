@@ -50,6 +50,19 @@ func (q *Queries) CartTotals(ctx context.Context, cartID int64) (CartTotalsRow, 
 	return i, err
 }
 
+const countCartItems = `-- name: CountCartItems :one
+SELECT COUNT(*)::bigint
+FROM cart_items
+WHERE cart_id = $1
+`
+
+func (q *Queries) CountCartItems(ctx context.Context, cartID int64) (int64, error) {
+	row := q.db.QueryRowContext(ctx, countCartItems, cartID)
+	var column_1 int64
+	err := row.Scan(&column_1)
+	return column_1, err
+}
+
 const createCartForCustomer = `-- name: CreateCartForCustomer :one
 INSERT INTO carts (
   shop_id,

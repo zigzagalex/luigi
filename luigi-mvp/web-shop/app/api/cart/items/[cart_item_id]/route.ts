@@ -23,3 +23,60 @@ export async function POST(req: Request) {
     );
   }
 }
+
+
+export async function DELETE(
+  req: Request,
+  { params }: { params: Promise<{ cart_item_id: string }> }
+) {
+  const { cart_item_id } = await params;           // ✅ await the promise
+  const id = Number(cart_item_id);                 // ✅ params are strings
+
+  if (!Number.isFinite(id)) {
+    return NextResponse.json({ error: "invalid_cart_item_id" }, { status: 400 });
+  }
+
+  const res = await fetchApi(`/v1/cart/items/${id}`, {
+    method: "DELETE",
+    headers: {
+      cookie: req.headers.get("cookie") ?? "",
+    },
+  });
+
+  const text = await res.text();
+
+  return new NextResponse(text, {
+    status: res.status,
+    headers: { "content-type": "application/json" },
+  });
+}
+
+export async function PATCH(
+  req: Request,
+  { params }: { params: Promise<{ cart_item_id: string }> }
+) {
+  const { cart_item_id } = await params;           // ✅ await the promise
+  const id = Number(cart_item_id);
+
+  if (!Number.isFinite(id)) {
+    return NextResponse.json({ error: "invalid_cart_item_id" }, { status: 400 });
+  }
+
+  const body = await req.text();
+
+  const res = await fetchApi(`/v1/cart/items/${id}`, {
+    method: "PATCH",
+    headers: {
+      "Content-Type": "application/json",
+      cookie: req.headers.get("cookie") ?? "",
+    },
+    body,
+  });
+
+  const text = await res.text();
+
+  return new NextResponse(text, {
+    status: res.status,
+    headers: { "content-type": "application/json" },
+  });
+}

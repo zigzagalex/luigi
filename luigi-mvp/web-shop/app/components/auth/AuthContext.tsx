@@ -14,6 +14,7 @@ import {
   ensureGuestSession,
   fetchMe,
   logoutSession,
+  SHOP_ID,
   type Me,
 } from "@/lib/AuthSession";
 
@@ -78,10 +79,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Logs out the user session (server cookie) and Firebase client auth.
-   * We intentionally do NOT clear the guest cookie so the cart can remain.
    */
   const logout = useCallback(async () => {
-    await logoutSession(); // clears luigi_session cookie on the API
+    await logoutSession(SHOP_ID); // clears luigi_session cookie on the API
     await signOut(auth);   // clears Firebase client auth state
     setMe(null);
 
