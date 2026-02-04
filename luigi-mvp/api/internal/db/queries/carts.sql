@@ -177,3 +177,8 @@ SET customer_id = sqlc.arg(customer_id)::bigint,
     updated_at = now()
 WHERE id = sqlc.arg(cart_id)::bigint
   AND status = 'open';
+
+-- name: CountCartItems :one
+SELECT COUNT(*)::bigint
+FROM cart_items
+WHERE cart_id = $1;

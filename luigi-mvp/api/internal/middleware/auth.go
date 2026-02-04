@@ -4,6 +4,7 @@ import (
 	"context"
 	"errors"
 	"net/http"
+	"strings"
 
 	fbauth "firebase.google.com/go/v4/auth"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
@@ -51,6 +52,59 @@ func RequireSessionCookie(fb *fbauth.Client, users *usersvc.Service, cookieName 
 				return
 			}
 
+			ctx := context.WithValue(r.Context(), userKey, user)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
+
+// OptionalSessionCookie is like RequireSessionCookie, but it NEVER blocks the request.
+// If a valid session cookie is present -> it injects the user into context.
+// If missing/invalid -> it does nothing and the request continues as guest.
+func OptionalSessionCookie(fb *fbauth.Client, us *usersvc.Service, cookieName string) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// If no cookie -> guest 
+			c, err := r.Cookie(cookieName)
+			if err != nil || strings.TrimSpace(c.Value) == "" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Verify session cookie (Firebase)
+			tok, err := fb.VerifySessionCookie(r.Context(), c.Value)
+			if err != nil {
+				// Reset invalid cookie to avoid verification cost
+				http.SetCookie(w, &http.Cookie{
+					Name:     cookieName,
+					Value:    "",
+					Path:     "/",
+					HttpOnly: true,
+					Secure:   true, // or whatever you use depending on env
+					SameSite: http.SameSiteLaxMode,
+					MaxAge:   -1,
+				})
+			
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			uid := strings.TrimSpace(tok.UID)
+			if uid == "" {
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Resolve your internal user by Firebase UID
+			user, err := us.GetUserByFirebaseUID(r.Context(), uid)
+			if err != nil {
+				// can't map to internal user -> treat as guest
+				next.ServeHTTP(w, r)
+				return
+			}
+
+			// Inject user into request context 
 			ctx := context.WithValue(r.Context(), userKey, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
 		})

@@ -331,7 +331,12 @@ func (s *Service) DeleteItem(ctx context.Context, owner Owner, cartItemID int64)
 	return s.buildCartView(ctx, row.CartID)
 }
 
-func (s *Service) AttachGuestCartToCustomer(ctx context.Context, shopID int64, guestSessionID string, customerID int64) error {
+func (s *Service) AttachGuestCartToCustomer(
+	ctx context.Context,
+	shopID int64,
+	guestSessionID string,
+	customerID int64,
+) error {
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return err
@@ -340,29 +345,76 @@ func (s *Service) AttachGuestCartToCustomer(ctx context.Context, shopID int64, g
 
 	qtx := s.q.WithTx(tx)
 
-	// 1) Find guest cart
-	guestCart, err := qtx.GetOpenCartBySessionID(ctx, &db.GetOpenCartBySessionIDParams{
+	// 1) Load guest cart (may not exist)
+	var guestCart db.Cart
+	guestCart, err = qtx.GetOpenCartBySessionID(ctx, &db.GetOpenCartBySessionIDParams{
 		SessionID: guestSessionID,
 		ShopID:    shopID,
 	})
+	guestFound := true
+	if err != nil {
+		if err == sql.ErrNoRows {
+			guestFound = false
+		} else {
+			return err
+		}
+	}
 
-	// 2) If user already has a cart, close it
-	if _, err := qtx.GetOpenCartByCustomerID(ctx, &db.GetOpenCartByCustomerIDParams{
+	// 2) Load customer cart (may not exist)
+	var customerCart db.Cart
+	customerCart, err = qtx.GetOpenCartByCustomerID(ctx, &db.GetOpenCartByCustomerIDParams{
 		CustomerID: customerID,
 		ShopID:     shopID,
-	}); err == nil {
+	})
+	customerFound := true
+	if err != nil {
+		if err == sql.ErrNoRows {
+			customerFound = false
+		} else {
+			return err
+		}
+	}
+
+	// 3) Decide winner: guest cart wins only if it exists AND has items
+	guestHasItems := false
+	if guestFound {
+		n, err := qtx.CountCartItems(ctx, guestCart.ID) //
+		if err != nil {
+			return err
+		}
+		guestHasItems = n > 0
+	}
+
+	if guestHasItems {
+		// Guest wins:
+		// - abandon customer's existing cart (if different)
+		if customerFound && customerCart.ID != guestCart.ID {
+			if err := qtx.UpdateCartStatus(ctx, &db.UpdateCartStatusParams{
+				CartID: customerCart.ID,
+				Status: "abandoned",
+			}); err != nil {
+				return err
+			}
+		}
+
+		// - attach guest cart to customer
+		if err := qtx.AttachCartToCustomer(ctx, &db.AttachCartToCustomerParams{
+			CartID:     guestCart.ID,
+			CustomerID: customerID,
+		}); err != nil {
+			return err
+		}
+
+		return tx.Commit()
+	}
+
+	// Guest empty (or missing) => customer wins:
+	// Do NOT overwrite customer cart.
+	if guestFound && (!customerFound || guestCart.ID != customerCart.ID) {
 		_ = qtx.UpdateCartStatus(ctx, &db.UpdateCartStatusParams{
 			CartID: guestCart.ID,
 			Status: "abandoned",
 		})
-	}
-
-	// 3) Reassign guest cart
-	if err := qtx.AttachCartToCustomer(ctx, &db.AttachCartToCustomerParams{
-		CartID:     guestCart.ID,
-		CustomerID: customerID,
-	}); err != nil {
-		return err
 	}
 
 	return tx.Commit()

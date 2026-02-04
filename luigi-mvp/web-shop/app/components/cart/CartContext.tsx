@@ -21,7 +21,6 @@ import { fetchProductVariant, type ProductVariantDTO } from "@/lib/productVarian
 import { fetchProduct, type ProductDTO } from "@/lib/ProductsClient";
 import {normalizeVariantAttributes} from "@/lib/variantsLabel"
 
-
 type CartItem = CartView["items"][number];
 
 type CartCtx = {
@@ -64,7 +63,7 @@ type CartProviderProps = {
 const PLACEHOLDER = "/media/placeholders/blue/blue-1.png";
 
 export function CartProvider({ shopId, children }: CartProviderProps) {
-  const { loading: authLoading } = useAuth();
+  const { loading: authLoading, me } = useAuth();
 
   const [cart, setCart] = useState<CartView | null>(null);
   const [loading, setLoading] = useState(true);
@@ -95,6 +94,12 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
     if (authLoading) return;
     void refresh();
   }, [authLoading, refresh]);
+
+  useEffect(() => {
+    if (authLoading) return;
+    void refresh();
+  }, [authLoading, me?.id, refresh]);
+  
 
   const addItems = useCallback(async (input: any) => {
     setError(null);

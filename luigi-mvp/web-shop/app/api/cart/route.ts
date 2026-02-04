@@ -16,6 +16,7 @@ export async function GET(req: Request) {
     const res = await fetchApi(`/v1/cart?shop_id=${shop_id}`, {
       method: "GET",
       headers: { cookie: (req.headers.get("cookie") ?? "") },
+      cache: "no-store",
     });
 
     const text = await res.text();

@@ -56,13 +56,14 @@ export async function fetchMe(): Promise<Me | null> {
   return (await res.json()) as Me;
 }
 
-export async function logoutSession() {
-  const res = await fetch(`${API_BASE}/v1/auth/logout`, {
+export async function logoutSession(shopId: number) {
+  const res = await fetch("/api/auth/logout", {
     method: "POST",
     credentials: "include",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ shop_id: shopId }),
   });
-
-  if (!res.ok) throw new Error(`Logout failed: ${res.status} ${await res.text()}`);
+  if (!res.ok) throw new Error(await res.text());
 }
 
 export async function ensureGuestSession() {

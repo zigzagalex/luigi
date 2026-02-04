@@ -12,6 +12,8 @@ import (
 
 	fbauth "firebase.google.com/go/v4/auth"
 	"github.com/go-chi/chi/v5"
+	avsvc "github.com/zigzagalex/luigi/api/internal/availability"
+	cartsvc "github.com/zigzagalex/luigi/api/internal/cart"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
@@ -23,16 +25,19 @@ const cookieName = "luigi_session"
 const guestCookieName = "luigi_guest" // NEW (your own)
 
 type Handler struct {
-	fb    *fbauth.Client
-	env   string
-	q     *db.Queries
-	db    *sql.DB
-	users *usersvc.Service
+	fb      *fbauth.Client
+	env     string
+	q       *db.Queries
+	db      *sql.DB
+	users   *usersvc.Service
+	cartSvc *cartsvc.Service
 }
 
-func RegisterRoutes(r chi.Router, fb *fbauth.Client, q *db.Queries, sqlDB *sql.DB, env string) {
+func RegisterRoutes(r chi.Router, fb *fbauth.Client, q *db.Queries, sqlDB *sql.DB, env string, av *avsvc.Service) {
 	us := usersvc.NewService(q)
-	h := &Handler{fb: fb, env: env, q: q, db: sqlDB}
+
+	cartSvc := cartsvc.NewService(q, sqlDB, av)
+	h := &Handler{fb: fb, env: env, q: q, db: sqlDB, cartSvc: cartSvc}
 
 	r.Route("/auth", func(r chi.Router) {
 		// Public endpoints
@@ -61,6 +66,10 @@ type createSessionReq struct {
 	PostalCode string `json:"postal_code"`
 	City       string `json:"city"`
 	Country    string `json:"country,omitempty"`
+}
+
+type logoutReq struct {
+	ShopID int64 `json:"shop_id"`
 }
 
 func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
@@ -229,8 +238,14 @@ func ptr(s string) *string { return &s }
 func ptrBool(v bool) *bool { return &v }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
 	secure := h.env != "dev"
 
+	// Optional body: { "shop_id": 1 }
+	var req logoutReq
+	_ = json.NewDecoder(r.Body).Decode(&req)
+
+	// 1) Clear auth cookie
 	http.SetCookie(w, &http.Cookie{
 		Name:     cookieName,
 		Value:    "",
@@ -240,6 +255,27 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   -1,
 	})
+
+	// 2) Rotate guest cookie (fresh identity => empty cart)
+	sid := uuid.NewString()
+	maxAge := int((30 * 24 * time.Hour).Seconds())
+
+	http.SetCookie(w, &http.Cookie{
+		Name:     guestCookieName,
+		Value:    sid,
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   maxAge,
+	})
+
+	// 3) Optional warm-up: create empty guest cart now
+	// This is not required if your frontend will call GET /v1/cart anyway.
+	if h.cartSvc != nil && req.ShopID > 0 {
+		owner := cartsvc.Owner{SessionID: &sid}
+		_, _ = h.cartSvc.GetCart(ctx, owner, req.ShopID) // ignore error; cookies already set
+	}
 
 	httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
 }
