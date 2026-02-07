@@ -15,6 +15,7 @@ type availabilityQuerier interface {
 	CountAvailableInventoryForRange(ctx context.Context, arg *db.CountAvailableInventoryForRangeParams) (int32, error)
 	GetPriceCategoryForVariant(ctx context.Context, variantID int64) (string, error)
 	GetPricePoint(ctx context.Context, arg *db.GetPricePointParams) (db.PricePoint, error)
+	IsInventoryItemAvailableForRange(ctx context.Context, arg *db.IsInventoryItemAvailableForRangeParams) (sql.NullBool, error)
 }
 
 type Service struct {
@@ -30,8 +31,8 @@ type SearchInput struct {
 	StoreID     *int64
 	ProductIDs  []int64
 	CategoryIDs []int64
-	StartDate   time.Time 
-	EndDate     time.Time 
+	StartDate   time.Time
+	EndDate     time.Time
 	Quantity    int32
 }
 
@@ -76,6 +77,12 @@ type QuoteResult struct {
 	DayCount        int32   `json:"day_count"`
 	PriceTotalCents int32   `json:"price_total_cents"`
 	Currency        string  `json:"currency"`
+}
+
+type CheckInput struct {
+	InventoryItemID int64
+	StartAt         time.Time
+	EndAt           time.Time
 }
 
 const day = 24 * time.Hour
@@ -347,6 +354,39 @@ func (s *Service) Quote(ctx context.Context, in QuoteInput) (QuoteResult, error)
 		PriceTotalCents: total,
 		Currency:        "CHF",
 	}, nil
+}
+
+func (s *Service) CheckMany(ctx context.Context, in []CheckInput) (map[int64]bool, error) {
+	out := make(map[int64]bool, len(in))
+
+	// empty input -> empty map
+	if len(in) == 0 {
+		return out, nil
+	}
+
+	// We check each item. This is O(n) DB calls.
+	for _, c := range in {
+		if c.InventoryItemID <= 0 {
+			out[c.InventoryItemID] = false
+			continue
+		}
+		if !c.EndAt.After(c.StartAt) {
+			out[c.InventoryItemID] = false
+			continue
+		}
+
+		v, err := s.q.IsInventoryItemAvailableForRange(ctx, &db.IsInventoryItemAvailableForRangeParams{
+			InventoryItemID: c.InventoryItemID,
+			StartAt:         c.StartAt,
+			EndAt:           c.EndAt,
+		})
+		if err != nil {
+			return nil, err
+		}
+		out[c.InventoryItemID] = v.Valid && v.Bool
+	}
+
+	return out, nil
 }
 
 func derefInt64(p *int64) int64 {

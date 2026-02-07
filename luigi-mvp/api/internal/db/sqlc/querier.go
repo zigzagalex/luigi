@@ -64,6 +64,15 @@ type Querier interface {
 	GetProductVariantByID(ctx context.Context, id int64) (ProductVariant, error)
 	GetProductVariantImage(ctx context.Context, id int64) (ProductVariantImage, error)
 	GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (User, error)
+	// Check whether a specific inventory item is available for a requested time range.
+	//
+	// Requested range is built as [start_at, end_at)
+	// and we mark the item as blocked if it overlaps:
+	//   - maintenance_windows.time_range
+	//   - reservation_items.padded_range for non-cancelled reservations
+	//   - holds.hold_range where expires_at > now()
+	//
+	IsInventoryItemAvailableForRange(ctx context.Context, arg *IsInventoryItemAvailableForRangeParams) (sql.NullBool, error)
 	// List active inventory items for a given variant+store.
 	ListActiveInventoryForVariantStore(ctx context.Context, arg *ListActiveInventoryForVariantStoreParams) ([]InventoryItem, error)
 	// -------------------------------------------------------

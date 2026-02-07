@@ -104,6 +104,90 @@ func (q *Queries) GetPriceCategoryForVariant(ctx context.Context, productVariant
 	return price_category, err
 }
 
+const isInventoryItemAvailableForRange = `-- name: IsInventoryItemAvailableForRange :one
+WITH requested AS (
+  SELECT tstzrange(
+           $1,
+           $2,
+           '[)'
+         ) AS r
+),
+candidate AS (
+  SELECT ii.id
+  FROM inventory_items ii
+  WHERE ii.id = $3
+    AND ii.is_active = TRUE
+    AND (ii.status IS NULL OR ii.status = 'active')
+),
+blocked_by_maintenance AS (
+  SELECT 1
+  FROM maintenance_windows mw, requested
+  WHERE mw.inventory_item_id IN (SELECT id FROM candidate)
+    AND mw.time_range && requested.r
+  LIMIT 1
+),
+blocked_by_reservations AS (
+  SELECT 1
+  FROM reservation_items ri
+  JOIN reservations rsv ON rsv.id = ri.reservation_id,
+       requested
+  WHERE ri.inventory_item_id IN (SELECT id FROM candidate)
+    AND ri.padded_range && requested.r
+    AND rsv.status NOT IN ('draft', 'returned', 'cancelled', 'expired', 'closed')
+  LIMIT 1
+),
+blocked_by_holds AS (
+  SELECT 1
+  FROM holds h, requested
+  WHERE h.inventory_item_id IN (SELECT id FROM candidate)
+    AND h.hold_range && requested.r
+    AND h.expires_at > now()
+    AND ($4::bigint IS NULL OR h.cart_id IS DISTINCT FROM $4::bigint)
+    AND ($5::bigint IS NULL OR h.cart_item_id IS DISTINCT FROM $5::bigint)
+  LIMIT 1
+),
+blocked AS (
+  SELECT 1 FROM blocked_by_maintenance
+  UNION
+  SELECT 1 FROM blocked_by_reservations
+  UNION
+  SELECT 1 FROM blocked_by_holds
+)
+SELECT
+  (
+    EXISTS (SELECT 1 FROM candidate)
+    AND NOT EXISTS (SELECT 1 FROM blocked)
+  ) AS ok
+`
+
+type IsInventoryItemAvailableForRangeParams struct {
+	StartAt         interface{}   `json:"start_at"`
+	EndAt           interface{}   `json:"end_at"`
+	InventoryItemID int64         `json:"inventory_item_id"`
+	CartID          sql.NullInt64 `json:"cart_id"`
+	CartItemID      sql.NullInt64 `json:"cart_item_id"`
+}
+
+// Check whether a specific inventory item is available for a requested time range.
+//
+// Requested range is built as [start_at, end_at)
+// and we mark the item as blocked if it overlaps:
+//   - maintenance_windows.time_range
+//   - reservation_items.padded_range for non-cancelled reservations
+//   - holds.hold_range where expires_at > now()
+func (q *Queries) IsInventoryItemAvailableForRange(ctx context.Context, arg *IsInventoryItemAvailableForRangeParams) (sql.NullBool, error) {
+	row := q.db.QueryRowContext(ctx, isInventoryItemAvailableForRange,
+		arg.StartAt,
+		arg.EndAt,
+		arg.InventoryItemID,
+		arg.CartID,
+		arg.CartItemID,
+	)
+	var ok sql.NullBool
+	err := row.Scan(&ok)
+	return ok, err
+}
+
 const listActiveInventoryForVariantStore = `-- name: ListActiveInventoryForVariantStore :many
 SELECT
   id,

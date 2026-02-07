@@ -30,6 +30,8 @@ type CartCtx = {
 
   itemCount: number;
   refresh: () => Promise<void>;
+  canCheckout: boolean;
+  blockedItems: CartItem[];
 
   addItems: (input: {
     shop_id: number;
@@ -145,6 +147,13 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
 
   const itemCount = cart?.items?.length ?? 0;
 
+  const blockedItems = useMemo(
+    () => (cart?.items ?? []).filter((it: any) => it.blocked === true),
+    [cart]
+  );
+  
+  const canCheckout = blockedItems.length === 0;
+
   // Hydrate product + variant + images caches based on cart items
   useEffect(() => {
     const items: CartItem[] = cart?.items ?? [];
@@ -257,6 +266,8 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
       loading,
       error,
       itemCount,
+      canCheckout,
+      blockedItems,
       refresh,
       addItems,
       removeItem,
@@ -270,6 +281,8 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
       loading,
       error,
       itemCount,
+      canCheckout,
+      blockedItems,
       refresh,
       addItems,
       removeItem,

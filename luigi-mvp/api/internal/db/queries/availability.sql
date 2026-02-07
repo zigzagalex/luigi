@@ -179,3 +179,67 @@ GROUP BY
   ci.store_id
 HAVING
   COUNT(*) >= sqlc.arg(quantity);
+
+
+-- Check whether a specific inventory item is available for a requested time range.
+--
+-- Requested range is built as [start_at, end_at)
+-- and we mark the item as blocked if it overlaps:
+--   - maintenance_windows.time_range
+--   - reservation_items.padded_range for non-cancelled reservations
+--   - holds.hold_range where expires_at > now()
+--
+-- name: IsInventoryItemAvailableForRange :one
+WITH requested AS (
+  SELECT tstzrange(
+           sqlc.arg(start_at),
+           sqlc.arg(end_at),
+           '[)'
+         ) AS r
+),
+candidate AS (
+  SELECT ii.id
+  FROM inventory_items ii
+  WHERE ii.id = sqlc.arg(inventory_item_id)
+    AND ii.is_active = TRUE
+    AND (ii.status IS NULL OR ii.status = 'active')
+),
+blocked_by_maintenance AS (
+  SELECT 1
+  FROM maintenance_windows mw, requested
+  WHERE mw.inventory_item_id IN (SELECT id FROM candidate)
+    AND mw.time_range && requested.r
+  LIMIT 1
+),
+blocked_by_reservations AS (
+  SELECT 1
+  FROM reservation_items ri
+  JOIN reservations rsv ON rsv.id = ri.reservation_id,
+       requested
+  WHERE ri.inventory_item_id IN (SELECT id FROM candidate)
+    AND ri.padded_range && requested.r
+    AND rsv.status NOT IN ('draft', 'returned', 'cancelled', 'expired', 'closed')
+  LIMIT 1
+),
+blocked_by_holds AS (
+  SELECT 1
+  FROM holds h, requested
+  WHERE h.inventory_item_id IN (SELECT id FROM candidate)
+    AND h.hold_range && requested.r
+    AND h.expires_at > now()
+    AND (sqlc.narg(cart_id)::bigint IS NULL OR h.cart_id IS DISTINCT FROM sqlc.narg(cart_id)::bigint)
+    AND (sqlc.narg(cart_item_id)::bigint IS NULL OR h.cart_item_id IS DISTINCT FROM sqlc.narg(cart_item_id)::bigint)
+  LIMIT 1
+),
+blocked AS (
+  SELECT 1 FROM blocked_by_maintenance
+  UNION
+  SELECT 1 FROM blocked_by_reservations
+  UNION
+  SELECT 1 FROM blocked_by_holds
+)
+SELECT
+  (
+    EXISTS (SELECT 1 FROM candidate)
+    AND NOT EXISTS (SELECT 1 FROM blocked)
+  ) AS ok;

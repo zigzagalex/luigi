@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	"github.com/zigzagalex/luigi/api/internal/availability"
@@ -37,11 +38,21 @@ func NewService(q *db.Queries, sqlDB *sql.DB, av *availability.Service) *Service
 	return &Service{q: q, db: sqlDB, av: av}
 }
 
+type CartItemView struct {
+	db.CartItem
+
+	// Computed flags for UI + checkout enforcement
+	IsExpired   bool   `json:"is_expired"`
+	IsAvailable bool   `json:"is_available"`
+	Blocked     bool   `json:"blocked"`
+	Reason      string `json:"reason,omitempty"` // e.g. "start_date_in_past" | "not_available"
+}
+
 type CartView struct {
-	Cart          db.Cart       `json:"cart"`
-	Items         []db.CartItem `json:"items"`
-	SubtotalCents int64         `json:"subtotal_cents"`
-	Currency      string        `json:"currency"`
+	Cart          db.Cart        `json:"cart"`
+	Items         []CartItemView `json:"items"`
+	SubtotalCents int64          `json:"subtotal_cents"`
+	Currency      string         `json:"currency"`
 }
 
 func (s *Service) GetCart(ctx context.Context, owner Owner, shopID int64) (*CartView, error) {
@@ -107,7 +118,7 @@ func (s *Service) AddItem(ctx context.Context, owner Owner, in AddItemInput) (*C
 	//    - quote price for quantity=1 (simple and avoids division assumptions)
 	//    - insert cart_item with quantity=1
 	//    - create hold tied to cart_item (1:1)
-	holdExpires := time.Now().Add(15 * time.Second)
+	holdExpires := time.Now().Add(0 * time.Second) // ignore holds for now
 
 	var customerID sql.NullInt64
 	if owner.CustomerID != nil {
@@ -454,9 +465,64 @@ func (s *Service) buildCartView(ctx context.Context, cartID int64) (*CartView, e
 		return nil, err
 	}
 
+	// ---- compute expired threshold (Zurich midnight) ----
+	loc, _ := time.LoadLocation("Europe/Zurich")
+	now := time.Now().In(loc)
+	todayStart := time.Date(now.Year(), now.Month(), now.Day(), 0, 0, 0, 0, loc)
+
+	// ---- batch-check availability of each inventory item ----
+	checks := make([]availability.CheckInput, 0, len(items))
+	for _, it := range items {
+		checks = append(checks, availability.CheckInput{
+			InventoryItemID: it.InventoryItemID,
+			StartAt:         it.StartAt,
+			EndAt:           it.EndAt,
+		})
+		log.Printf("%v, %v", it.StartAt, it.EndAt)
+	}
+
+	availByInvID := map[int64]bool{}
+	if s.av != nil && len(checks) > 0 {
+		availByInvID, err = s.av.CheckMany(ctx, checks)
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	outItems := make([]CartItemView, 0, len(items))
+	for _, it := range items {
+		expired := it.StartAt.Before(todayStart)
+		available := true
+		if s.av != nil {
+			// if missing from map, treat as not available (safer)
+			v, ok := availByInvID[it.InventoryItemID]
+			available = ok && v
+		}
+
+		reason := ""
+		blocked := false
+
+		if expired {
+			blocked = true
+			reason = "start_date_in_past"
+			available = false
+		} else if !available {
+			blocked = true
+			reason = "not_available"
+		}
+
+		outItems = append(outItems, CartItemView{
+			CartItem:    it,
+			IsExpired:   expired,
+			IsAvailable: available,
+			Blocked:     blocked,
+			Reason:      reason,
+		})
+	}
+
 	return &CartView{
 		Cart:          cartRow,
-		Items:         items,
+		Items:         outItems,
 		SubtotalCents: totals.SubtotalCents,
 		Currency:      totals.Currency,
 	}, nil
