@@ -7,6 +7,7 @@ import AppHeaderShell from "./components/layout/AppHeaderShell";
 import AppFooterShell from "./components/layout/AppFooterShell";
 import { AuthProvider } from "@/components/auth/AuthContext";
 import { CartProvider } from "@/components/cart/CartContext";
+import { CartAddPopover } from "./components/cart/CartAddPopover";
 
 
 export const metadata: Metadata = {
@@ -25,6 +26,7 @@ export default function RootLayout({ children }: { children: ReactNode }) {
             <AppHeaderShell />
               {children}
             <AppFooterShell />
+            <CartAddPopover />
           </CartProvider>
         </AuthProvider>
       </body>
