@@ -281,7 +281,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   };
 
   /** ---------- Add to cart ---------- */
-  const { addItems } = useCart(); 
+  const { addItems, openAddPopover } = useCart(); 
   const [addError, setAddError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
@@ -310,7 +310,20 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
           quantity,
         });
     
-        // optional: open cart popover / toast "added"
+        // Popover after adding item
+        openAddPopover({
+          title,
+          imageUrl: images[0]?.url,
+          storeName: stores.find((s) => s.id === selectedStoreId)?.name,
+          from: formatDateForApiLocal(range.from),
+          to: formatDateForApiLocal(range.to),
+          quantity,
+          priceLabel: quote
+            ? `${quote.currency} ${(quote.totalPriceCents / 100).toFixed(2)}`
+            : undefined,
+        });
+        
+
       } catch (e: any) {
         setAddError(e?.message ?? "Failed to add to cart");
       } finally {

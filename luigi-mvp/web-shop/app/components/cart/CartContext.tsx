@@ -33,6 +33,12 @@ type CartCtx = {
   canCheckout: boolean;
   blockedItems: CartItem[];
 
+  // Add-to-cart popover UI
+  isAddPopoverOpen: boolean;
+  lastAdded: LastAdded | null;
+  openAddPopover: (payload: LastAdded) => void;
+  closeAddPopover: () => void;
+
   addItems: (input: {
     shop_id: number;
     store_id: number;
@@ -62,6 +68,15 @@ type CartProviderProps = {
   children: React.ReactNode;
 };
 
+export type LastAdded = {
+  title: string;
+  imageUrl?: string;
+  storeName?: string;
+  from?: string; // "YYYY-MM-DD"
+  to?: string;
+  quantity?: number;
+  priceLabel?: string; 
+};
 const PLACEHOLDER = "/media/placeholders/blue/blue-1.png";
 
 export function CartProvider({ shopId, children }: CartProviderProps) {
@@ -260,6 +275,19 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
     [variantsById]
   );
 
+  const [isAddPopoverOpen, setIsAddPopoverOpen] = useState(false);
+  const [lastAdded, setLastAdded] = useState<LastAdded | null>(null);
+
+  const openAddPopover = useCallback((payload: LastAdded) => {
+    setLastAdded(payload);
+    setIsAddPopoverOpen(true);
+  }, []);
+
+  const closeAddPopover = useCallback(() => {
+    setIsAddPopoverOpen(false);
+  }, []);
+
+
   const value = useMemo(
     () => ({
       cart,
@@ -268,6 +296,10 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
       itemCount,
       canCheckout,
       blockedItems,
+      isAddPopoverOpen,
+      lastAdded,
+      openAddPopover,
+      closeAddPopover,
       refresh,
       addItems,
       removeItem,
@@ -283,6 +315,10 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
       itemCount,
       canCheckout,
       blockedItems,
+      isAddPopoverOpen,
+      lastAdded,
+      openAddPopover,
+      closeAddPopover,
       refresh,
       addItems,
       removeItem,
