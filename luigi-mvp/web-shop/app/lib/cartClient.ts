@@ -8,6 +8,11 @@ export type CartItem = {
     end_at: string;
     unit_price_cents: number;
     currency: string;
+
+    is_expired: boolean;
+    is_available: boolean;
+    blocked: boolean;
+    reason?: string;
   };
   
   export type CartView = {

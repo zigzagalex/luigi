@@ -11,6 +11,8 @@ export default function CartPage() {
     imageUrlForCartItem,
     productNameForCartItem,
     variantTextForCartItem,
+    canCheckout,
+    blockedItems,
   } = useCart();
 
   const items = cart?.items ?? [];
@@ -24,14 +26,24 @@ export default function CartPage() {
         </Link>
       </header>
 
+      {/* Optional top warning */}
+      {blockedItems.length > 0 && (
+        <div className={styles.warning}>
+          Some items need updated dates before checkout.
+        </div>
+      )}
+
       <div className={styles.items}>
         {items.map((item) => {
           const imageUrl = imageUrlForCartItem(item);
           const name = productNameForCartItem(item);
           const variantLine = variantTextForCartItem(item);
 
+          const blocked = (item as any).blocked === true;
+          const reason = (item as any).reason as string | undefined;
+
           return (
-            <div key={item.id} className={styles.itemRow}>
+            <div key={item.id} className={`${styles.itemRow} ${blocked ? styles.itemRowBlocked : ""}`}>
               <div className={styles.imageWrap}>
                 <img src={imageUrl} alt={name} />
               </div>
@@ -39,15 +51,32 @@ export default function CartPage() {
               <div className={styles.itemInfo}>
                 <div className={styles.title}>{name}</div>
                 {variantLine && <div className={styles.variant}>{variantLine}</div>}
+
                 <div className={styles.meta}>
                   {formatDate(item.start_at)} → {formatDate(item.end_at)}
                 </div>
+                {blocked && (
+                  <div className={styles.blocked}>
+                    {blockedLabel(reason)}
+                  </div>
+                )}
               </div>
 
               <div className={styles.itemActions}>
                 <div className={styles.price}>
                   CHF {(item.unit_price_cents / 100).toFixed(2)}
                 </div>
+                <button
+                  type="button"
+                  className={styles.adjustDates}
+                  onClick={() => {
+                    // TODO: open date picker modal and call updateItem(...)
+                    console.log("Adjust dates for cart item", item.id);
+                  }}
+                >
+                  Adjust dates
+                </button>
+
                 <button
                   type="button"
                   className={styles.remove}
@@ -67,7 +96,15 @@ export default function CartPage() {
           <span>Subtotal</span>
           <strong>CHF {((cart?.subtotal_cents ?? 0) / 100).toFixed(2)}</strong>
         </div>
-        <button className={styles.checkout}>Checkout (later)</button>
+        <button className={styles.checkout} disabled={!canCheckout}>
+          Checkout (later)
+        </button>
+
+        {!canCheckout && (
+          <div className={styles.checkoutHint}>
+            Fix blocked items to continue.
+          </div>
+        )}
       </footer>
     </div>
   );
@@ -75,4 +112,15 @@ export default function CartPage() {
 
 function formatDate(d: string) {
   return new Intl.DateTimeFormat("de-CH").format(new Date(d));
+}
+
+function blockedLabel(reason?: string) {
+  switch (reason) {
+    case "start_date_in_past":
+      return "Start date is in the past — please select new dates.";
+    case "not_available":
+      return "Not available for the selected dates — please select new dates.";
+    default:
+      return "This item can’t be checked out — please select new dates.";
+  }
 }
