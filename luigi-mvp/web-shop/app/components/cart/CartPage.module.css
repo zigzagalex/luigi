@@ -115,16 +115,41 @@
   padding: 14px 24px;
   font-size: 18px;
   font-weight: 600;
+
   border-radius: 999px;
   border: none;
+
   background: #111;
   color: white;
+
   cursor: pointer;
+
+  /* make Link behave like button */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  line-height: 1;
+  user-select: none;
 }
 
 .checkout:hover {
   background: #000;
 }
+
+/* only applies to <button disabled> */
+.checkout:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* optional: if you ever add aria-disabled to a Link */
+.checkout[aria-disabled="true"] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
   
 .warning {
   margin: 0 0 16px 0;
@@ -158,11 +183,6 @@
 
 .adjustDates:hover {
   color: #000;
-}
-
-.checkout:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
 }
 
 .checkoutHint {

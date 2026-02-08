@@ -96,9 +96,15 @@ export default function CartPage() {
           <span>Subtotal</span>
           <strong>CHF {((cart?.subtotal_cents ?? 0) / 100).toFixed(2)}</strong>
         </div>
-        <button className={styles.checkout} disabled={!canCheckout}>
-          Checkout (later)
-        </button>
+        {canCheckout ? (
+            <Link href="/checkout" className={styles.checkout}>
+              Checkout
+            </Link>
+          ) : (
+            <button className={styles.checkout} disabled>
+            Checkout
+          </button>
+        )}
 
         {!canCheckout && (
           <div className={styles.checkoutHint}>
