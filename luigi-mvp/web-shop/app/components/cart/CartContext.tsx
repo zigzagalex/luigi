@@ -110,11 +110,6 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
   useEffect(() => {
     if (authLoading) return;
     void refresh();
-  }, [authLoading, refresh]);
-
-  useEffect(() => {
-    if (authLoading) return;
-    void refresh();
   }, [authLoading, me?.id, refresh]);
   
 
