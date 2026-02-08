@@ -14,6 +14,9 @@ import (
 	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
 
+// Customers v1 now only exposes admin/shop CRUD under /customers.
+// The "current user profile" endpoints (/me/customer) are implemented in authv1,
+// because authv1 already owns the session middleware + context user.
 func RegisterRoutes(r chi.Router, q db.Querier) {
 	svc := customersvc.NewService(q)
 
@@ -57,13 +60,23 @@ func listHandler(svc *customersvc.Service) http.HandlerFunc {
 }
 
 type createReq struct {
-	ShopID    int64   `json:"shop_id"`
+	ShopID int64 `json:"shop_id"`
+
+	UserID *int64 `json:"user_id,omitempty"`
+
 	Email     *string `json:"email"`
 	Phone     *string `json:"phone"`
 	FirstName *string `json:"first_name"`
 	LastName  *string `json:"last_name"`
-	Notes     *string `json:"notes"`
-	IsActive  *bool   `json:"is_active"`
+
+	Address1   *string `json:"address1"`
+	Address2   *string `json:"address2"`
+	PostalCode *string `json:"postal_code"`
+	City       *string `json:"city"`
+	Country    *string `json:"country"`
+
+	Notes    *string `json:"notes"`
+	IsActive *bool   `json:"is_active"`
 }
 
 func createHandler(svc *customersvc.Service) http.HandlerFunc {
@@ -79,13 +92,22 @@ func createHandler(svc *customersvc.Service) http.HandlerFunc {
 		}
 
 		item, err := svc.Create(r.Context(), customersvc.CreateInput{
-			ShopID:    req.ShopID,
+			ShopID: req.ShopID,
+			UserID: req.UserID,
+
 			Email:     u.TrimOrNil(req.Email),
 			Phone:     u.TrimOrNil(req.Phone),
 			FirstName: u.TrimOrNil(req.FirstName),
 			LastName:  u.TrimOrNil(req.LastName),
-			Notes:     u.TrimOrNil(req.Notes),
-			IsActive:  req.IsActive,
+
+			Address1:   u.TrimOrNil(req.Address1),
+			Address2:   u.TrimOrNil(req.Address2),
+			PostalCode: u.TrimOrNil(req.PostalCode),
+			City:       u.TrimOrNil(req.City),
+			Country:    u.TrimOrNil(req.Country),
+
+			Notes:    u.TrimOrNil(req.Notes),
+			IsActive: req.IsActive,
 		})
 		if err != nil {
 			httpx.Fail(w, http.StatusInternalServerError, "create_customer_failed", err.Error())
@@ -100,8 +122,15 @@ type updateReq struct {
 	Phone     *string `json:"phone"`
 	FirstName *string `json:"first_name"`
 	LastName  *string `json:"last_name"`
-	Notes     *string `json:"notes"`
-	IsActive  *bool   `json:"is_active"`
+
+	Address1   *string `json:"address1"`
+	Address2   *string `json:"address2"`
+	PostalCode *string `json:"postal_code"`
+	City       *string `json:"city"`
+	Country    *string `json:"country"`
+
+	Notes    *string `json:"notes"`
+	IsActive *bool   `json:"is_active"`
 }
 
 func updateHandler(svc *customersvc.Service) http.HandlerFunc {
@@ -124,8 +153,15 @@ func updateHandler(svc *customersvc.Service) http.HandlerFunc {
 			Phone:     u.TrimOrNil(req.Phone),
 			FirstName: u.TrimOrNil(req.FirstName),
 			LastName:  u.TrimOrNil(req.LastName),
-			Notes:     u.TrimOrNil(req.Notes),
-			IsActive:  req.IsActive,
+
+			Address1:   u.TrimOrNil(req.Address1),
+			Address2:   u.TrimOrNil(req.Address2),
+			PostalCode: u.TrimOrNil(req.PostalCode),
+			City:       u.TrimOrNil(req.City),
+			Country:    u.TrimOrNil(req.Country),
+
+			Notes:    u.TrimOrNil(req.Notes),
+			IsActive: req.IsActive,
 		})
 		if err != nil {
 			if err == customersvc.ErrNotFound {

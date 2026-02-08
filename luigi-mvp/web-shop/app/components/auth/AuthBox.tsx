@@ -34,7 +34,7 @@ export function AuthBox() {
 
   const canSubmit = useMemo(() => {
     const e = clean(email);
-    const p = password; // don't trim passwords
+    const p = password; 
     if (!e || !p) return false;
 
     if (mode === "login") return true;

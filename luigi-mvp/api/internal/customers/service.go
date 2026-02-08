@@ -65,7 +65,6 @@ type CreateInput struct {
 }
 
 func (s *Service) Create(ctx context.Context, in CreateInput) (db.Customer, error) {
-	// Optional: normalize country a bit
 	country := u.TrimOrNil(in.Country)
 	if country == nil {
 		v := "CH"
@@ -97,19 +96,37 @@ type UpdateInput struct {
 	Phone     *string
 	FirstName *string
 	LastName  *string
-	Notes     *string
-	IsActive  *bool
+
+	Address1   *string
+	Address2   *string
+	PostalCode *string
+	City       *string
+	Country    *string
+
+	Notes    *string
+	IsActive *bool
 }
 
 func (s *Service) Update(ctx context.Context, in UpdateInput) (db.Customer, error) {
+	// Optional: normalize default country if explicitly provided empty
+	country := u.TrimOrNil(in.Country)
+
 	return s.q.UpdateCustomer(ctx, &db.UpdateCustomerParams{
 		Email:     u.ToNullString(in.Email),
 		Phone:     u.ToNullString(in.Phone),
 		FirstName: u.ToNullString(in.FirstName),
 		LastName:  u.ToNullString(in.LastName),
-		Notes:     u.ToNullString(in.Notes),
-		IsActive:  u.ToNullBool(in.IsActive),
-		ID:        in.ID,
+
+		Address1:   u.ToNullString(in.Address1),
+		Address2:   u.ToNullString(in.Address2),
+		PostalCode: u.ToNullString(in.PostalCode),
+		City:       u.ToNullString(in.City),
+		Country:    u.ToNullString(country),
+
+		Notes:    u.ToNullString(in.Notes),
+		IsActive: u.ToNullBool(in.IsActive),
+
+		ID: in.ID,
 	})
 }
 
@@ -121,7 +138,7 @@ func (s *Service) GetCustomerByUserID(ctx context.Context, userID int64) (db.Cus
 	if userID <= 0 {
 		return db.Customer{}, ErrNotFound
 	}
-	c, err := s.q.GetCustomerByUserID(ctx, sql.NullInt64{Int64: userID, Valid: true}) // ✅ fix
+	c, err := s.q.GetCustomerByUserID(ctx, sql.NullInt64{Int64: userID, Valid: true})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return db.Customer{}, ErrNotFound
