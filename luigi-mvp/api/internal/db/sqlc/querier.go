@@ -13,7 +13,10 @@ type Querier interface {
 	AllocateInventoryItemsForHold(ctx context.Context, arg *AllocateInventoryItemsForHoldParams) ([]int64, error)
 	AssignProductToCategory(ctx context.Context, arg *AssignProductToCategoryParams) error
 	AttachCartToCustomer(ctx context.Context, arg *AttachCartToCustomerParams) error
+	CancelMyReservation(ctx context.Context, arg *CancelMyReservationParams) (Reservation, error)
 	CartTotals(ctx context.Context, cartID int64) (CartTotalsRow, error)
+	CheckoutCreateReservation(ctx context.Context, arg *CheckoutCreateReservationParams) (CheckoutCreateReservationRow, error)
+	CheckoutInsertReservationItemsFromCartItemIDs(ctx context.Context, arg *CheckoutInsertReservationItemsFromCartItemIDsParams) ([]ReservationItem, error)
 	ClearProductCategories(ctx context.Context, productID int64) error
 	// Count how many inventory items of a given variant+store
 	// are available for a requested time range.
@@ -38,6 +41,7 @@ type Querier interface {
 	CreateShop(ctx context.Context, arg *CreateShopParams) (Shop, error)
 	CreateStore(ctx context.Context, arg *CreateStoreParams) (Store, error)
 	CreateUser(ctx context.Context, arg *CreateUserParams) (User, error)
+	DeactivateReservationItems(ctx context.Context, reservationID int64) error
 	DeleteCartItem(ctx context.Context, cartItemID int64) error
 	DeleteCustomer(ctx context.Context, id int64) (Customer, error)
 	DeleteHoldsByCartItem(ctx context.Context, cartItemID int64) error
@@ -54,6 +58,7 @@ type Querier interface {
 	GetCartItemByID(ctx context.Context, cartItemID int64) (CartItem, error)
 	GetCartItemWithCart(ctx context.Context, cartItemID int64) (GetCartItemWithCartRow, error)
 	GetCustomerByUserID(ctx context.Context, userID sql.NullInt64) (Customer, error)
+	GetMyReservation(ctx context.Context, arg *GetMyReservationParams) (Reservation, error)
 	GetOpenCartByCustomerID(ctx context.Context, arg *GetOpenCartByCustomerIDParams) (Cart, error)
 	GetOpenCartBySessionID(ctx context.Context, arg *GetOpenCartBySessionIDParams) (Cart, error)
 	GetPriceCategoryForVariant(ctx context.Context, productVariantID int64) (string, error)
@@ -85,13 +90,17 @@ type Querier interface {
 	ListHoldsByCartItem(ctx context.Context, cartItemID sql.NullInt64) ([]Hold, error)
 	ListImagesByVariantID(ctx context.Context, productVariantID int64) ([]ProductVariantImage, error)
 	ListInventoryItems(ctx context.Context, arg *ListInventoryItemsParams) ([]InventoryItem, error)
+	ListMyReservations(ctx context.Context, arg *ListMyReservationsParams) ([]Reservation, error)
 	ListPricePoints(ctx context.Context) ([]PricePoint, error)
 	ListProductVariants(ctx context.Context, arg *ListProductVariantsParams) ([]ProductVariant, error)
 	ListProducts(ctx context.Context, arg *ListProductsParams) ([]Product, error)
 	ListProductsWithPrimaryImage(ctx context.Context, arg *ListProductsWithPrimaryImageParams) ([]ListProductsWithPrimaryImageRow, error)
+	ListReservationItemsByReservationIDs(ctx context.Context, reservationIds []int64) ([]ReservationItem, error)
 	ListShops(ctx context.Context, arg *ListShopsParams) ([]Shop, error)
 	ListStores(ctx context.Context, arg *ListStoresParams) ([]Store, error)
 	ListUsers(ctx context.Context, arg *ListUsersParams) ([]User, error)
+	RescheduleMyReservation(ctx context.Context, arg *RescheduleMyReservationParams) (Reservation, error)
+	RescheduleMyReservationItems(ctx context.Context, arg *RescheduleMyReservationItemsParams) error
 	// Search available variants across products / stores for a given time range.
 	// Filters:
 	//   - shop_id        (optional)

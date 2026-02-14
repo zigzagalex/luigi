@@ -192,28 +192,40 @@ type ProductVariantImage struct {
 }
 
 type Reservation struct {
-	ID               int64          `json:"id"`
-	ShopID           int64          `json:"shop_id"`
-	StoreID          int64          `json:"store_id"`
-	CustomerID       sql.NullInt64  `json:"customer_id"`
-	Status           interface{}    `json:"status"`
-	StartAt          time.Time      `json:"start_at"`
-	EndAt            time.Time      `json:"end_at"`
-	ReservationRange interface{}    `json:"reservation_range"`
-	TotalPriceCents  int32          `json:"total_price_cents"`
-	Currency         string         `json:"currency"`
-	IdempotencyKey   sql.NullString `json:"idempotency_key"`
-	Version          int32          `json:"version"`
-	Notes            sql.NullString `json:"notes"`
-	CreatedAt        time.Time      `json:"created_at"`
-	UpdatedAt        time.Time      `json:"updated_at"`
+	ID                int64          `json:"id"`
+	ShopID            int64          `json:"shop_id"`
+	StoreID           int64          `json:"store_id"`
+	CustomerID        sql.NullInt64  `json:"customer_id"`
+	Status            interface{}    `json:"status"`
+	StartAt           time.Time      `json:"start_at"`
+	EndAt             time.Time      `json:"end_at"`
+	ReservationRange  interface{}    `json:"reservation_range"`
+	TotalPriceCents   int32          `json:"total_price_cents"`
+	Currency          string         `json:"currency"`
+	IdempotencyKey    sql.NullString `json:"idempotency_key"`
+	Version           int32          `json:"version"`
+	Notes             sql.NullString `json:"notes"`
+	CreatedAt         time.Time      `json:"created_at"`
+	UpdatedAt         time.Time      `json:"updated_at"`
+	PickupPersonName  sql.NullString `json:"pickup_person_name"`
+	PickupPersonPhone sql.NullString `json:"pickup_person_phone"`
+	PickupPersonEmail sql.NullString `json:"pickup_person_email"`
+	CancelledAt       sql.NullTime   `json:"cancelled_at"`
+	CancelReason      sql.NullString `json:"cancel_reason"`
+	StoreSnapshotName sql.NullString `json:"store_snapshot_name"`
 }
 
 type ReservationItem struct {
-	ID              int64       `json:"id"`
-	ReservationID   int64       `json:"reservation_id"`
-	InventoryItemID int64       `json:"inventory_item_id"`
-	PaddedRange     interface{} `json:"padded_range"`
+	ID              int64         `json:"id"`
+	ReservationID   int64         `json:"reservation_id"`
+	InventoryItemID int64         `json:"inventory_item_id"`
+	PaddedRange     interface{}   `json:"padded_range"`
+	ProductID       sql.NullInt64 `json:"product_id"`
+	VariantID       sql.NullInt64 `json:"variant_id"`
+	IsActive        bool          `json:"is_active"`
+	UnitPriceCents  int32         `json:"unit_price_cents"`
+	Quantity        int32         `json:"quantity"`
+	Currency        string        `json:"currency"`
 }
 
 type Shop struct {
