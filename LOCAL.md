@@ -32,6 +32,14 @@ source ~/.zshrc
 
     DATABASE_URL=postgres://user:password@localhost:port/db?sslmode=disable
 
+1.1. Load the env variable into your shell. 
+
+```
+set -a
+source .env
+set +a
+```
+
 2. Run the docker compose to create the pg database 
 ```docker compose -f docker-compose.dev.yml up -d postgres```
 ```docker ps```
