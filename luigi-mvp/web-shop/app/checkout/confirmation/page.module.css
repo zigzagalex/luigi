@@ -1,0 +1,75 @@
+.page {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 64px 24px;
+    display: flex;
+    justify-content: center;
+  }
+  
+  .card {
+    border: 1px solid #eee;
+    border-radius: 20px;
+    padding: 48px 32px;
+    background: white;
+    display: grid;
+    gap: 20px;
+    text-align: center;
+    max-width: 520px;
+    width: 100%;
+  }
+  
+  .icon {
+    font-size: 48px;
+    font-weight: 900;
+    line-height: 1;
+  }
+  
+  .title {
+    font-size: 28px;
+    font-weight: 900;
+    margin: 0;
+  }
+  
+  .subtitle {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+  }
+  
+  .actions {
+    margin-top: 12px;
+    display: grid;
+    gap: 12px;
+  }
+  
+  .primary {
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid #e6e6e6;
+    background: white;
+    font-weight: 900;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: black;
+  }
+  
+  .secondary {
+    height: 44px;
+    border-radius: 12px;
+    border: 1px solid #e6e6e6;
+    background: white;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    color: #444;
+  }
+  
+  .primary:hover,
+  .secondary:hover {
+    background: #fafafa;
+  }
+  

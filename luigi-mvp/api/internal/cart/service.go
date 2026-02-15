@@ -10,6 +10,8 @@ import (
 
 	"github.com/zigzagalex/luigi/api/internal/availability"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
+	stores "github.com/zigzagalex/luigi/api/internal/stores"
+	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
 
 var (
@@ -21,6 +23,7 @@ var (
 	ErrInvalidRange      = errors.New("invalid rental range")
 	ErrInvalidQuantity   = errors.New("quantity must be > 0")
 	ErrInsufficientStock = errors.New("insufficient stock for requested range")
+	ErrDifferentStore    = errors.New("cart contains items from a different store")
 )
 
 type Owner struct {
@@ -32,10 +35,11 @@ type Service struct {
 	q  *db.Queries
 	db *sql.DB
 	av *availability.Service
+	st *stores.Service
 }
 
-func NewService(q *db.Queries, sqlDB *sql.DB, av *availability.Service) *Service {
-	return &Service{q: q, db: sqlDB, av: av}
+func NewService(q *db.Queries, sqlDB *sql.DB, av *availability.Service, st *stores.Service) *Service {
+	return &Service{q: q, db: sqlDB, av: av, st: st}
 }
 
 type CartItemView struct {
@@ -49,10 +53,15 @@ type CartItemView struct {
 }
 
 type CartView struct {
-	Cart          db.Cart        `json:"cart"`
-	Items         []CartItemView `json:"items"`
-	SubtotalCents int64          `json:"subtotal_cents"`
-	Currency      string         `json:"currency"`
+	Cart            db.Cart        `json:"cart"`
+	Items           []CartItemView `json:"items"`
+	StoreID         int64          `json:"store_id"`
+	StoreName       string         `json:"store_name"`
+	StoreAddress    string         `json:"store_address"`
+	StorePostalCode string         `json:"store_postalcode"`
+	StoreCity       string         `json:"store_city"`
+	SubtotalCents   int64          `json:"subtotal_cents"`
+	Currency        string         `json:"currency"`
 }
 
 func (s *Service) GetCart(ctx context.Context, owner Owner, shopID int64) (*CartView, error) {
@@ -96,6 +105,27 @@ func (s *Service) AddItem(ctx context.Context, owner Owner, in AddItemInput) (*C
 	cartRow, err := s.getOrCreateOpenCartTx(ctx, qtx, owner, in.ShopID)
 	if err != nil {
 		return nil, err
+	}
+
+	// Enforce single-store-per-cart invariant
+
+	// If cart has no store yet (first item), set it
+	if cartRow.StoreID.Int64 == 0 {
+		if err := qtx.UpdateCartStoreID(ctx, &db.UpdateCartStoreIDParams{
+			ID:      cartRow.ID,
+			StoreID: in.StoreID,
+		}); err != nil {
+			return nil, err
+		}
+		StoreID := u.ToNullInt64(&in.StoreID)
+		// keep cartRow in sync locally
+		cartRow.StoreID = StoreID
+	} else {
+		// Cart already has store, enforce match
+		StoreID := u.ToNullInt64(&in.StoreID)
+		if cartRow.StoreID != StoreID {
+			return nil, ErrDifferentStore
+		}
 	}
 
 	// 2) Allocate N concrete inventory items that are free for [start,end)
@@ -331,6 +361,17 @@ func (s *Service) DeleteItem(ctx context.Context, owner Owner, cartItemID int64)
 	if err := qtx.DeleteCartItem(ctx, cartItemID); err != nil {
 		return nil, err
 	}
+	// Check if cart is now empty
+	count, err := qtx.CountCartItems(ctx, row.CartID)
+	if err != nil {
+		return nil, err
+	}
+
+	if count == 0 {
+		if err := qtx.ClearCartStoreID(ctx, row.CartID); err != nil {
+			return nil, err
+		}
+	}
 	if err := qtx.TouchCartUpdatedAt(ctx, row.CartID); err != nil {
 		return nil, err
 	}
@@ -412,6 +453,7 @@ func (s *Service) AttachGuestCartToCustomer(
 		if err := qtx.AttachCartToCustomer(ctx, &db.AttachCartToCustomerParams{
 			CartID:     guestCart.ID,
 			CustomerID: customerID,
+			StoreID:    guestCart.StoreID.Int64,
 		}); err != nil {
 			return err
 		}
@@ -520,11 +562,32 @@ func (s *Service) buildCartView(ctx context.Context, cartID int64) (*CartView, e
 		})
 	}
 
+	var storeId int64
+	var storeName string
+	var storeAddress string
+	var storePostalCode string
+	var storeCity string
+	if cartRow.StoreID.Valid {
+		store, err := s.st.GetStoreById(ctx, cartRow.StoreID.Int64)
+		if err == nil {
+			storeId = store.ID
+			storeName = store.Name
+			storeAddress = store.Address1.String
+			storePostalCode = store.PostalCode.String
+			storeCity = store.City.String
+		}
+	}
+
 	return &CartView{
-		Cart:          cartRow,
-		Items:         outItems,
-		SubtotalCents: totals.SubtotalCents,
-		Currency:      totals.Currency,
+		Cart:            cartRow,
+		Items:           outItems,
+		StoreID:         storeId,
+		StoreName:       storeName,
+		StoreAddress:    storeAddress,
+		StorePostalCode: storePostalCode,
+		StoreCity:       storeCity,
+		SubtotalCents:   totals.SubtotalCents,
+		Currency:        totals.Currency,
 	}, nil
 }
 

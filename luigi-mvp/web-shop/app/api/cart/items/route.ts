@@ -9,6 +9,7 @@ export async function POST(req: Request) {
       method: "POST",
       body: JSON.stringify(body),
       headers: { cookie: (req.headers.get("cookie") ?? "") },
+      cache: "no-store",
     });
 
     const text = await res.text();

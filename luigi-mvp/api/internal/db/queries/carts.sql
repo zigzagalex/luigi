@@ -174,7 +174,8 @@ LIMIT 1;
 UPDATE carts
 SET customer_id = sqlc.arg(customer_id)::bigint,
     session_id = NULL,
-    updated_at = now()
+    updated_at = now(),
+    store_id = sqlc.arg(store_id)::bigint
 WHERE id = sqlc.arg(cart_id)::bigint
   AND status = 'open';
 
@@ -182,3 +183,14 @@ WHERE id = sqlc.arg(cart_id)::bigint
 SELECT COUNT(*)::bigint
 FROM cart_items
 WHERE cart_id = $1;
+
+-- name: UpdateCartStoreID :exec
+UPDATE carts
+SET store_id = sqlc.arg(store_id)::bigint
+WHERE id = sqlc.arg(id)::bigint;
+
+-- name: ClearCartStoreID :exec
+UPDATE carts
+SET store_id = NULL
+WHERE id = sqlc.arg(id)::bigint;
+

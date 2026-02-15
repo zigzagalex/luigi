@@ -20,6 +20,7 @@ import (
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	usersvc "github.com/zigzagalex/luigi/api/internal/users"
 	u "github.com/zigzagalex/luigi/api/internal/utils"
+	"github.com/zigzagalex/luigi/api/internal/stores"
 )
 
 const cookieName = "luigi_session"
@@ -36,10 +37,10 @@ type Handler struct {
 	customers *customersvc.Service // NEW
 }
 
-func RegisterRoutes(r chi.Router, fb *fbauth.Client, q *db.Queries, sqlDB *sql.DB, env string, av *avsvc.Service) {
+func RegisterRoutes(r chi.Router, fb *fbauth.Client, q *db.Queries, sqlDB *sql.DB, env string, av *avsvc.Service, st *stores.Service) {
 	us := usersvc.NewService(q)
 
-	cartSvc := cartsvc.NewService(q, sqlDB, av)
+	cartSvc := cartsvc.NewService(q, sqlDB, av, st)
 	cs := customersvc.NewService(q)
 
 	h := &Handler{

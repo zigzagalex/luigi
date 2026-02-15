@@ -1,0 +1,96 @@
+/* Fullscreen overlay */
+.overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 24px;
+}
+
+/* Modal container */
+.modal {
+  background: #ffffff;
+  border-radius: 12px;
+  max-width: 420px;
+  width: 100%;
+  padding: 28px 28px 24px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
+  animation: fadeIn 0.15s ease-out;
+}
+
+/* Title */
+.modal h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 12px 0;
+  letter-spacing: 0.02em;
+}
+
+/* Body text */
+.modal p {
+  font-size: 14px;
+  line-height: 1.6;
+  margin: 0 0 10px 0;
+  color: #555;
+}
+
+/* Action row */
+.actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 20px;
+  justify-content: flex-end;
+}
+
+/* Secondary button (ghost style) */
+.secondary {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: #333;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.secondary:hover {
+  background: #f5f5f5;
+  border-color: #ccc;
+}
+
+/* Primary button (matches your buy buttons) */
+.primary {
+  background: #111;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.primary:hover {
+  background: #000;
+}
+
+.primary:active {
+  transform: translateY(1px);
+}
+
+/* Subtle fade-in */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

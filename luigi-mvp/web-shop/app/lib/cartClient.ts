@@ -16,8 +16,17 @@ export type CartItem = {
   };
   
   export type CartView = {
-    cart: { id: number; shop_id: number; store_id: number; status: string };
+    cart: { 
+      id: number; 
+      shop_id: number; 
+      store_id: number | null; 
+      status: string };
     items: CartItem[];
+    store_id: number | null;
+    store_name: string;
+    store_address: string;
+    store_postalcode: string;
+    store_city: string;
     subtotal_cents: number;
     currency: string;
   };
@@ -38,8 +47,22 @@ export type CartItem = {
       credentials: "include",
       body: JSON.stringify(payload),
     });
-    if (!res.ok) throw new Error(await res.text());
-    return res.json();
+    const text = await res.text();
+
+    if (!res.ok) {
+      let data: any;
+      try {
+        data = JSON.parse(text);
+      } catch {
+        throw new Error("Unknown error");
+      }
+
+      const error = new Error(data?.error || "add_failed");
+      (error as any).code = data?.error;
+      throw error;
+    }
+
+    return JSON.parse(text);
   }
   
   export async function patchCartItem(cartItemId: number, payload: any): Promise<CartView> {

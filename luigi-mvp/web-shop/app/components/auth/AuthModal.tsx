@@ -46,7 +46,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
 
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
 
-  const { refresh } = useAuth();
+  const { refresh, onLoginSuccess } = useAuth();
 
   useEffect(() => setStatus(""), [open, mode]);
 
@@ -98,7 +98,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
         await exchangeIdTokenForSessionCookie({ shop_id: SHOP_ID });
 
         setStatus("Success. Session cookie set.");
-        await refresh();
+        await onLoginSuccess();
         onClose();
         return;
       }
@@ -129,7 +129,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
       });
 
       setStatus("Success. Account created & session cookie set.");
-      await refresh();
+      await onLoginSuccess();
       onClose();
     } catch (err: any) {
       setStatus(err?.message ?? "Something went wrong.");

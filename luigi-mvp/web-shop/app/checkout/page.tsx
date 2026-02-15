@@ -148,7 +148,6 @@ export default function CheckoutPage() {
   const router = useRouter();
   const { me, loading: authLoading } = useAuth();
 
-  // ✅ use existing cart logic
   const {
     cart,
     loading: cartLoading,
@@ -161,6 +160,10 @@ export default function CheckoutPage() {
 
   const items = cart?.items ?? [];
   const currency = cart?.currency ?? "CHF";
+  const store_name = cart?.store_name
+  const store_address = cart?.store_address
+  const store_postalcode = cart?.store_postalcode
+  const store_city = cart?.store_city
 
   // customer profile state
   const [customer, setCustomer] = React.useState<CustomerProfile>(emptyCustomerProfile);
@@ -242,45 +245,49 @@ export default function CheckoutPage() {
     profileComplete &&
     agreed &&
     items.length > 0 &&
-    canCheckout; // ✅ blocked items must be fixed
+    canCheckout; 
 
-  function onBuy() {
-    const payload = {
-      user: {
-        id: me?.id,
-        email: me?.email,
-        display_name: me?.display_name,
+    async function onBuy() {
+      if (!agreed) {
+        alert("Please accept terms");
+        return;
+      }
+    
+      const idempotencyKey = crypto.randomUUID();
+    
+      const payload = {
         shop_id: me?.shop_id,
-      },
-      customer_profile: customer,
-      pickup_person: pickup.enabled
-        ? {
-            first_name: pickup.first_name.trim(),
-            last_name: pickup.last_name.trim(),
-            email: pickup.email.trim(),
-            phone: pickup.phone.trim(),
-          }
-        : null,
-      payment_method: payment,
-      cart: cart, // reuse existing CartView
-      cart_enriched_preview: items.map((it) => ({
-        id: it.id,
-        product_name: productNameForCartItem(it),
-        variant_text: variantTextForCartItem(it),
-        image_url: imageUrlForCartItem(it),
-        start_at: (it as any).start_at,
-        end_at: (it as any).end_at,
-        unit_price_cents: (it as any).unit_price_cents,
-        quantity: (it as any).quantity,
-        blocked: (it as any).blocked,
-      })),
-      agreed_terms: agreed,
-      created_at: new Date().toISOString(),
-    };
-
-    sessionStorage.setItem("luigi_checkout_payload", JSON.stringify(payload, null, 2));
-    router.push("/checkout/confirmation");
-  }
+        store_id: cart?.cart.store_id, 
+        idempotency_key: idempotencyKey,
+        notes: customer?.notes ?? "",
+        pickup_person_name: pickup.enabled
+          ? `${pickup.first_name.trim()} ${pickup.last_name.trim()}`
+          : "",
+        pickup_person_phone: pickup.enabled ? pickup.phone.trim() : "",
+        pickup_person_email: pickup.enabled ? pickup.email.trim() : "",
+      };
+    
+      try {
+        const res = await fetch("/api/reservations/checkout", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload),
+        });
+    
+        const data = await res.json();
+    
+        if (!res.ok) {
+          console.error(data);
+          alert("Checkout failed");
+          return;
+        }
+    
+        router.push(`/checkout/confirmation?success=1`);
+      } catch (err) {
+        console.error(err);
+        alert("Unexpected error");
+      }
+    }
 
   if (authLoading) return <div className={styles.page}>Loading…</div>;
 
@@ -393,6 +400,44 @@ export default function CheckoutPage() {
           </div>
         )}
       </div>
+
+      {/* 1.1) Pick-up location */}
+      {store_name && (
+        <div className={styles.card}>
+          <div className={styles.cardHeader}>
+            <div>
+              <div className={styles.cardTitle}>Pick-up location</div>
+              <div className={styles.cardSubtitle}>
+                This is where you will collect your bikes.
+              </div>
+            </div>
+          </div>
+
+          <div className={styles.summary}>
+            <div className={styles.summaryGrid}>
+              <div className={styles.summaryRow}>
+                <div className={styles.summaryLabel}>Store</div>
+                <div className={styles.summaryValue}>{store_name}</div>
+              </div>
+
+              {(store_address || store_postalcode || store_city) && (
+                <div className={styles.summaryRow}>
+                  <div className={styles.summaryLabel}>Address</div>
+                  <div className={styles.summaryValue}>
+                    {store_address}
+                    {(store_postalcode || store_city) && (
+                      <>
+                        <br />
+                        {store_postalcode} {store_city}
+                      </>
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 2) Cart summary */}
       <div className={styles.card}>
@@ -577,7 +622,7 @@ export default function CheckoutPage() {
               : ""
           }
         >
-          Buy
+          Rent
         </button>
 
         {!canCheckout ? <div className={styles.muted}>Your cart has blocked items — fix them before checkout.</div> : null}

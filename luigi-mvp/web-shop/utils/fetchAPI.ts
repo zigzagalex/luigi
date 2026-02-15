@@ -44,7 +44,7 @@ export async function fetchApi(
 ): Promise<Response> {
   const base = getApiBase();
   const url = new URL(path, base).toString();
-
+  console.log("fetchApi url:", url);
   // Local dev: plain fetch
   if (isLocalBase(base)) {
     return fetch(url, {

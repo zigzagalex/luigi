@@ -190,3 +190,32 @@
   font-size: 14px;
   color: #666;
 }
+
+.storeCard {
+  margin-bottom: 28px;
+  padding: 18px 20px;
+  border: 1px solid #e5e2dc;
+  border-radius: 8px;
+  background: #faf8f4;
+}
+
+.storeLabel {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #8a857d;
+  margin-bottom: 6px;
+}
+
+.storeName {
+  font-size: 16px;
+  font-weight: 600;
+  color: #2b2a28;
+  margin-bottom: 4px;
+}
+
+.storeAddress {
+  font-size: 14px;
+  color: #6f6a63;
+  line-height: 1.4;
+}

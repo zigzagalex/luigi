@@ -9,9 +9,10 @@ import {
   type RangeValue,
 } from "@/components/daterangepicker/AvailabilityRangeCalendar";
 import { useCart } from "@/components/cart/CartContext"; 
+import StoreConflictModal from "@/components/cart/StoreConflictModal";
 
 
-/** ---------- Types (as in your original) ---------- */
+/** ---------- Types ---------- */
 type VariantImage = {
   id: number;
   url: string;
@@ -138,6 +139,8 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   const [quantity, setQuantity] = useState<number>(initialQuantity);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  const [showStoreConflict, setShowStoreConflict] = useState(false);
 
   /** Quote state */
   const [quote, setQuote] = useState<{ currency: string; totalPriceCents: number } | null>(null);
@@ -325,6 +328,10 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
         
 
       } catch (e: any) {
+        if (e?.code === "different_store") {
+          setShowStoreConflict(true);
+          return;
+        }
         setAddError(e?.message ?? "Failed to add to cart");
       } finally {
         setAdding(false);
@@ -642,6 +649,15 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
           </div>
         </section>
       </div>
+      {/* Store conflict modal */}
+      <StoreConflictModal
+        open={showStoreConflict}
+        onClose={() => setShowStoreConflict(false)}
+        onClearCart={async () => {
+          setShowStoreConflict(false);
+          console.log("TODO: clear cart");
+        }}
+      />
     </div>
   );
 }
