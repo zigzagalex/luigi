@@ -81,3 +81,10 @@ RETURNING
   is_active,
   created_at,
   updated_at;
+
+
+-- name: GetStoreById :one
+SELECT 
+  *
+FROM stores
+WHERE id = sqlc.arg(store_id)::bigint;

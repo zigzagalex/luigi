@@ -17,6 +17,7 @@ import (
 	"github.com/zigzagalex/luigi/api/internal/customers"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
+	"github.com/zigzagalex/luigi/api/internal/stores"
 )
 
 type Handler struct {
@@ -29,8 +30,9 @@ func RegisterRoutes(
 	q *db.Queries,
 	sqlDB *sql.DB,
 	av *availability.Service,
+	st *stores.Service,
 ) {
-	cartSvc := cart.NewService(q, sqlDB, av)
+	cartSvc := cart.NewService(q, sqlDB, av, st)
 	custSvc := customers.NewService(q)
 
 	h := &Handler{svc: cartSvc, custSvc: custSvc}
@@ -131,7 +133,12 @@ func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.svc.AddItem(r.Context(), owner, in)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "error while adding item", err.Error())
+		if errors.Is(err, cart.ErrDifferentStore) {
+			httpx.Fail(w, http.StatusConflict, "different_store",
+				"Your cart already contains items from another store. Please checkout or clear your cart.")
+			return
+		}
+		httpx.Fail(w, http.StatusInternalServerError, "add_item_failed", err.Error())
 		return
 	}
 

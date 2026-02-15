@@ -15,18 +15,20 @@ const attachCartToCustomer = `-- name: AttachCartToCustomer :exec
 UPDATE carts
 SET customer_id = $1::bigint,
     session_id = NULL,
-    updated_at = now()
-WHERE id = $2::bigint
+    updated_at = now(),
+    store_id = $2::bigint
+WHERE id = $3::bigint
   AND status = 'open'
 `
 
 type AttachCartToCustomerParams struct {
 	CustomerID int64 `json:"customer_id"`
+	StoreID    int64 `json:"store_id"`
 	CartID     int64 `json:"cart_id"`
 }
 
 func (q *Queries) AttachCartToCustomer(ctx context.Context, arg *AttachCartToCustomerParams) error {
-	_, err := q.db.ExecContext(ctx, attachCartToCustomer, arg.CustomerID, arg.CartID)
+	_, err := q.db.ExecContext(ctx, attachCartToCustomer, arg.CustomerID, arg.StoreID, arg.CartID)
 	return err
 }
 
@@ -48,6 +50,17 @@ func (q *Queries) CartTotals(ctx context.Context, cartID int64) (CartTotalsRow, 
 	var i CartTotalsRow
 	err := row.Scan(&i.SubtotalCents, &i.Currency)
 	return i, err
+}
+
+const clearCartStoreID = `-- name: ClearCartStoreID :exec
+UPDATE carts
+SET store_id = NULL
+WHERE id = $1::bigint
+`
+
+func (q *Queries) ClearCartStoreID(ctx context.Context, id int64) error {
+	_, err := q.db.ExecContext(ctx, clearCartStoreID, id)
+	return err
 }
 
 const countCartItems = `-- name: CountCartItems :one
@@ -532,5 +545,21 @@ type UpdateCartStoreParams struct {
 
 func (q *Queries) UpdateCartStore(ctx context.Context, arg *UpdateCartStoreParams) error {
 	_, err := q.db.ExecContext(ctx, updateCartStore, arg.StoreID, arg.CartID)
+	return err
+}
+
+const updateCartStoreID = `-- name: UpdateCartStoreID :exec
+UPDATE carts
+SET store_id = $1::bigint
+WHERE id = $2::bigint
+`
+
+type UpdateCartStoreIDParams struct {
+	StoreID int64 `json:"store_id"`
+	ID      int64 `json:"id"`
+}
+
+func (q *Queries) UpdateCartStoreID(ctx context.Context, arg *UpdateCartStoreIDParams) error {
+	_, err := q.db.ExecContext(ctx, updateCartStoreID, arg.StoreID, arg.ID)
 	return err
 }

@@ -9,6 +9,7 @@ export async function POST(req: Request) {
       method: "POST",
       body: JSON.stringify(body),
       headers: { cookie: (req.headers.get("cookie") ?? "") },
+      cache: "no-store",
     });
 
     const text = await res.text();
@@ -29,8 +30,8 @@ export async function DELETE(
   req: Request,
   { params }: { params: Promise<{ cart_item_id: string }> }
 ) {
-  const { cart_item_id } = await params;           // ✅ await the promise
-  const id = Number(cart_item_id);                 // ✅ params are strings
+  const { cart_item_id } = await params;           
+  const id = Number(cart_item_id);                
 
   if (!Number.isFinite(id)) {
     return NextResponse.json({ error: "invalid_cart_item_id" }, { status: 400 });

@@ -13,6 +13,7 @@ import (
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	"github.com/zigzagalex/luigi/api/internal/storage"
+	stSvc "github.com/zigzagalex/luigi/api/internal/stores"
 	usersvc "github.com/zigzagalex/luigi/api/internal/users"
 
 	v1auth "github.com/zigzagalex/luigi/api/internal/v1/auth"
@@ -25,6 +26,7 @@ import (
 	v1productvariantimages "github.com/zigzagalex/luigi/api/internal/v1/product_variant_images"
 	v1product_variants "github.com/zigzagalex/luigi/api/internal/v1/product_variants"
 	v1products "github.com/zigzagalex/luigi/api/internal/v1/products"
+	v1reservations "github.com/zigzagalex/luigi/api/internal/v1/reservation"
 	v1shops "github.com/zigzagalex/luigi/api/internal/v1/shops"
 	v1stores "github.com/zigzagalex/luigi/api/internal/v1/stores"
 	v1users "github.com/zigzagalex/luigi/api/internal/v1/users"
@@ -64,9 +66,10 @@ func New(d Deps) http.Handler {
 	r.Route("/v1", func(r chi.Router) {
 		// Shared services
 		avService := avSvc.NewService(d.Q)
+		stService := stSvc.NewService(d.Q)
 
 		// Auth routes (public + /me protected inside the module)
-		v1auth.RegisterRoutes(r, d.FirebaseAuth, d.Q, d.SQLDB, d.Env, avService)
+		v1auth.RegisterRoutes(r, d.FirebaseAuth, d.Q, d.SQLDB, d.Env, avService, stService)
 
 		// Public routes (shop browsing)
 		v1shops.RegisterRoutes(r, d.Q)
@@ -78,11 +81,12 @@ func New(d Deps) http.Handler {
 		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 		v1inventory.RegisterRoutes(r, d.Q)
 		v1pricepoints.RegisterRoutes(r, d.Q)
-		
+
 		r.Group(func(r chi.Router) {
 			us := usersvc.NewService(d.Q)
 			r.Use(middleware.OptionalSessionCookie(d.FirebaseAuth, us, "luigi_session"))
-			v1cart.RegisterRoutes(r, d.Q, d.SQLDB, avService)
+			v1cart.RegisterRoutes(r, d.Q, d.SQLDB, avService, stService)
+			v1reservations.RegisterRoutes(r, d.Q, d.SQLDB)
 		})
 
 		// Protected routes (admin/management)

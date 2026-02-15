@@ -17,6 +17,7 @@ type Querier interface {
 	CartTotals(ctx context.Context, cartID int64) (CartTotalsRow, error)
 	CheckoutCreateReservation(ctx context.Context, arg *CheckoutCreateReservationParams) (CheckoutCreateReservationRow, error)
 	CheckoutInsertReservationItemsFromCartItemIDs(ctx context.Context, arg *CheckoutInsertReservationItemsFromCartItemIDsParams) ([]ReservationItem, error)
+	ClearCartStoreID(ctx context.Context, id int64) error
 	ClearProductCategories(ctx context.Context, productID int64) error
 	// Count how many inventory items of a given variant+store
 	// are available for a requested time range.
@@ -68,6 +69,7 @@ type Querier interface {
 	GetProductCategory(ctx context.Context, id int64) (ProductCategory, error)
 	GetProductVariantByID(ctx context.Context, id int64) (ProductVariant, error)
 	GetProductVariantImage(ctx context.Context, id int64) (ProductVariantImage, error)
+	GetStoreById(ctx context.Context, storeID int64) (Store, error)
 	GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (User, error)
 	// Check whether a specific inventory item is available for a requested time range.
 	//
@@ -115,6 +117,7 @@ type Querier interface {
 	UpdateCartItemCore(ctx context.Context, arg *UpdateCartItemCoreParams) error
 	UpdateCartStatus(ctx context.Context, arg *UpdateCartStatusParams) error
 	UpdateCartStore(ctx context.Context, arg *UpdateCartStoreParams) error
+	UpdateCartStoreID(ctx context.Context, arg *UpdateCartStoreIDParams) error
 	UpdateCustomer(ctx context.Context, arg *UpdateCustomerParams) (Customer, error)
 	UpdateInventoryItem(ctx context.Context, arg *UpdateInventoryItemParams) (InventoryItem, error)
 	UpdateProduct(ctx context.Context, arg *UpdateProductParams) (Product, error)

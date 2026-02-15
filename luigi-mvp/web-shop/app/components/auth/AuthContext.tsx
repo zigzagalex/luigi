@@ -67,11 +67,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const onLoginSuccess = useCallback(async () => {
     // 1) Attach guest cart → user cart (idempotent endpoint)
-    await fetch("/api/cart/attach-guest=cart", {
+    await fetch(`/api/cart/attach-guest-cart?shop_id=${SHOP_ID}`, {
       method: "POST",
       credentials: "include",
     });
-     
   
     // 2) Refresh user state
     await refresh();

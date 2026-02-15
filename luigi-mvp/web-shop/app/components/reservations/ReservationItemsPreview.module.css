@@ -1,0 +1,42 @@
+.container {
+    display: flex;
+    gap: 16px;
+    align-items: center;
+  }
+  
+  .item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    background: #f7f7f7;
+    padding: 12px;
+    border-radius: 10px;
+  }
+  
+  .image {
+    width: 60px;
+    height: 60px;
+    background: #ddd;
+    border-radius: 8px;
+  }
+  
+  .meta {
+    display: flex;
+    flex-direction: column;
+  }
+  
+  .price {
+    font-size: 14px;
+    font-weight: 500;
+  }
+  
+  .quantity {
+    font-size: 12px;
+    color: #777;
+  }
+  
+  .more {
+    font-size: 14px;
+    color: #777;
+  }
+  

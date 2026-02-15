@@ -16,6 +16,10 @@ export default function CartPage() {
   } = useCart();
 
   const items = cart?.items ?? [];
+  const store_name = cart?.store_name
+  const store_address = cart?.store_address
+  const store_postalcode = cart?.store_postalcode
+  const store_city = cart?.store_city
 
   return (
     <div className={styles.page}>
@@ -30,6 +34,25 @@ export default function CartPage() {
       {blockedItems.length > 0 && (
         <div className={styles.warning}>
           Some items need updated dates before checkout.
+        </div>
+      )}
+
+      {/* Store Info */}
+      {store_name && (
+        <div className={styles.storeCard}>
+          <div className={styles.storeLabel}>Pick-up location</div>
+          <div className={styles.storeName}>{store_name}</div>
+          {(store_address || store_postalcode || store_city) && (
+            <div className={styles.storeAddress}>
+              {store_address}
+              {(store_postalcode || store_city) && (
+                <>
+                  <br />
+                  {store_postalcode} {store_city}
+                </>
+              )}
+            </div>
+          )}
         </div>
       )}
 

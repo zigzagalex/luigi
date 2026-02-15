@@ -127,6 +127,33 @@ func (q *Queries) DeleteStore(ctx context.Context, id int64) (Store, error) {
 	return i, err
 }
 
+const getStoreById = `-- name: GetStoreById :one
+SELECT 
+  id, shop_id, name, address1, address2, postal_code, city, country, timezone, is_active, created_at, updated_at
+FROM stores
+WHERE id = $1::bigint
+`
+
+func (q *Queries) GetStoreById(ctx context.Context, storeID int64) (Store, error) {
+	row := q.db.QueryRowContext(ctx, getStoreById, storeID)
+	var i Store
+	err := row.Scan(
+		&i.ID,
+		&i.ShopID,
+		&i.Name,
+		&i.Address1,
+		&i.Address2,
+		&i.PostalCode,
+		&i.City,
+		&i.Country,
+		&i.Timezone,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
 const listStores = `-- name: ListStores :many
 SELECT
   id, shop_id, name, address1, address2, postal_code, city, country,

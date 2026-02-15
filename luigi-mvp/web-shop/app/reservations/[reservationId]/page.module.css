@@ -1,0 +1,19 @@
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 48px 24px;
+  }
+  
+  .title {
+    font-size: 24px;
+    font-weight: 600;
+    margin-bottom: 24px;
+  }
+  
+  .placeholder {
+    border: 1px solid #e5e5e5;
+    border-radius: 12px;
+    padding: 32px;
+    color: #777;
+  }
+  

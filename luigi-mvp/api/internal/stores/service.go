@@ -3,6 +3,7 @@ package stores
 import (
 	"context"
 	"database/sql"
+	"errors"
 
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	u "github.com/zigzagalex/luigi/api/internal/utils"
@@ -13,6 +14,7 @@ type storeQuerier interface {
 	CreateStore(ctx context.Context, arg *db.CreateStoreParams) (db.Store, error)
 	UpdateStore(ctx context.Context, arg *db.UpdateStoreParams) (db.Store, error)
 	DeleteStore(ctx context.Context, id int64) (db.Store, error)
+	GetStoreById(ctx context.Context, id int64) (db.Store, error)
 }
 
 type Service struct {
@@ -104,6 +106,20 @@ func (s *Service) Update(ctx context.Context, in UpdateInput) (db.Store, error) 
 
 func (s *Service) Delete(ctx context.Context, id int64) (db.Store, error) {
 	return s.q.DeleteStore(ctx, id)
+}
+
+func (s *Service) GetStoreById(ctx context.Context, id int64) (db.Store, error) {
+	if id <= 0 {
+		return db.Store{}, errors.New("invalid store id")
+	}
+	store, err := s.q.GetStoreById(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return db.Store{}, ErrNotFound
+		}
+		return db.Store{}, err
+	}
+	return store, nil
 }
 
 var ErrNotFound = sql.ErrNoRows
