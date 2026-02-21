@@ -14,6 +14,7 @@ type Querier interface {
 	AssignProductToCategory(ctx context.Context, arg *AssignProductToCategoryParams) error
 	AttachCartToCustomer(ctx context.Context, arg *AttachCartToCustomerParams) error
 	CancelMyReservation(ctx context.Context, arg *CancelMyReservationParams) (Reservation, error)
+	CancelMyReservationItem(ctx context.Context, arg *CancelMyReservationItemParams) (CancelMyReservationItemRow, error)
 	CartTotals(ctx context.Context, cartID int64) (CartTotalsRow, error)
 	CheckoutCreateReservation(ctx context.Context, arg *CheckoutCreateReservationParams) (CheckoutCreateReservationRow, error)
 	CheckoutInsertReservationItemsFromCartItemIDs(ctx context.Context, arg *CheckoutInsertReservationItemsFromCartItemIDsParams) ([]ReservationItem, error)
@@ -120,6 +121,7 @@ type Querier interface {
 	UpdateCartStoreID(ctx context.Context, arg *UpdateCartStoreIDParams) error
 	UpdateCustomer(ctx context.Context, arg *UpdateCustomerParams) (Customer, error)
 	UpdateInventoryItem(ctx context.Context, arg *UpdateInventoryItemParams) (InventoryItem, error)
+	UpdateMyReservationDetails(ctx context.Context, arg *UpdateMyReservationDetailsParams) (Reservation, error)
 	UpdateProduct(ctx context.Context, arg *UpdateProductParams) (Product, error)
 	UpdateProductCategory(ctx context.Context, arg *UpdateProductCategoryParams) (ProductCategory, error)
 	UpdateProductVariant(ctx context.Context, arg *UpdateProductVariantParams) (ProductVariant, error)

@@ -254,17 +254,25 @@ export default function CheckoutPage() {
       }
     
       const idempotencyKey = crypto.randomUUID();
-    
+
+      const customerName = `${customer.first_name} ${customer.last_name}`.trim();
+
+      const pickupPersonName = pickup.enabled
+        ? `${pickup.first_name.trim()} ${pickup.last_name.trim()}`.trim()
+        : customerName;
+
+      const pickupPersonEmail = pickup.enabled ? pickup.email.trim() : customer.email.trim();
+      const pickupPersonPhone = pickup.enabled ? pickup.phone.trim() : customer.phone.trim();
+
       const payload = {
         shop_id: me?.shop_id,
-        store_id: cart?.store_id, 
+        store_id: cart?.store_id,
         idempotency_key: idempotencyKey,
-        notes: customer?.notes ?? "",
-        pickup_person_name: pickup.enabled
-          ? `${pickup.first_name.trim()} ${pickup.last_name.trim()}`
-          : "",
-        pickup_person_phone: pickup.enabled ? pickup.phone.trim() : "",
-        pickup_person_email: pickup.enabled ? pickup.email.trim() : "",
+        notes: customer.notes?.trim() || null,
+
+        pickup_person_name: pickupPersonName || null,
+        pickup_person_email: pickupPersonEmail || null,
+        pickup_person_phone: pickupPersonPhone || null,
       };
     
       try {

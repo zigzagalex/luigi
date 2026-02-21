@@ -1,41 +1,58 @@
 import {NullableInt64, NullableString, NullableTime} from "@/lib/nulls"
 
+export type StoreView = {
+  id: number;
+  name: string;
+  address1: string;       
+  postal_code: string;    
+  city: string;           
+};
+
 export type ReservationItem = {
-    id: number;
-    reservation_id: number;
-    inventory_item_id: number;  
-    padded_range: unknown; // pg tstzrange serialized (keep unknown unless you parse it)    
-    product_id: NullableInt64 | null;
-    variant_id: NullableInt64 | null;   
-    is_active: boolean;
-    unit_price_cents: number;
-    quantity: number;
-    currency: string;
+  id: number;
+  reservation_id: number;
+  inventory_item_id: number;
+
+  product_id: number | null;
+  variant_id: number | null;
+
+  is_active: boolean;
+  unit_price_cents: number;
+  quantity: number;
+  currency: string;
 };
 
 export type Reservation = {
-    id: number;
-    shop_id: number;
-    store_id: number;   
-    customer_id: NullableInt64 | null;  
-    status: string; 
-    start_at: string; // RFC3339
-    end_at: string; 
-    total_price_cents: number;
-    currency: string;   
-    idempotency_key: NullableString | null;
-    version: number;    
-    notes: NullableString | null;   
-    pickup_person_name: NullableString | null;
-    pickup_person_phone: NullableString | null;
-    pickup_person_email: NullableString | null; 
-    cancelled_at: NullableTime | null;
-    cancel_reason: NullableString | null;   
-    store_snapshot_name: NullableString | null; 
-    created_at: string;
-    updated_at: string;
+  id: number;
+  shop_id: number;
+  store_id: number;
+  status: string;
+  currency: string;
+
+  customer_id: number | null;
+
+  start_at: string; // RFC3339
+  end_at: string;
+
+  total_price_cents: number;
+
+  idempotency_key: string | null;
+  version: number;
+
+  notes: string | null;
+  pickup_person_name: string | null;
+  pickup_person_phone: string | null;
+  pickup_person_email: string | null;
+
+  cancelled_at: string | null;     // RFC3339 or null
+  cancel_reason: string | null;
+
+  store_snapshot_name: string | null;
+
+  created_at: string; // RFC3339
+  updated_at: string; // RFC3339
 };
-  
+
 export type ReservationItemView = {
   reservation_item: ReservationItem;
   product_id?: number;
@@ -48,6 +65,7 @@ export type ReservationItemView = {
 export type ReservationView = {
   reservation: Reservation;
   items: ReservationItemView[];
+  store?: StoreView | null;
 };
   
 export type CheckoutRequest = {
@@ -152,5 +170,50 @@ export async function rescheduleReservation(
     return res.json();
   }
   
+  export type UpdateReservationDetailsRequest = {
+    shop_id: number;
+    expected_version: number;
+    pickup_person_name?: string | null;
+    pickup_person_phone?: string | null;
+    pickup_person_email?: string | null;
+    notes?: string | null;
+  };
   
+  export async function updateReservationDetails(
+    reservationId: number,
+    payload: UpdateReservationDetailsRequest
+  ): Promise<ReservationView> {
+    const res = await fetch(`/api/reservations/${reservationId}/update`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      credentials: "include",
+      body: JSON.stringify(payload),
+    });
   
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  }
+  
+  export type CancelReservationItemRequest = {
+    shop_id: number;
+    expected_version: number;
+  };
+  
+  export async function cancelReservationItem(
+    reservationId: number,
+    reservationItemId: number,
+    payload: CancelReservationItemRequest
+  ): Promise<ReservationView> {
+    const res = await fetch(
+      `/api/reservations/${reservationId}/items/${reservationItemId}/cancel`,
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        credentials: "include",
+        body: JSON.stringify(payload),
+      }
+    );
+  
+    if (!res.ok) throw new Error(await res.text());
+    return res.json();
+  }

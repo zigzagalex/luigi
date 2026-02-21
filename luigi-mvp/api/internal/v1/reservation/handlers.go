@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -31,7 +32,7 @@ func RegisterRoutes(
 	cartSvc *cart.Service,
 	imageSvc *images.Service,
 ) {
-	resSvc := reservation.NewService(q, sqlDB, cartSvc, imageSvc) 
+	resSvc := reservation.NewService(q, sqlDB, cartSvc, imageSvc)
 	custSvc := customers.NewService(q)
 
 	h := &Handler{
@@ -47,17 +48,20 @@ func RegisterRoutes(
 
 		r.Post("/{reservation_id}/cancel", h.CancelMyReservation)
 		r.Post("/{reservation_id}/reschedule", h.RescheduleMyReservation)
+
+		r.Post("/{reservation_id}/update", h.UpdateMyReservationDetails)
+		r.Post("/{reservation_id}/items/{reservation_item_id}/cancel", h.CancelMyReservationItem)
 	})
 }
 
 type checkoutRequest struct {
-	ShopID             int64   `json:"shop_id"`
-	StoreID            int64   `json:"store_id"`
-	IdempotencyKey     string  `json:"idempotency_key"`
-	Notes              *string `json:"notes"`
-	PickupPersonName   *string `json:"pickup_person_name"`
-	PickupPersonPhone  *string `json:"pickup_person_phone"`
-	PickupPersonEmail  *string `json:"pickup_person_email"`
+	ShopID            int64   `json:"shop_id"`
+	StoreID           int64   `json:"store_id"`
+	IdempotencyKey    string  `json:"idempotency_key"`
+	Notes             *string `json:"notes"`
+	PickupPersonName  *string `json:"pickup_person_name"`
+	PickupPersonPhone *string `json:"pickup_person_phone"`
+	PickupPersonEmail *string `json:"pickup_person_email"`
 }
 
 type cancelRequest struct {
@@ -73,6 +77,19 @@ type rescheduleRequest struct {
 	EndDate         string `json:"end_date"`
 }
 
+type updateReservationDetailsBody struct {
+	ShopID            int64   `json:"shop_id"`
+	ExpectedVersion   int32   `json:"expected_version"`
+	PickupPersonName  *string `json:"pickup_person_name"`
+	PickupPersonPhone *string `json:"pickup_person_phone"`
+	PickupPersonEmail *string `json:"pickup_person_email"`
+	Notes             *string `json:"notes"`
+}
+
+type cancelReservationItemBody struct {
+	ShopID          int64 `json:"shop_id"`
+	ExpectedVersion int32 `json:"expected_version"`
+}
 
 func (h *Handler) CheckoutFromCart(w http.ResponseWriter, r *http.Request) {
 	customerID, err := h.customerIDFromContext(r)
@@ -147,7 +164,6 @@ func (h *Handler) ListMyReservations(w http.ResponseWriter, r *http.Request) {
 
 	httpx.JSON(w, http.StatusOK, res)
 }
-
 
 func (h *Handler) GetMyReservation(w http.ResponseWriter, r *http.Request) {
 	customerID, err := h.customerIDFromContext(r)
@@ -284,6 +300,111 @@ func (h *Handler) customerIDFromContext(r *http.Request) (int64, error) {
 	return cust.ID, nil
 }
 
+func (h *Handler) UpdateMyReservationDetails(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	// route params
+	reservationID, err := parseChiIDParam(r, "reservation_id") // use your existing helper; see below if you don’t have one
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "invalid_reservation_id"})
+		return
+	}
+
+	// auth (match your existing pattern)
+	customerID, err := h.customerIDFromContext(r) // adapt to your auth helper
+	if err != nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "unauthorized"})
+		return
+	}
+
+	var body updateReservationDetailsBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "invalid_json_body"})
+		return
+	}
+	if body.ShopID <= 0 || body.ExpectedVersion <= 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "missing_shop_id_or_expected_version"})
+		return
+	}
+
+	out, err := h.svc.UpdateMyReservationDetails(ctx, reservation.UpdateDetailsInput{
+		ShopID:            body.ShopID,
+		CustomerID:        customerID,
+		ReservationID:     reservationID,
+		ExpectedVersion:   body.ExpectedVersion,
+		PickupPersonName:  body.PickupPersonName,
+		PickupPersonPhone: body.PickupPersonPhone,
+		PickupPersonEmail: body.PickupPersonEmail,
+		Notes:             body.Notes,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, reservation.ErrOptimisticLock):
+			writeJSON(w, http.StatusConflict, map[string]any{"error": "version_conflict"})
+		case errors.Is(err, reservation.ErrReservationNotFound):
+			writeJSON(w, http.StatusNotFound, map[string]any{"error": "reservation_not_found"})
+		default:
+			writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "internal_error"})
+		}
+		return
+	}
+
+	writeJSON(w, http.StatusOK, out)
+}
+
+func (h *Handler) CancelMyReservationItem(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	reservationID, err := parseChiIDParam(r, "reservation_id")
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "invalid_reservation_id"})
+		return
+	}
+
+	reservationItemID, err := parseChiIDParam(r, "reservation_item_id")
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "invalid_reservation_item_id"})
+		return
+	}
+
+	customerID, err := h.customerIDFromContext(r)
+	if err != nil {
+		writeJSON(w, http.StatusUnauthorized, map[string]any{"error": "unauthorized"})
+		return
+	}
+
+	var body cancelReservationItemBody
+	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "invalid_json_body"})
+		return
+	}
+	if body.ShopID <= 0 || body.ExpectedVersion <= 0 {
+		writeJSON(w, http.StatusBadRequest, map[string]any{"error": "missing_shop_id_or_expected_version"})
+		return
+	}
+
+	out, err := h.svc.CancelMyReservationItem(ctx, reservation.CancelItemInput{
+		ShopID:            body.ShopID,
+		CustomerID:        customerID,
+		ReservationID:     reservationID,
+		ReservationItemID: reservationItemID,
+		ExpectedVersion:   body.ExpectedVersion,
+	})
+	if err != nil {
+		switch {
+		case errors.Is(err, reservation.ErrOptimisticLock):
+			writeJSON(w, http.StatusConflict, map[string]any{"error": "version_conflict"})
+		case errors.Is(err, reservation.ErrReservationNotFound):
+			writeJSON(w, http.StatusNotFound, map[string]any{"error": "reservation_not_found"})
+		default:
+			writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "internal_error"})
+		}
+		return
+	}
+
+	writeJSON(w, http.StatusOK, out)
+}
+
 func parseReservationIDParam(r *http.Request) (int64, error) {
 	raw := chi.URLParam(r, "reservation_id")
 	return strconv.ParseInt(raw, 10, 64)
@@ -316,3 +437,20 @@ func parseDateRangeZurich(startDate, endDate string) (time.Time, time.Time, erro
 	return startAt, endAt, nil
 }
 
+func parseChiIDParam(r *http.Request, key string) (int64, error) {
+	raw := chi.URLParam(r, key)
+	if raw == "" {
+		return 0, fmt.Errorf("missing %s", key)
+	}
+	id, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil || id <= 0 {
+		return 0, fmt.Errorf("invalid %s", key)
+	}
+	return id, nil
+}
+
+func writeJSON(w http.ResponseWriter, status int, v any) {
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	_ = json.NewEncoder(w).Encode(v)
+}

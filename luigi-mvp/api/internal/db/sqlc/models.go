@@ -196,7 +196,7 @@ type Reservation struct {
 	ShopID            int64          `json:"shop_id"`
 	StoreID           int64          `json:"store_id"`
 	CustomerID        sql.NullInt64  `json:"customer_id"`
-	Status            interface{}    `json:"status"`
+	Status            string         `json:"status"`
 	StartAt           time.Time      `json:"start_at"`
 	EndAt             time.Time      `json:"end_at"`
 	ReservationRange  interface{}    `json:"reservation_range"`

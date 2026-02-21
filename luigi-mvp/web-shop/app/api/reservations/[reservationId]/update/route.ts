@@ -3,10 +3,10 @@ import { NextResponse } from "next/server";
 
 export async function POST(
   req: Request,
-  { params }: { params: { reservationId: string } }
+  { params }: { params: Promise<{ reservationId: string }> }
 ) {
   try {
-    const { reservationId } = params;
+    const { reservationId } =  await params;
 
     if (!reservationId) {
       return NextResponse.json(

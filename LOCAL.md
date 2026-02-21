@@ -93,3 +93,10 @@ pnpm install
 pnpm dev
 ```
 
+7. Restarting api docker container after changes
+```
+docker stop luigi-api-dev
+docker rm luigi-api-dev
+docker compose -f docker-compose.dev.yml up -d --build api
+```
+

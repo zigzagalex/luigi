@@ -1,22 +1,63 @@
 import { fetchApi } from "@/../utils/fetchAPI";
 import { NextResponse } from "next/server";
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ reservationId: string }> } 
+export async function POST(
+  req: Request,
+  { params }: { params: Promise<{ reservationId: string }> }
 ) {
-  const { reservationId } = await params;
-  const res = await fetchApi(
-    `/v1/reservations/${reservationId}`
-  );
+  try {
+    const { reservationId } = await params;
 
-  if (!res.ok) {
+    if (!reservationId) {
+      return NextResponse.json({ error: "missing_reservation_id" }, { status: 400 });
+    }
+
+    let body: unknown;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ error: "invalid_json_body" }, { status: 400 });
+    }
+
+    const cookieHeader = req.headers.get("cookie") ?? "";
+
+    // ✅ IMPORTANT: /update (NOT /reschedule)
+    const res = await fetchApi(`/v1/reservations/${reservationId}/update`, {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+        cookie: cookieHeader,
+      },
+      body: JSON.stringify(body),
+      cache: "no-store",
+    });
+
+    const text = await res.text();
+
+    if (!res.ok) {
+      console.error("Update backend error:", {
+        reservationId,
+        status: res.status,
+        body: text,
+      });
+
+      return NextResponse.json({ error: "backend_error", status: res.status }, { status: res.status });
+    }
+
+    let data: any;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      console.error("Invalid JSON from update backend:", text);
+      return NextResponse.json({ error: "invalid_backend_response" }, { status: 502 });
+    }
+
+    return NextResponse.json(data, { status: 200 });
+  } catch (e: any) {
+    console.error("Update proxy failed:", e);
     return NextResponse.json(
-      { error: await res.text() },
-      { status: res.status }
+      { error: "proxy_failed", detail: e?.message ?? "unknown_error" },
+      { status: 500 }
     );
   }
-
-  const data = await res.json();
-  return NextResponse.json(data);
 }

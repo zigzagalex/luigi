@@ -1,0 +1,142 @@
+.backdrop {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.42);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 18px;
+    z-index: 50;
+  }
+  
+  .modal {
+    width: 100%;
+    max-width: 560px;
+    background: #fff;
+    border-radius: 18px;
+    border: 1px solid rgba(0,0,0,0.10);
+    box-shadow: 0 20px 60px rgba(0,0,0,0.22);
+    overflow: hidden;
+  }
+  
+  .header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    padding: 14px 16px;
+    border-bottom: 1px solid rgba(0,0,0,0.08);
+  }
+  
+  .title {
+    font-weight: 800;
+    letter-spacing: -0.01em;
+    font-size: 16px;
+  }
+  
+  .close {
+    border: 1px solid rgba(0,0,0,0.12);
+    background: #fff;
+    border-radius: 10px;
+    padding: 6px 10px;
+    cursor: pointer;
+  }
+  
+  .close:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+  
+  .body {
+    padding: 14px 16px 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  
+  .notice {
+    background: rgba(220, 38, 38, 0.06);
+    border: 1px solid rgba(220, 38, 38, 0.16);
+    border-radius: 14px;
+    padding: 10px 12px;
+    color: rgba(120, 12, 12, 0.92);
+    line-height: 1.35;
+    font-size: 14px;
+  }
+  
+  .bold {
+    font-weight: 800;
+  }
+  
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .label {
+    font-size: 13px;
+    color: rgba(0,0,0,0.66);
+    font-weight: 650;
+  }
+  
+  .optional {
+    font-weight: 600;
+    color: rgba(0,0,0,0.5);
+  }
+  
+  .select,
+  .textarea {
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.14);
+    padding: 10px 12px;
+    font-size: 14px;
+    outline: none;
+  }
+  
+  .select:focus,
+  .textarea:focus {
+    border-color: rgba(0,0,0,0.25);
+  }
+  
+  .textarea {
+    resize: vertical;
+  }
+  
+  .error {
+    background: rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.10);
+    border-radius: 14px;
+    padding: 10px 12px;
+    color: rgba(0,0,0,0.78);
+    font-size: 14px;
+  }
+  
+  .footer {
+    padding: 12px 16px 16px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+  }
+  
+  .secondary,
+  .danger {
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-weight: 750;
+    font-size: 14px;
+    border: 1px solid rgba(0,0,0,0.12);
+    background: #fff;
+    cursor: pointer;
+  }
+  
+  .danger {
+    border-color: rgba(220, 38, 38, 0.35);
+    color: rgb(185, 28, 28);
+  }
+  
+  .secondary:disabled,
+  .danger:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }

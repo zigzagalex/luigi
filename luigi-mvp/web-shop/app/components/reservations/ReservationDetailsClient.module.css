@@ -1,0 +1,248 @@
+/* app/components/reservations/ReservationDetailsClient.module.css */
+.wrapper {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.topRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.backLink {
+  color: rgba(0,0,0,0.72);
+  text-decoration: none;
+  font-weight: 520;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+}
+
+.actions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.secondaryButton,
+.dangerButton {
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-weight: 600;
+  font-size: 14px;
+  text-decoration: none;
+  border: 1px solid rgba(0,0,0,0.12);
+  background: #fff;
+  color: rgba(0,0,0,0.82);
+  cursor: pointer;
+}
+
+.secondaryButton:hover {
+  border-color: rgba(0,0,0,0.18);
+}
+
+.dangerButton {
+  border-color: rgba(220, 38, 38, 0.35);
+  color: rgb(185, 28, 28);
+}
+
+.dangerButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.headerCard {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 16px;
+  padding: 16px;
+  flex-wrap: wrap;
+}
+
+.headerLeft {
+  min-width: 280px;
+  flex: 1;
+}
+
+.hTitle {
+  font-size: 22px;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.hSub {
+  margin-top: 4px;
+  font-size: 13px;
+  color: rgba(0,0,0,0.62);
+}
+
+.dot {
+  margin: 0 8px;
+  opacity: 0.8;
+}
+
+.range {
+  margin-top: 10px;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgba(0,0,0,0.78);
+}
+
+.headerRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
+  min-width: 220px;
+}
+
+.total {
+  font-size: 20px;
+  font-weight: 750;
+  letter-spacing: -0.01em;
+}
+
+.storeName {
+  font-size: 13px;
+  color: rgba(0,0,0,0.62);
+  text-align: right;
+}
+
+.muted {
+  color: rgba(0,0,0,0.55);
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 320px;
+  gap: 14px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  .headerRight {
+    align-items: flex-start;
+  }
+}
+
+.card {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 16px;
+  padding: 14px 14px 12px;
+}
+
+.cardTitle {
+  font-weight: 750;
+  letter-spacing: -0.01em;
+  margin-bottom: 10px;
+}
+
+.side {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.kv {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: 8px 12px;
+  font-size: 14px;
+}
+
+.k {
+  color: rgba(0,0,0,0.55);
+}
+
+.v {
+  color: rgba(0,0,0,0.82);
+  font-weight: 520;
+}
+
+.notes {
+  font-size: 14px;
+  color: rgba(0,0,0,0.78);
+  line-height: 1.5;
+}
+
+.infoCard {
+  background: rgba(220, 38, 38, 0.06);
+  border: 1px solid rgba(220, 38, 38, 0.18);
+  border-radius: 16px;
+  padding: 14px 16px;
+}
+
+.infoTitle {
+  font-weight: 750;
+  margin-bottom: 10px;
+  color: rgba(120, 12, 12, 0.92);
+}
+
+.infoGrid {
+  display: grid;
+  grid-template-columns: 110px 1fr;
+  gap: 8px 12px;
+  font-size: 14px;
+}
+
+.infoKey {
+  color: rgba(120, 12, 12, 0.72);
+}
+
+.infoVal {
+  color: rgba(120, 12, 12, 0.92);
+  font-weight: 600;
+}
+
+/* add near .card / .cardTitle */
+
+.cardHeaderRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+/* small edit button inside tiles */
+.editLink {
+  font-size: 13px;
+  font-weight: 650;
+  color: rgba(0, 0, 0, 0.72);
+  text-decoration: none;
+
+  border: 1px solid rgba(0, 0, 0, 0.12);
+  border-radius: 10px;
+  padding: 6px 10px;
+  background: #fff;
+}
+
+.editLink:hover {
+  border-color: rgba(0, 0, 0, 0.18);
+}
+
+.bottomActions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 14px;
+    flex-wrap: wrap;
+  }
