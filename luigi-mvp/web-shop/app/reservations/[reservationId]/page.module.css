@@ -1,19 +1,28 @@
+/* app/reservations/[reservationId]/page.module.css */
 .container {
-    max-width: 900px;
-    margin: 0 auto;
-    padding: 48px 24px;
-  }
-  
-  .title {
-    font-size: 24px;
-    font-weight: 600;
-    margin-bottom: 24px;
-  }
-  
-  .placeholder {
-    border: 1px solid #e5e5e5;
-    border-radius: 12px;
-    padding: 32px;
-    color: #777;
-  }
-  
+  max-width: 980px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.headerRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.title {
+  font-size: 28px;
+  font-weight: 650;
+  letter-spacing: -0.02em;
+  margin: 0;
+}
+
+.errorCard {
+  background: #fff;
+  border: 1px solid rgba(0,0,0,0.08);
+  border-radius: 14px;
+  padding: 14px 16px;
+}

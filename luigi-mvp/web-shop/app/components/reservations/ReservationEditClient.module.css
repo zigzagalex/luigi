@@ -1,0 +1,352 @@
+.wrapper {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  
+  .topRow {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .breadcrumb {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  
+  .backLink {
+    color: rgba(0,0,0,0.78);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  
+  .backLink:hover {
+    text-decoration: underline;
+  }
+  
+  .backLinkMuted {
+    color: rgba(0,0,0,0.62);
+    text-decoration: none;
+    font-weight: 600;
+  }
+  
+  .backLinkMuted:hover {
+    text-decoration: underline;
+  }
+  
+  .dot {
+    opacity: 0.6;
+  }
+  
+  .rightHint {
+    font-size: 13px;
+    color: rgba(0,0,0,0.6);
+  }
+  
+  .headerCard {
+    display: flex;
+    justify-content: space-between;
+    gap: 14px;
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 16px;
+    padding: 16px;
+    flex-wrap: wrap;
+  }
+  
+  .headerLeft {
+    min-width: 280px;
+    flex: 1;
+  }
+  
+  .hTitle {
+    font-size: 22px;
+    font-weight: 750;
+    letter-spacing: -0.02em;
+  }
+  
+  .range {
+    margin-top: 10px;
+    font-size: 14px;
+    font-weight: 650;
+    color: rgba(0,0,0,0.78);
+  }
+  
+  .smallMuted {
+    margin-top: 6px;
+    font-size: 13px;
+    color: rgba(0,0,0,0.56);
+    line-height: 1.35;
+  }
+  
+  .headerRight {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    min-width: 220px;
+  }
+  
+  .total {
+    font-size: 20px;
+    font-weight: 800;
+  }
+  
+  .storeName {
+    font-size: 13px;
+    color: rgba(0,0,0,0.62);
+    text-align: right;
+  }
+  
+  .warnCard {
+    background: rgba(245, 158, 11, 0.08);
+    border: 1px solid rgba(245, 158, 11, 0.18);
+    border-radius: 16px;
+    padding: 12px 14px;
+    color: rgba(120, 78, 10, 0.92);
+    font-weight: 650;
+  }
+  
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 360px;
+    gap: 14px;
+    align-items: start;
+  }
+  
+  @media (max-width: 900px) {
+    .grid {
+      grid-template-columns: 1fr;
+    }
+    .headerRight {
+      align-items: flex-start;
+    }
+  }
+  
+  .card {
+    background: #fff;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 16px;
+    padding: 14px;
+  }
+  
+  .side {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+  }
+  
+  .cardHeaderRow {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+    margin-bottom: 12px;
+  }
+  
+  .cardTitle {
+    font-weight: 800;
+    letter-spacing: -0.01em;
+  }
+  
+  .cardSubtitle {
+    font-size: 13px;
+    color: rgba(0,0,0,0.58);
+  }
+  
+  .muted {
+    font-size: 14px;
+    color: rgba(0,0,0,0.62);
+  }
+  
+  .kv {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 8px 12px;
+    font-size: 14px;
+  }
+  
+  .k {
+    color: rgba(0,0,0,0.55);
+  }
+  
+  .v {
+    color: rgba(0,0,0,0.84);
+    font-weight: 600;
+  }
+  
+  .formGrid {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+  
+  .label {
+    font-size: 13px;
+    color: rgba(0,0,0,0.66);
+    font-weight: 650;
+  }
+  
+  .input,
+  .textarea {
+    border-radius: 12px;
+    border: 1px solid rgba(0,0,0,0.14);
+    padding: 10px 12px;
+    font-size: 14px;
+    outline: none;
+  }
+  
+  .textarea {
+    resize: vertical;
+  }
+  
+  .actionsRow {
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+    margin-top: 12px;
+    flex-wrap: wrap;
+  }
+  
+  .btnPrimary,
+  .btnGhost {
+    border-radius: 12px;
+    padding: 10px 12px;
+    font-weight: 750;
+    font-size: 14px;
+    border: 1px solid rgba(0,0,0,0.12);
+    background: #fff;
+    cursor: pointer;
+    text-decoration: none;
+    color: rgba(0,0,0,0.82);
+  }
+  
+  .btnPrimary {
+    border-color: rgba(0,0,0,0.16);
+  }
+  
+  .btnGhost {
+    color: rgba(0,0,0,0.72);
+  }
+  
+  .errorBox {
+    margin-top: 10px;
+    background: rgba(220, 38, 38, 0.06);
+    border: 1px solid rgba(220, 38, 38, 0.18);
+    border-radius: 14px;
+    padding: 10px 12px;
+    color: rgba(120, 12, 12, 0.92);
+    font-size: 14px;
+  }
+  
+  .successBox {
+    margin-top: 10px;
+    background: rgba(16, 185, 129, 0.08);
+    border: 1px solid rgba(16, 185, 129, 0.18);
+    border-radius: 14px;
+    padding: 10px 12px;
+    color: rgba(6, 95, 70, 0.92);
+    font-size: 14px;
+  }
+  
+  .itemList {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .itemRow {
+    display: flex;
+    gap: 12px;
+    padding: 10px;
+    border: 1px solid rgba(0,0,0,0.08);
+    border-radius: 14px;
+  }
+  
+  .itemImgWrap {
+    width: 66px;
+    height: 66px;
+    flex: 0 0 auto;
+    border-radius: 12px;
+    overflow: hidden;
+    background: rgba(0,0,0,0.04);
+    border: 1px solid rgba(0,0,0,0.06);
+  }
+  
+  .itemImg {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+  
+  .itemInfo {
+    flex: 1;
+    min-width: 0;
+  }
+  
+  .itemTitle {
+    font-weight: 750;
+    color: rgba(0,0,0,0.86);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .itemMeta {
+    margin-top: 2px;
+    font-size: 13px;
+    color: rgba(0,0,0,0.62);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  
+  .itemRight {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 8px;
+    min-width: 110px;
+  }
+  
+  .itemPrice {
+    font-weight: 800;
+    color: rgba(0,0,0,0.84);
+    white-space: nowrap;
+  }
+  
+  .inlineConfirm {
+    display: flex;
+    gap: 8px;
+  }
+  
+  .btnDangerSmall,
+  .btnGhostSmall {
+    border-radius: 12px;
+    padding: 8px 10px;
+    font-weight: 750;
+    font-size: 13px;
+    border: 1px solid rgba(0,0,0,0.12);
+    background: #fff;
+    cursor: pointer;
+  }
+  
+  .btnDangerSmall {
+    border-color: rgba(220, 38, 38, 0.35);
+    color: rgb(185, 28, 28);
+  }
+  
+  .btnGhostSmall {
+    color: rgba(0,0,0,0.7);
+  }

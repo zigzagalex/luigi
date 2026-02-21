@@ -73,6 +73,114 @@ func (q *Queries) CancelMyReservation(ctx context.Context, arg *CancelMyReservat
 	return i, err
 }
 
+const cancelMyReservationItem = `-- name: CancelMyReservationItem :one
+WITH deactivated AS (
+  UPDATE reservation_items ri
+  SET is_active = false
+  FROM reservations r
+  WHERE
+    ri.id = $1::bigint
+    AND ri.reservation_id = $2::bigint
+    AND r.id = ri.reservation_id
+    AND r.shop_id = $3::bigint
+    AND r.customer_id = $4::bigint
+    AND r.status = 'confirmed'::reservation_status
+    AND r.version = $5::int
+    AND ri.is_active = true
+  RETURNING ri.id
+),
+new_total AS (
+  SELECT COALESCE(SUM(unit_price_cents * quantity), 0)::bigint AS total
+  FROM reservation_items
+  WHERE
+    reservation_id = $2::bigint
+    AND is_active = true
+),
+updated AS (
+  UPDATE reservations
+  SET
+    total_price_cents = (SELECT total FROM new_total),
+    version = version + 1,
+    updated_at = now()
+  WHERE
+    id = $2::bigint
+    AND shop_id = $3::bigint
+    AND customer_id = $4::bigint
+    AND status = 'confirmed'::reservation_status
+    AND version = $5::int
+    AND EXISTS (SELECT 1 FROM deactivated)
+  RETURNING id, shop_id, store_id, customer_id, status, start_at, end_at, reservation_range, total_price_cents, currency, idempotency_key, version, notes, created_at, updated_at, pickup_person_name, pickup_person_phone, pickup_person_email, cancelled_at, cancel_reason, store_snapshot_name
+)
+SELECT id, shop_id, store_id, customer_id, status, start_at, end_at, reservation_range, total_price_cents, currency, idempotency_key, version, notes, created_at, updated_at, pickup_person_name, pickup_person_phone, pickup_person_email, cancelled_at, cancel_reason, store_snapshot_name FROM updated
+`
+
+type CancelMyReservationItemParams struct {
+	ReservationItemID int64 `json:"reservation_item_id"`
+	ReservationID     int64 `json:"reservation_id"`
+	ShopID            int64 `json:"shop_id"`
+	CustomerID        int64 `json:"customer_id"`
+	ExpectedVersion   int32 `json:"expected_version"`
+}
+
+type CancelMyReservationItemRow struct {
+	ID                int64          `json:"id"`
+	ShopID            int64          `json:"shop_id"`
+	StoreID           int64          `json:"store_id"`
+	CustomerID        sql.NullInt64  `json:"customer_id"`
+	Status            interface{}    `json:"status"`
+	StartAt           time.Time      `json:"start_at"`
+	EndAt             time.Time      `json:"end_at"`
+	ReservationRange  interface{}    `json:"reservation_range"`
+	TotalPriceCents   int32          `json:"total_price_cents"`
+	Currency          string         `json:"currency"`
+	IdempotencyKey    sql.NullString `json:"idempotency_key"`
+	Version           int32          `json:"version"`
+	Notes             sql.NullString `json:"notes"`
+	CreatedAt         time.Time      `json:"created_at"`
+	UpdatedAt         time.Time      `json:"updated_at"`
+	PickupPersonName  sql.NullString `json:"pickup_person_name"`
+	PickupPersonPhone sql.NullString `json:"pickup_person_phone"`
+	PickupPersonEmail sql.NullString `json:"pickup_person_email"`
+	CancelledAt       sql.NullTime   `json:"cancelled_at"`
+	CancelReason      sql.NullString `json:"cancel_reason"`
+	StoreSnapshotName sql.NullString `json:"store_snapshot_name"`
+}
+
+func (q *Queries) CancelMyReservationItem(ctx context.Context, arg *CancelMyReservationItemParams) (CancelMyReservationItemRow, error) {
+	row := q.db.QueryRowContext(ctx, cancelMyReservationItem,
+		arg.ReservationItemID,
+		arg.ReservationID,
+		arg.ShopID,
+		arg.CustomerID,
+		arg.ExpectedVersion,
+	)
+	var i CancelMyReservationItemRow
+	err := row.Scan(
+		&i.ID,
+		&i.ShopID,
+		&i.StoreID,
+		&i.CustomerID,
+		&i.Status,
+		&i.StartAt,
+		&i.EndAt,
+		&i.ReservationRange,
+		&i.TotalPriceCents,
+		&i.Currency,
+		&i.IdempotencyKey,
+		&i.Version,
+		&i.Notes,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PickupPersonName,
+		&i.PickupPersonPhone,
+		&i.PickupPersonEmail,
+		&i.CancelledAt,
+		&i.CancelReason,
+		&i.StoreSnapshotName,
+	)
+	return i, err
+}
+
 const deactivateReservationItems = `-- name: DeactivateReservationItems :exec
 UPDATE reservation_items
 SET is_active = false
@@ -323,4 +431,71 @@ type RescheduleMyReservationItemsParams struct {
 func (q *Queries) RescheduleMyReservationItems(ctx context.Context, arg *RescheduleMyReservationItemsParams) error {
 	_, err := q.db.ExecContext(ctx, rescheduleMyReservationItems, arg.StartAt, arg.EndAt, arg.ReservationID)
 	return err
+}
+
+const updateMyReservationDetails = `-- name: UpdateMyReservationDetails :one
+UPDATE reservations
+SET
+  pickup_person_name  = $1::text,
+  pickup_person_phone = $2::text,
+  pickup_person_email = $3::text,
+  notes               = $4::text,
+  version             = version + 1,
+  updated_at          = now()
+WHERE
+  id = $5::bigint
+  AND shop_id = $6::bigint
+  AND customer_id = $7::bigint
+  AND status = 'confirmed'::reservation_status
+  AND version = $8::int
+RETURNING id, shop_id, store_id, customer_id, status, start_at, end_at, reservation_range, total_price_cents, currency, idempotency_key, version, notes, created_at, updated_at, pickup_person_name, pickup_person_phone, pickup_person_email, cancelled_at, cancel_reason, store_snapshot_name
+`
+
+type UpdateMyReservationDetailsParams struct {
+	PickupPersonName  sql.NullString `json:"pickup_person_name"`
+	PickupPersonPhone sql.NullString `json:"pickup_person_phone"`
+	PickupPersonEmail sql.NullString `json:"pickup_person_email"`
+	Notes             sql.NullString `json:"notes"`
+	ReservationID     int64          `json:"reservation_id"`
+	ShopID            int64          `json:"shop_id"`
+	CustomerID        int64          `json:"customer_id"`
+	ExpectedVersion   int32          `json:"expected_version"`
+}
+
+func (q *Queries) UpdateMyReservationDetails(ctx context.Context, arg *UpdateMyReservationDetailsParams) (Reservation, error) {
+	row := q.db.QueryRowContext(ctx, updateMyReservationDetails,
+		arg.PickupPersonName,
+		arg.PickupPersonPhone,
+		arg.PickupPersonEmail,
+		arg.Notes,
+		arg.ReservationID,
+		arg.ShopID,
+		arg.CustomerID,
+		arg.ExpectedVersion,
+	)
+	var i Reservation
+	err := row.Scan(
+		&i.ID,
+		&i.ShopID,
+		&i.StoreID,
+		&i.CustomerID,
+		&i.Status,
+		&i.StartAt,
+		&i.EndAt,
+		&i.ReservationRange,
+		&i.TotalPriceCents,
+		&i.Currency,
+		&i.IdempotencyKey,
+		&i.Version,
+		&i.Notes,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PickupPersonName,
+		&i.PickupPersonPhone,
+		&i.PickupPersonEmail,
+		&i.CancelledAt,
+		&i.CancelReason,
+		&i.StoreSnapshotName,
+	)
+	return i, err
 }

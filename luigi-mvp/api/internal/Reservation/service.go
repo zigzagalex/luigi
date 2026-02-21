@@ -39,10 +39,69 @@ func NewService(q *db.Queries, sqlDB *sql.DB, cartSvc *cart.Service, imageSvc *i
 	return &Service{q: q, db: sqlDB, cart: cartSvc, images: imageSvc}
 }
 
-// Views
+//
+// -------------------- DTOs --------------------
+//
 
+// StoreView is a clean JSON shape (no sql.NullString wrappers).
+type StoreView struct {
+	ID         int64  `json:"id"`
+	Name       string `json:"name"`
+	Address1   string `json:"address1"`
+	PostalCode string `json:"postal_code"`
+	City       string `json:"city"`
+}
+
+// ReservationDTO is the API-facing reservation representation.
+// Optional fields are pointers => JSON null when absent (or omitted if you add omitempty).
+type ReservationDTO struct {
+	ID       int64  `json:"id"`
+	ShopID   int64  `json:"shop_id"`
+	StoreID  int64  `json:"store_id"`
+	Status   string `json:"status"`
+	Currency string `json:"currency"`
+
+	CustomerID      *int64  `json:"customer_id"`
+	StartAt         string  `json:"start_at"`
+	EndAt           string  `json:"end_at"`
+	TotalPriceCents int64   `json:"total_price_cents"`
+	IdempotencyKey  *string `json:"idempotency_key"`
+	Version         int32   `json:"version"`
+
+	Notes             *string `json:"notes"`
+	PickupPersonName  *string `json:"pickup_person_name"`
+	PickupPersonPhone *string `json:"pickup_person_phone"`
+	PickupPersonEmail *string `json:"pickup_person_email"`
+
+	CancelledAt  *string `json:"cancelled_at"`
+	CancelReason *string `json:"cancel_reason"`
+
+	StoreSnapshotName *string `json:"store_snapshot_name"`
+
+	CreatedAt string `json:"created_at"`
+	UpdatedAt string `json:"updated_at"`
+}
+
+// ReservationItemDTO is the API-facing reservation item representation.
+type ReservationItemDTO struct {
+	ID              int64 `json:"id"`
+	ReservationID   int64 `json:"reservation_id"`
+	InventoryItemID int64 `json:"inventory_item_id"`
+
+	ProductID      *int64 `json:"product_id"`
+	VariantID      *int64 `json:"variant_id"`
+	IsActive       bool   `json:"is_active"`
+	UnitPriceCents int64  `json:"unit_price_cents"`
+	Quantity       int32  `json:"quantity"`
+	Currency       string `json:"currency"`
+
+	// If you want to surface range(s) later, add them here as strings.
+	// Keeping this out avoids leaking pq/sql internal types.
+}
+
+// ReservationItemView is the enriched API-facing item (clean DTO + optional enrichment).
 type ReservationItemView struct {
-	ReservationItem db.ReservationItem `json:"reservation_item"`
+	ReservationItem ReservationItemDTO `json:"reservation_item"`
 	ProductID       *int64             `json:"product_id,omitempty"`
 	VariantID       *int64             `json:"variant_id,omitempty"`
 	ProductName     string             `json:"product_name,omitempty"`
@@ -50,17 +109,146 @@ type ReservationItemView struct {
 	ImageURL        string             `json:"image_url,omitempty"`
 }
 
+// ReservationView is the top-level response: reservation + items + (optional) store.
 type ReservationView struct {
-	Reservation db.Reservation        `json:"reservation"`
+	Reservation ReservationDTO        `json:"reservation"`
 	Items       []ReservationItemView `json:"items"`
+	Store       *StoreView            `json:"store,omitempty"`
 }
 
-// Enricher
-func (s *Service) buildReservationItemViews(
-	ctx context.Context,
-	items []db.ReservationItem,
-) ([]ReservationItemView, error) {
+//
+// -------------------- Null helpers --------------------
+//
 
+func ptrString(ns sql.NullString) *string {
+	if !ns.Valid {
+		return nil
+	}
+	v := ns.String
+	if strings.TrimSpace(v) == "" {
+		return nil
+	}
+	return &v
+}
+
+func ptrInt64(ni sql.NullInt64) *int64 {
+	if !ni.Valid {
+		return nil
+	}
+	v := ni.Int64
+	return &v
+}
+
+func ptrTime(nt sql.NullTime) *string {
+	if !nt.Valid {
+		return nil
+	}
+	s := nt.Time.UTC().Format(time.RFC3339Nano)
+	return &s
+}
+
+func timeStr(t time.Time) string {
+	return t.UTC().Format(time.RFC3339Nano)
+}
+
+// For incoming optional strings in requests
+func toNullString(p *string) sql.NullString {
+	if p == nil {
+		return sql.NullString{}
+	}
+	if strings.TrimSpace(*p) == "" {
+		return sql.NullString{}
+	}
+	return sql.NullString{String: strings.TrimSpace(*p), Valid: true}
+}
+
+//
+// -------------------- Mapping db -> DTO --------------------
+//
+
+func toReservationDTO(r db.Reservation) ReservationDTO {
+	return ReservationDTO{
+		ID:       r.ID,
+		ShopID:   r.ShopID,
+		StoreID:  r.StoreID,
+		Status:   r.Status,
+		Currency: r.Currency,
+
+		CustomerID:      ptrInt64(r.CustomerID),
+		StartAt:         timeStr(r.StartAt),
+		EndAt:           timeStr(r.EndAt),
+		TotalPriceCents: int64(r.TotalPriceCents),
+		IdempotencyKey:  ptrString(r.IdempotencyKey),
+		Version:         r.Version,
+
+		Notes:             ptrString(r.Notes),
+		PickupPersonName:  ptrString(r.PickupPersonName),
+		PickupPersonPhone: ptrString(r.PickupPersonPhone),
+		PickupPersonEmail: ptrString(r.PickupPersonEmail),
+
+		CancelledAt:  ptrTime(r.CancelledAt),
+		CancelReason: ptrString(r.CancelReason),
+
+		StoreSnapshotName: ptrString(r.StoreSnapshotName),
+
+		CreatedAt: timeStr(r.CreatedAt),
+		UpdatedAt: timeStr(r.UpdatedAt),
+	}
+}
+
+func toReservationItemDTO(it db.ReservationItem) ReservationItemDTO {
+	return ReservationItemDTO{
+		ID:              it.ID,
+		ReservationID:   it.ReservationID,
+		InventoryItemID: it.InventoryItemID,
+
+		ProductID: ptrInt64(it.ProductID),
+		VariantID: ptrInt64(it.VariantID),
+
+		IsActive:       it.IsActive,
+		UnitPriceCents: int64(it.UnitPriceCents),
+		Quantity:       it.Quantity,
+		Currency:       it.Currency,
+	}
+}
+
+func (s *Service) loadStoreView(ctx context.Context, storeID int64) (*StoreView, error) {
+	store, err := s.q.GetStoreById(ctx, storeID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, err
+	}
+
+	// Treat null strings as "" for store fields (simplest for UI).
+	addr := ""
+	if store.Address1.Valid {
+		addr = store.Address1.String
+	}
+	postal := ""
+	if store.PostalCode.Valid {
+		postal = store.PostalCode.String
+	}
+	city := ""
+	if store.City.Valid {
+		city = store.City.String
+	}
+
+	return &StoreView{
+		ID:         store.ID,
+		Name:       store.Name,
+		Address1:   addr,
+		PostalCode: postal,
+		City:       city,
+	}, nil
+}
+
+//
+// -------------------- Enricher --------------------
+//
+
+func (s *Service) buildReservationItemViews(ctx context.Context, items []db.ReservationItem) ([]ReservationItemView, error) {
 	out := make([]ReservationItemView, 0, len(items))
 
 	for _, it := range items {
@@ -69,13 +257,13 @@ func (s *Service) buildReservationItemViews(
 		}
 
 		view := ReservationItemView{
-			ReservationItem: it,
+			ReservationItem: toReservationItemDTO(it),
+			ProductID:       ptrInt64(it.ProductID),
+			VariantID:       ptrInt64(it.VariantID),
 		}
 
 		if it.ProductID.Valid {
 			productID := it.ProductID.Int64
-			view.ProductID = &productID
-
 			product, err := s.q.GetProduct(ctx, productID)
 			if err != nil {
 				if !errors.Is(err, sql.ErrNoRows) {
@@ -88,8 +276,6 @@ func (s *Service) buildReservationItemViews(
 
 		if it.VariantID.Valid {
 			variantID := it.VariantID.Int64
-			view.VariantID = &variantID
-
 			variant, err := s.q.GetProductVariantByID(ctx, variantID)
 			if err != nil {
 				if !errors.Is(err, sql.ErrNoRows) {
@@ -99,11 +285,9 @@ func (s *Service) buildReservationItemViews(
 				view.VariantText = formatVariantAttributes(variant.Attributes)
 			}
 
-			// Image enrichment
 			if s.images != nil {
 				url, err := s.images.GetPrimaryImageURL(ctx, variantID)
 				if err != nil {
-					// Only fail on real infra error
 					if !errors.Is(err, sql.ErrNoRows) {
 						return nil, fmt.Errorf("load image for variant %d: %w", variantID, err)
 					}
@@ -119,7 +303,9 @@ func (s *Service) buildReservationItemViews(
 	return out, nil
 }
 
-// Checkout
+//
+// -------------------- Checkout --------------------
+//
 
 type CheckoutInput struct {
 	ShopID     int64
@@ -134,7 +320,6 @@ type CheckoutInput struct {
 	PickupPersonEmail *string
 }
 
-// If cart contains multiple distinct date ranges, create one reservation per range.
 func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]ReservationView, error) {
 	if in.ShopID <= 0 || in.StoreID <= 0 || in.CustomerID <= 0 {
 		return nil, fmt.Errorf("invalid checkout input: shop/store/customer required")
@@ -146,7 +331,6 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 		return nil, errors.New("reservation service missing cart service dependency")
 	}
 
-	// 1) Load cart as the single source of truth for “blocked” enforcement
 	cv, err := s.cart.GetCart(ctx, cart.Owner{CustomerID: &in.CustomerID}, in.ShopID)
 	if err != nil {
 		return nil, err
@@ -155,19 +339,13 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 		return nil, ErrCartEmpty
 	}
 
-	// enforce same rule as UI
 	for _, it := range cv.Items {
 		if it.Blocked {
 			return nil, ErrCartBlocked
 		}
 	}
 
-	// 2) Group cart items by (start_at, end_at).
-	// Support multiple date ranges in the cart cleanly.
-	type key struct {
-		start string
-		end   string
-	}
+	type key struct{ start, end string }
 	groups := map[key][]int64{}
 	for _, it := range cv.Items {
 		k := key{
@@ -177,7 +355,6 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 		groups[k] = append(groups[k], it.ID)
 	}
 
-	// 3) One transaction for all reservations created from this cart
 	tx, err := s.db.BeginTx(ctx, nil)
 	if err != nil {
 		return nil, err
@@ -186,8 +363,15 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 
 	qtx := s.q.WithTx(tx)
 
+	// If you want store info in the checkout response too:
+	storeView, err := s.loadStoreView(ctx, in.StoreID)
+	if err != nil {
+		return nil, err
+	}
+
 	out := make([]ReservationView, 0, len(groups))
 	i := 0
+
 	for k, cartItemIDs := range groups {
 		i++
 
@@ -197,13 +381,11 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 			return nil, ErrInvalidRange
 		}
 
-		// If multiple reservations: derive stable idempotency keys per group
 		idem := in.IdempotencyKey
 		if len(groups) > 1 {
 			idem = fmt.Sprintf("%s:%d", in.IdempotencyKey, i)
 		}
 
-		// 3a) Create reservation (idempotent by idempotency_key)
 		resRow, err := qtx.CheckoutCreateReservation(ctx, &db.CheckoutCreateReservationParams{
 			ShopID:            in.ShopID,
 			StoreID:           in.StoreID,
@@ -220,9 +402,9 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 		if err != nil {
 			return nil, err
 		}
+
 		res := mapCheckoutRowToReservation(resRow)
 
-		// 3b) Insert reservation items from cart items (may fail due to exclusion constraint)
 		_, err = qtx.CheckoutInsertReservationItemsFromCartItemIDs(ctx, &db.CheckoutInsertReservationItemsFromCartItemIDsParams{
 			ReservationID: res.ID,
 			CartItemIds:   cartItemIDs,
@@ -234,7 +416,6 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 			return nil, err
 		}
 
-		// 3c) Load inserted items for response
 		itemRows, err := qtx.ListReservationItemsByReservationIDs(ctx, []int64{res.ID})
 		if err != nil {
 			return nil, err
@@ -246,13 +427,12 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 		}
 
 		out = append(out, ReservationView{
-			Reservation: res,
+			Reservation: toReservationDTO(res),
 			Items:       itemViews,
+			Store:       storeView,
 		})
 	}
 
-	// 4) Close the cart (so user can’t “checkout again” with same items)
-	// This assumes you already have UpdateCartStatus in SQLC like your cart service uses.
 	if err := qtx.UpdateCartStatus(ctx, &db.UpdateCartStatusParams{
 		CartID: cv.Cart.ID,
 		Status: "checked_out",
@@ -267,7 +447,9 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 	return out, nil
 }
 
-// ------------ List / Get ------------
+//
+// -------------------- List / Get --------------------
+//
 
 type ListMyReservationsInput struct {
 	ShopID     int64
@@ -316,7 +498,6 @@ func (s *Service) ListMyReservations(ctx context.Context, in ListMyReservationsI
 	}
 
 	byResID := map[int64][]ReservationItemView{}
-
 	for _, v := range itemViews {
 		rid := v.ReservationItem.ReservationID
 		byResID[rid] = append(byResID[rid], v)
@@ -325,8 +506,9 @@ func (s *Service) ListMyReservations(ctx context.Context, in ListMyReservationsI
 	out := make([]ReservationView, 0, len(resRows))
 	for _, r := range resRows {
 		out = append(out, ReservationView{
-			Reservation: r,
+			Reservation: toReservationDTO(r),
 			Items:       byResID[r.ID],
+			// Store omitted for list by default (keep it fast).
 		})
 	}
 	return out, nil
@@ -359,13 +541,21 @@ func (s *Service) GetMyReservation(ctx context.Context, shopID, customerID, rese
 		return ReservationView{}, err
 	}
 
+	storeView, err := s.loadStoreView(ctx, r.StoreID)
+	if err != nil {
+		return ReservationView{}, err
+	}
+
 	return ReservationView{
-		Reservation: r,
+		Reservation: toReservationDTO(r),
 		Items:       itemViews,
+		Store:       storeView,
 	}, nil
 }
 
-// ------------ Cancel ------------
+//
+// -------------------- Cancel --------------------
+//
 
 type CancelInput struct {
 	ShopID          int64
@@ -400,18 +590,16 @@ func (s *Service) CancelMyReservation(ctx context.Context, in CancelInput) (Rese
 	})
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			// Either not found OR version mismatch OR not confirmed
 			return ReservationView{}, ErrOptimisticLock
 		}
 		return ReservationView{}, err
 	}
 
-	// Make items inactive so exclusion constraint stops blocking future rentals
 	if err := qtx.DeactivateReservationItems(ctx, r.ID); err != nil {
 		return ReservationView{}, err
 	}
 
-	itemRows, err := s.q.ListReservationItemsByReservationIDs(ctx, []int64{r.ID})
+	itemRows, err := qtx.ListReservationItemsByReservationIDs(ctx, []int64{r.ID})
 	if err != nil {
 		return ReservationView{}, err
 	}
@@ -425,10 +613,22 @@ func (s *Service) CancelMyReservation(ctx context.Context, in CancelInput) (Rese
 		return ReservationView{}, err
 	}
 
-	return ReservationView{Reservation: r, Items: itemViews}, nil
+	// Include store in mutation response (so UI keeps it)
+	storeView, err := s.loadStoreView(ctx, r.StoreID)
+	if err != nil {
+		return ReservationView{}, err
+	}
+
+	return ReservationView{
+		Reservation: toReservationDTO(r),
+		Items:       itemViews,
+		Store:       storeView,
+	}, nil
 }
 
-// ------------ Reschedule ------------
+//
+// -------------------- Reschedule --------------------
+//
 
 type RescheduleInput struct {
 	ShopID          int64
@@ -473,7 +673,6 @@ func (s *Service) RescheduleMyReservation(ctx context.Context, in RescheduleInpu
 		return ReservationView{}, err
 	}
 
-	// This can fail due to exclusion constraint => translate to a clean domain error
 	if err := qtx.RescheduleMyReservationItems(ctx, &db.RescheduleMyReservationItemsParams{
 		ReservationID: in.ReservationID,
 		StartAt:       in.StartAt,
@@ -499,20 +698,21 @@ func (s *Service) RescheduleMyReservation(ctx context.Context, in RescheduleInpu
 		return ReservationView{}, err
 	}
 
-	return ReservationView{Reservation: r, Items: itemViews}, nil
+	storeView, err := s.loadStoreView(ctx, r.StoreID)
+	if err != nil {
+		return ReservationView{}, err
+	}
+
+	return ReservationView{
+		Reservation: toReservationDTO(r),
+		Items:       itemViews,
+		Store:       storeView,
+	}, nil
 }
 
-// ------------ helpers ------------
-
-func toNullString(p *string) sql.NullString {
-	if p == nil {
-		return sql.NullString{}
-	}
-	if *p == "" {
-		return sql.NullString{}
-	}
-	return sql.NullString{String: *p, Valid: true}
-}
+//
+// -------------------- helpers --------------------
+//
 
 // Postgres exclusion violation is SQLSTATE 23P01
 func isExclusionViolation(err error) bool {
@@ -530,12 +730,17 @@ func isExclusionViolation(err error) bool {
 }
 
 func mapCheckoutRowToReservation(r db.CheckoutCreateReservationRow) db.Reservation {
+	status, ok := r.Status.(string)
+	if !ok {
+		status = fmt.Sprint(r.Status)
+	}
+
 	return db.Reservation{
 		ID:                r.ID,
 		ShopID:            r.ShopID,
 		StoreID:           r.StoreID,
 		CustomerID:        r.CustomerID,
-		Status:            r.Status,
+		Status:            status,
 		StartAt:           r.StartAt,
 		EndAt:             r.EndAt,
 		ReservationRange:  r.ReservationRange,
@@ -571,4 +776,173 @@ func formatVariantAttributes(raw pqtype.NullRawMessage) string {
 	}
 
 	return strings.Join(parts, " · ")
+}
+
+type UpdateDetailsInput struct {
+	ShopID          int64
+	CustomerID      int64
+	ReservationID   int64
+	ExpectedVersion int32
+
+	PickupPersonName  *string
+	PickupPersonPhone *string
+	PickupPersonEmail *string
+	Notes             *string
+}
+
+func (s *Service) UpdateMyReservationDetails(ctx context.Context, in UpdateDetailsInput) (ReservationView, error) {
+	if in.ShopID <= 0 || in.CustomerID <= 0 || in.ReservationID <= 0 {
+		return ReservationView{}, ErrReservationNotFound
+	}
+	if in.ExpectedVersion <= 0 {
+		return ReservationView{}, ErrOptimisticLock
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return ReservationView{}, err
+	}
+	defer tx.Rollback()
+
+	qtx := s.q.WithTx(tx)
+
+	updated, err := qtx.UpdateMyReservationDetails(ctx, &db.UpdateMyReservationDetailsParams{
+		ReservationID:     in.ReservationID,
+		ShopID:            in.ShopID,
+		CustomerID:        in.CustomerID,
+		ExpectedVersion:   in.ExpectedVersion,
+		PickupPersonName:  toNullString(in.PickupPersonName),
+		PickupPersonPhone: toNullString(in.PickupPersonPhone),
+		PickupPersonEmail: toNullString(in.PickupPersonEmail),
+		Notes:             toNullString(in.Notes),
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ReservationView{}, ErrOptimisticLock
+		}
+		return ReservationView{}, err
+	}
+
+	itemRows, err := qtx.ListReservationItemsByReservationIDs(ctx, []int64{updated.ID})
+	if err != nil {
+		return ReservationView{}, err
+	}
+
+	itemViews, err := s.buildReservationItemViews(ctx, itemRows)
+	if err != nil {
+		return ReservationView{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return ReservationView{}, err
+	}
+
+	storeView, err := s.loadStoreView(ctx, updated.StoreID)
+	if err != nil {
+		return ReservationView{}, err
+	}
+
+	return ReservationView{
+		Reservation: toReservationDTO(updated),
+		Items:       itemViews,
+		Store:       storeView,
+	}, nil
+}
+
+type CancelItemInput struct {
+	ShopID            int64
+	CustomerID        int64
+	ReservationID     int64
+	ReservationItemID int64
+	ExpectedVersion   int32
+}
+
+func (s *Service) CancelMyReservationItem(ctx context.Context, in CancelItemInput) (ReservationView, error) {
+	if in.ShopID <= 0 || in.CustomerID <= 0 || in.ReservationID <= 0 || in.ReservationItemID <= 0 {
+		return ReservationView{}, ErrReservationNotFound
+	}
+	if in.ExpectedVersion <= 0 {
+		return ReservationView{}, ErrOptimisticLock
+	}
+
+	tx, err := s.db.BeginTx(ctx, nil)
+	if err != nil {
+		return ReservationView{}, err
+	}
+	defer tx.Rollback()
+
+	qtx := s.q.WithTx(tx)
+
+	updated, err := qtx.CancelMyReservationItem(ctx, &db.CancelMyReservationItemParams{
+		ReservationItemID: in.ReservationItemID,
+		ReservationID:     in.ReservationID,
+		ShopID:            in.ShopID,
+		CustomerID:        in.CustomerID,
+		ExpectedVersion:   in.ExpectedVersion,
+	})
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ReservationView{}, ErrOptimisticLock
+		}
+		return ReservationView{}, err
+	}
+
+	itemRows, err := qtx.ListReservationItemsByReservationIDs(ctx, []int64{updated.ID})
+	if err != nil {
+		return ReservationView{}, err
+	}
+
+	itemViews, err := s.buildReservationItemViews(ctx, itemRows)
+	if err != nil {
+		return ReservationView{}, err
+	}
+
+	if err := tx.Commit(); err != nil {
+		return ReservationView{}, err
+	}
+
+	storeView, err := s.loadStoreView(ctx, updated.StoreID)
+	if err != nil {
+		return ReservationView{}, err
+	}
+
+	return ReservationView{
+		Reservation: toReservationDTOFromCancelItemRow(updated),
+		Items:       itemViews,
+		Store:       storeView,
+	}, nil
+}
+
+func toReservationDTOFromCancelItemRow(r db.CancelMyReservationItemRow) ReservationDTO {
+	status, ok := r.Status.(string)
+	if !ok {
+		status = fmt.Sprint(r.Status)
+	}
+	return ReservationDTO{
+		ID:       r.ID,
+		ShopID:   r.ShopID,
+		StoreID:  r.StoreID,
+		Status:   status,
+		Currency: r.Currency,
+
+		CustomerID:      ptrInt64(r.CustomerID),
+		StartAt:         timeStr(r.StartAt),
+		EndAt:           timeStr(r.EndAt),
+		TotalPriceCents: int64(r.TotalPriceCents),
+		IdempotencyKey:  ptrString(r.IdempotencyKey),
+		Version:         r.Version,
+
+		Notes:             ptrString(r.Notes),
+		PickupPersonName:  ptrString(r.PickupPersonName),
+		PickupPersonPhone: ptrString(r.PickupPersonPhone),
+		PickupPersonEmail: ptrString(r.PickupPersonEmail),
+
+		CancelledAt:  ptrTime(r.CancelledAt),
+		CancelReason: ptrString(r.CancelReason),
+
+		StoreSnapshotName: ptrString(r.StoreSnapshotName),
+
+		CreatedAt: timeStr(r.CreatedAt),
+		UpdatedAt: timeStr(r.UpdatedAt),
+	}
 }
