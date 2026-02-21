@@ -257,7 +257,7 @@ export default function CheckoutPage() {
     
       const payload = {
         shop_id: me?.shop_id,
-        store_id: cart?.cart.store_id, 
+        store_id: cart?.store_id, 
         idempotency_key: idempotencyKey,
         notes: customer?.notes ?? "",
         pickup_person_name: pickup.enabled

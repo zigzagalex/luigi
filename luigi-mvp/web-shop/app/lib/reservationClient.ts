@@ -36,9 +36,18 @@ export type Reservation = {
     updated_at: string;
 };
   
+export type ReservationItemView = {
+  reservation_item: ReservationItem;
+  product_id?: number;
+  variant_id?: number;
+  product_name?: string;
+  variant_text?: string;
+  image_url?: string;
+};
+
 export type ReservationView = {
-    reservation: Reservation;
-    items: ReservationItem[];
+  reservation: Reservation;
+  items: ReservationItemView[];
 };
   
 export type CheckoutRequest = {

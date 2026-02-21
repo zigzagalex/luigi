@@ -30,7 +30,7 @@ echo "   API is up ✅"
 echo "-> Creating shop 'Luigi's Bike Shop'..."
 
 SHOP_RESP="$(
-  curl -sS -X POST "${API_BASE_URL}/v1/shops" \
+  curl -sS -X POST "${API_BASE_URL}/v1/shops/" \
     -H "Content-Type: application/json" \
     -d @- <<'JSON'
 {

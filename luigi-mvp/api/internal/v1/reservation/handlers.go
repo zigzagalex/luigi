@@ -10,9 +10,11 @@ import (
 	"time"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/zigzagalex/luigi/api/internal/cart"
 	"github.com/zigzagalex/luigi/api/internal/customers"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
+	"github.com/zigzagalex/luigi/api/internal/images"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	"github.com/zigzagalex/luigi/api/internal/reservation"
 )
@@ -26,8 +28,10 @@ func RegisterRoutes(
 	r chi.Router,
 	q *db.Queries,
 	sqlDB *sql.DB,
+	cartSvc *cart.Service,
+	imageSvc *images.Service,
 ) {
-	resSvc := reservation.NewService(q, sqlDB, nil) 
+	resSvc := reservation.NewService(q, sqlDB, cartSvc, imageSvc) 
 	custSvc := customers.NewService(q)
 
 	h := &Handler{

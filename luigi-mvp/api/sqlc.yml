@@ -19,4 +19,6 @@ sql:
             go_type: time.Time
           - db_type: "pg_catalog.interval"
             go_type: "string"
+          - column: carts.status
+            go_type: string
 

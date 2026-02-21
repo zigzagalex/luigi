@@ -10,11 +10,13 @@ import (
 	chiMw "github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
 	avSvc "github.com/zigzagalex/luigi/api/internal/availability"
+	cartsvc "github.com/zigzagalex/luigi/api/internal/cart"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	"github.com/zigzagalex/luigi/api/internal/storage"
 	stSvc "github.com/zigzagalex/luigi/api/internal/stores"
 	usersvc "github.com/zigzagalex/luigi/api/internal/users"
+	imagesvc "github.com/zigzagalex/luigi/api/internal/images"
 
 	v1auth "github.com/zigzagalex/luigi/api/internal/v1/auth"
 	v1availability "github.com/zigzagalex/luigi/api/internal/v1/availability"
@@ -67,6 +69,7 @@ func New(d Deps) http.Handler {
 		// Shared services
 		avService := avSvc.NewService(d.Q)
 		stService := stSvc.NewService(d.Q)
+		imageSvc := imagesvc.NewService(d.Q, d.Storage, d.MediaBaseURL)
 
 		// Auth routes (public + /me protected inside the module)
 		v1auth.RegisterRoutes(r, d.FirebaseAuth, d.Q, d.SQLDB, d.Env, avService, stService)
@@ -84,9 +87,10 @@ func New(d Deps) http.Handler {
 
 		r.Group(func(r chi.Router) {
 			us := usersvc.NewService(d.Q)
+			cartSvc := cartsvc.NewService(d.Q, d.SQLDB, avService, stService)
 			r.Use(middleware.OptionalSessionCookie(d.FirebaseAuth, us, "luigi_session"))
 			v1cart.RegisterRoutes(r, d.Q, d.SQLDB, avService, stService)
-			v1reservations.RegisterRoutes(r, d.Q, d.SQLDB)
+			v1reservations.RegisterRoutes(r, d.Q, d.SQLDB, cartSvc, imageSvc)
 		})
 
 		// Protected routes (admin/management)
