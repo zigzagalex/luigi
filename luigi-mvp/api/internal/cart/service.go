@@ -52,8 +52,16 @@ type CartItemView struct {
 	Reason      string `json:"reason,omitempty"` // e.g. "start_date_in_past" | "not_available"
 }
 
+type CartDTO struct {
+    ID        int64   `json:"id"`
+    ShopID    int64   `json:"shop_id"`
+    StoreID   *int64  `json:"store_id,omitempty"`
+    Status    string  `json:"status"`
+    StoreName string  `json:"store_name,omitempty"`
+}
+
 type CartView struct {
-	Cart            db.Cart        `json:"cart"`
+	Cart            CartDTO       `json:"cart"`
 	Items           []CartItemView `json:"items"`
 	StoreID         int64          `json:"store_id"`
 	StoreName       string         `json:"store_name"`
@@ -577,9 +585,15 @@ func (s *Service) buildCartView(ctx context.Context, cartID int64) (*CartView, e
 			storeCity = store.City.String
 		}
 	}
+	dto := CartDTO{
+		ID:      cartRow.ID,
+		ShopID:  cartRow.ShopID,
+		StoreID: &storeId,
+		Status:  cartRow.Status,
+	}
 
 	return &CartView{
-		Cart:            cartRow,
+		Cart:            dto,
 		Items:           outItems,
 		StoreID:         storeId,
 		StoreName:       storeName,

@@ -28,7 +28,7 @@ type Cart struct {
 	StoreID    sql.NullInt64  `json:"store_id"`
 	CustomerID sql.NullInt64  `json:"customer_id"`
 	SessionID  sql.NullString `json:"session_id"`
-	Status     interface{}    `json:"status"`
+	Status     string         `json:"status"`
 	ExpiresAt  time.Time      `json:"expires_at"`
 	CreatedAt  time.Time      `json:"created_at"`
 	UpdatedAt  time.Time      `json:"updated_at"`

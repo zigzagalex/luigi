@@ -329,7 +329,7 @@ type GetCartItemWithCartRow struct {
 	Quantity        int32          `json:"quantity"`
 	CreatedAt       time.Time      `json:"created_at"`
 	CartID_2        int64          `json:"cart_id_2"`
-	CartStatus      interface{}    `json:"cart_status"`
+	CartStatus      string         `json:"cart_status"`
 	CartShopID      int64          `json:"cart_shop_id"`
 	CartStoreID     sql.NullInt64  `json:"cart_store_id"`
 	CartCustomerID  sql.NullInt64  `json:"cart_customer_id"`

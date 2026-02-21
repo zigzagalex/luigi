@@ -3,14 +3,18 @@ package reservation
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"errors"
 	"fmt"
+	"strings"
 	"time"
 
 	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/lib/pq"
+	"github.com/sqlc-dev/pqtype"
 	"github.com/zigzagalex/luigi/api/internal/cart"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
+	"github.com/zigzagalex/luigi/api/internal/images"
 )
 
 var (
@@ -25,29 +29,94 @@ var (
 )
 
 type Service struct {
-	q    *db.Queries
-	db   *sql.DB
-	cart *cart.Service
+	q      *db.Queries
+	db     *sql.DB
+	cart   *cart.Service
+	images *images.Service
 }
 
-func NewService(q *db.Queries, sqlDB *sql.DB, cartSvc *cart.Service) *Service {
-	return &Service{q: q, db: sqlDB, cart: cartSvc}
+func NewService(q *db.Queries, sqlDB *sql.DB, cartSvc *cart.Service, imageSvc *images.Service) *Service {
+	return &Service{q: q, db: sqlDB, cart: cartSvc, images: imageSvc}
 }
 
 // Views
 
 type ReservationItemView struct {
-	db.ReservationItem `json:"reservation_item"`
+	ReservationItem db.ReservationItem `json:"reservation_item"`
+	ProductID       *int64             `json:"product_id,omitempty"`
+	VariantID       *int64             `json:"variant_id,omitempty"`
+	ProductName     string             `json:"product_name,omitempty"`
+	VariantText     string             `json:"variant_text,omitempty"`
+	ImageURL        string             `json:"image_url,omitempty"`
 }
 
 type ReservationView struct {
-	Reservation db.Reservation       `json:"reservation"`
-	Items       []db.ReservationItem `json:"items"`
+	Reservation db.Reservation        `json:"reservation"`
+	Items       []ReservationItemView `json:"items"`
 }
 
-type ReservationsListView struct {
-	Reservations []db.Reservation     `json:"reservations"`
-	Items        []db.ReservationItem `json:"items"` // flat; frontend can group
+// Enricher
+func (s *Service) buildReservationItemViews(
+	ctx context.Context,
+	items []db.ReservationItem,
+) ([]ReservationItemView, error) {
+
+	out := make([]ReservationItemView, 0, len(items))
+
+	for _, it := range items {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+
+		view := ReservationItemView{
+			ReservationItem: it,
+		}
+
+		if it.ProductID.Valid {
+			productID := it.ProductID.Int64
+			view.ProductID = &productID
+
+			product, err := s.q.GetProduct(ctx, productID)
+			if err != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return nil, fmt.Errorf("load product %d: %w", productID, err)
+				}
+			} else {
+				view.ProductName = product.Name
+			}
+		}
+
+		if it.VariantID.Valid {
+			variantID := it.VariantID.Int64
+			view.VariantID = &variantID
+
+			variant, err := s.q.GetProductVariantByID(ctx, variantID)
+			if err != nil {
+				if !errors.Is(err, sql.ErrNoRows) {
+					return nil, fmt.Errorf("load variant %d: %w", variantID, err)
+				}
+			} else {
+				view.VariantText = formatVariantAttributes(variant.Attributes)
+			}
+
+			// Image enrichment
+			if s.images != nil {
+				url, err := s.images.GetPrimaryImageURL(ctx, variantID)
+				if err != nil {
+					// Only fail on real infra error
+					if !errors.Is(err, sql.ErrNoRows) {
+						return nil, fmt.Errorf("load image for variant %d: %w", variantID, err)
+					}
+				} else {
+					view.ImageURL = url
+				}
+			}
+		}
+
+		out = append(out, view)
+	}
+
+	return out, nil
 }
 
 // Checkout
@@ -166,14 +235,19 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 		}
 
 		// 3c) Load inserted items for response
-		items, err := qtx.ListReservationItemsByReservationIDs(ctx, []int64{res.ID})
+		itemRows, err := qtx.ListReservationItemsByReservationIDs(ctx, []int64{res.ID})
+		if err != nil {
+			return nil, err
+		}
+
+		itemViews, err := s.buildReservationItemViews(ctx, itemRows)
 		if err != nil {
 			return nil, err
 		}
 
 		out = append(out, ReservationView{
 			Reservation: res,
-			Items:       items,
+			Items:       itemViews,
 		})
 	}
 
@@ -236,9 +310,16 @@ func (s *Service) ListMyReservations(ctx context.Context, in ListMyReservationsI
 		return nil, err
 	}
 
-	byResID := map[int64][]db.ReservationItem{}
-	for _, it := range itemRows {
-		byResID[it.ReservationID] = append(byResID[it.ReservationID], it)
+	itemViews, err := s.buildReservationItemViews(ctx, itemRows)
+	if err != nil {
+		return nil, err
+	}
+
+	byResID := map[int64][]ReservationItemView{}
+
+	for _, v := range itemViews {
+		rid := v.ReservationItem.ReservationID
+		byResID[rid] = append(byResID[rid], v)
 	}
 
 	out := make([]ReservationView, 0, len(resRows))
@@ -268,12 +349,20 @@ func (s *Service) GetMyReservation(ctx context.Context, shopID, customerID, rese
 		return ReservationView{}, err
 	}
 
-	items, err := s.q.ListReservationItemsByReservationIDs(ctx, []int64{r.ID})
+	itemRows, err := s.q.ListReservationItemsByReservationIDs(ctx, []int64{r.ID})
 	if err != nil {
 		return ReservationView{}, err
 	}
 
-	return ReservationView{Reservation: r, Items: items}, nil
+	itemViews, err := s.buildReservationItemViews(ctx, itemRows)
+	if err != nil {
+		return ReservationView{}, err
+	}
+
+	return ReservationView{
+		Reservation: r,
+		Items:       itemViews,
+	}, nil
 }
 
 // ------------ Cancel ------------
@@ -322,7 +411,12 @@ func (s *Service) CancelMyReservation(ctx context.Context, in CancelInput) (Rese
 		return ReservationView{}, err
 	}
 
-	items, err := qtx.ListReservationItemsByReservationIDs(ctx, []int64{r.ID})
+	itemRows, err := s.q.ListReservationItemsByReservationIDs(ctx, []int64{r.ID})
+	if err != nil {
+		return ReservationView{}, err
+	}
+
+	itemViews, err := s.buildReservationItemViews(ctx, itemRows)
 	if err != nil {
 		return ReservationView{}, err
 	}
@@ -331,7 +425,7 @@ func (s *Service) CancelMyReservation(ctx context.Context, in CancelInput) (Rese
 		return ReservationView{}, err
 	}
 
-	return ReservationView{Reservation: r, Items: items}, nil
+	return ReservationView{Reservation: r, Items: itemViews}, nil
 }
 
 // ------------ Reschedule ------------
@@ -391,7 +485,12 @@ func (s *Service) RescheduleMyReservation(ctx context.Context, in RescheduleInpu
 		return ReservationView{}, err
 	}
 
-	items, err := qtx.ListReservationItemsByReservationIDs(ctx, []int64{r.ID})
+	itemRows, err := s.q.ListReservationItemsByReservationIDs(ctx, []int64{r.ID})
+	if err != nil {
+		return ReservationView{}, err
+	}
+
+	itemViews, err := s.buildReservationItemViews(ctx, itemRows)
 	if err != nil {
 		return ReservationView{}, err
 	}
@@ -400,7 +499,7 @@ func (s *Service) RescheduleMyReservation(ctx context.Context, in RescheduleInpu
 		return ReservationView{}, err
 	}
 
-	return ReservationView{Reservation: r, Items: items}, nil
+	return ReservationView{Reservation: r, Items: itemViews}, nil
 }
 
 // ------------ helpers ------------
@@ -454,4 +553,22 @@ func mapCheckoutRowToReservation(r db.CheckoutCreateReservationRow) db.Reservati
 		CancelReason:      r.CancelReason,
 		StoreSnapshotName: r.StoreSnapshotName,
 	}
+}
+
+func formatVariantAttributes(raw pqtype.NullRawMessage) string {
+	if !raw.Valid {
+		return ""
+	}
+
+	var attrs map[string]interface{}
+	if err := json.Unmarshal(raw.RawMessage, &attrs); err != nil {
+		return ""
+	}
+
+	parts := make([]string, 0, len(attrs))
+	for _, v := range attrs {
+		parts = append(parts, fmt.Sprintf("%v", v))
+	}
+
+	return strings.Join(parts, " · ")
 }
