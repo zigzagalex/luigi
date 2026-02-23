@@ -27,21 +27,21 @@ for day in $(seq 1 30); do
     rate_std=30
   fi
 
-  # --- PREMIUM (standard + 30 CHF/day) ---
+  # --- PROFESSIONAL (standard + 30 CHF/day) ---
   if [ "$day" -le 3 ]; then
-    rate_premium=80
+    rate_professional=80
   elif [ "$day" -le 7 ]; then
-    rate_premium=70
+    rate_professional=70
   else
-    rate_premium=60
+    rate_professional=60
   fi
 
   # Convert CHF/day → total cents for that duration
   total_std_cents=$((rate_std * day * 100))
-  total_premium_cents=$((rate_premium * day * 100))
+  total_professional_cents=$((rate_professional * day * 100))
 
   create_price_point "standard" "$day" "$total_std_cents"
-  create_price_point "premium"  "$day" "$total_premium_cents"
+  create_price_point "professional"  "$day" "$total_professional_cents"
 done
 
-echo "✅ Seeded price_points for categories: standard, premium (1–30 days)."
+echo "✅ Seeded price_points for categories: standard, professional (1–30 days)."

@@ -1,7 +1,7 @@
 .header {
-  background: #0b1220; /* dark navy bar */
+  background: #0b1220;
   color: #ffffff;
-  padding: 1rem 2rem 2.5rem; /* extra bottom padding for the search pill row */
+  padding: 1rem 2rem 2.5rem;
 }
 
 .inner {
@@ -9,17 +9,16 @@
   margin: 0 auto;
 }
 
-/* Row 1: logo | centered tabs | menu */
+/* Row 1: logo (left) | actions (right) */
 .topRow {
-  display: grid;
-  grid-template-columns: 1fr auto 1fr;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 1.5rem;
 }
 
 /* Logo block */
 .logo {
-  justify-self: start;
   display: flex;
   flex-direction: column;
   text-decoration: none;
@@ -37,49 +36,16 @@
   opacity: 0.8;
 }
 
-/* Store tabs nav */
-.storeNav {
-  justify-self: center;
+/* Right-side actions (user menu, cart, burger) */
+.rightActions {
   display: flex;
-  gap: 12px;
-  margin: 0;
   align-items: center;
+  gap: 12px;
+  margin-left: auto; /* extra safety: keeps it pushed right */
 }
 
-/* Tabs */
-.tab {
-  padding: 8px 18px;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.06);
-  font-size: 0.9rem;
-  font-weight: 500;
-  color: rgba(255, 255, 255, 0.85);
-  cursor: pointer;
-  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease;
-  white-space: nowrap;
-}
-
-.tab:hover {
-  background: rgba(255, 255, 255, 0.10);
-  border-color: rgba(255, 255, 255, 0.32);
-  color: #ffffff;
-}
-
-.tabActive {
-  background: #ffffff;
-  color: #0b1220;
-  border-color: #ffffff;
-}
-
-.tab:focus-visible {
-  outline: 2px solid rgba(147, 197, 253, 0.9);
-  outline-offset: 2px;
-}
-
-/* Menu icon (kebab/burger) */
+/* Burger */
 .menuButton {
-  justify-self: end;
   border: none;
   background: transparent;
   display: inline-flex;
@@ -97,7 +63,7 @@
   background: #ffffff;
 }
 
-/* Row 2: search pill under nav */
+/* Row 2: search pill */
 .searchRow {
   margin-top: 1.5rem;
 }
@@ -117,61 +83,7 @@
   font-size: 14px;
 }
 
-/* Mobile tweaks */
-@media (max-width: 768px) {
-  .header {
-    padding: 0.75rem 1rem 1.75rem;
-  }
-
-  .topRow {
-    gap: 0.75rem;
-    grid-template-columns: auto 1fr auto;
-  }
-
-  .logoTitle {
-    font-size: 1rem;
-  }
-
-  .logoSubtitle {
-    font-size: 0.8rem;
-  }
-
-  /* Search pill full width on mobile */
-  .searchRow > * {
-    max-width: 100%;
-  }
-
-  /* Tabs become scrollable */
-  .storeNav {
-    justify-self: stretch;
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    padding: 0 6px;
-    gap: 10px;
-
-    scroll-snap-type: x mandatory;
-    scrollbar-width: none;
-  }
-
-  .storeNav::-webkit-scrollbar {
-    display: none;
-  }
-
-  .tab {
-    padding: 10px 16px;
-    font-size: 0.9rem;
-    scroll-snap-align: center;
-  }
-}
-
-/* Wrap auth + kebab together on the right side of the top row */
-.rightActions {
-  justify-self: end;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
+/* Auth button (if still used somewhere) */
 .authButton {
   display: inline-flex;
   align-items: center;
@@ -204,20 +116,33 @@
   outline-offset: 2px;
 }
 
-/* Optional: keep it tidy on narrow screens */
+/* Mobile tweaks */
+@media (max-width: 768px) {
+  .header {
+    padding: 0.75rem 1rem 1.75rem;
+  }
+
+  .topRow {
+    gap: 0.75rem;
+  }
+
+  .logoTitle {
+    font-size: 1rem;
+  }
+
+  .logoSubtitle {
+    font-size: 0.8rem;
+  }
+
+  /* Search pill full width on mobile */
+  .searchRow > * {
+    max-width: 100%;
+  }
+}
+
 @media (max-width: 520px) {
   .authButton {
     padding: 0 10px;
     font-size: 0.85rem;
   }
 }
-
-.rightActions {
-  justify-self: end;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-
-  position: relative; /* ← THIS IS IT */
-}
-
