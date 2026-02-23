@@ -31,7 +31,8 @@ function iso(d: Date) {
   return format(d, "yyyy-MM-dd");
 }
 
-const MAX_DAYS = 29;
+const MAX_DAYS = 29; // whatever you chose earlier
+const isSunday = (d: Date) => d.getDay() === 0;
 
 export function AvailabilityRangeCalendar({
   variantId,
@@ -97,11 +98,23 @@ export function AvailabilityRangeCalendar({
   );
 
   const handleSelect: OnSelectHandler<DateRange | undefined> = (next, triggerDate) => {
-    // Workaround for “click same day twice” toggling behavior:
-    // if user had an open range (from set, to not set) and clicks the same day again,
-    // force a 1-day range (from === to).
+    // If user clicks a Sunday, never allow it to become start or end.
+    // We decide whether they're choosing start vs end based on current state.
+    if (triggerDate && isSunday(triggerDate)) {
+      // Choosing a new start (nothing selected yet OR range already completed)
+      if (!value.from || value.to) return;
+
+      // Choosing an end (start selected, end not yet)
+      if (value.from && !value.to) {
+        onChange({ from: value.from, to: undefined });
+        return;
+      }
+    }
+
+    // "same day twice" workaround — but don't allow Sunday same-day rentals
     if (!next) {
-      if (value.from && !value.to && isSameDay(value.from, triggerDate)) {
+      if (value.from && !value.to && triggerDate && isSameDay(value.from, triggerDate)) {
+        if (isSunday(triggerDate)) return;
         onChange({ from: triggerDate, to: triggerDate });
         return;
       }
@@ -109,7 +122,19 @@ export function AvailabilityRangeCalendar({
       return;
     }
 
-    onChange({ from: next.from ?? undefined, to: next.to ?? undefined });
+    const from = next.from ?? undefined;
+    const to = next.to ?? undefined;
+
+    // Block Sunday start
+    if (from && isSunday(from)) return;
+
+    // Block Sunday end (keep the start and keep range open)
+    if (to && isSunday(to)) {
+      onChange({ from, to: undefined });
+      return;
+    }
+
+    onChange({ from, to });
   };
 
   return (
@@ -130,7 +155,7 @@ export function AvailabilityRangeCalendar({
         excludeDisabled
         modifiers={{ available: availableDates, unavailable: unavailableDates }}
         modifiersClassNames={{ available: styles.availableDay, unavailable: styles.unavailableDay }}
-        max={MAX_DAYS}
+        max={MAX_DAYS} /* max dates in range in range mode */ 
       />
     </div>
   );
