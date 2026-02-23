@@ -41,9 +41,10 @@ export default function AppHeader({ categories, stores }: Props) {
           <div className={styles.rightActions}>
             <UserMenu onOpenAuth={() => setAuthOpen(true)} />
 
-            <CartButton count={itemCount} onClick={() => setCartOpen((v) => !v)} />
-
-            {cartOpen && <CartPopover onClose={() => setCartOpen(false)} />}
+            <div className={styles.cartWrap}>
+              <CartButton count={itemCount} onClick={() => setCartOpen((v) => !v)} />
+              {cartOpen && <CartPopover onClose={() => setCartOpen(false)} />}
+            </div>
 
             <button type="button" className={styles.menuButton} aria-label="Open navigation menu">
               <span />

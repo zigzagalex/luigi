@@ -31,6 +31,8 @@ function iso(d: Date) {
   return format(d, "yyyy-MM-dd");
 }
 
+const MAX_DAYS = 29;
+
 export function AvailabilityRangeCalendar({
   variantId,
   storeId,
@@ -128,6 +130,7 @@ export function AvailabilityRangeCalendar({
         excludeDisabled
         modifiers={{ available: availableDates, unavailable: unavailableDates }}
         modifiersClassNames={{ available: styles.availableDay, unavailable: styles.unavailableDay }}
+        max={MAX_DAYS}
       />
     </div>
   );
