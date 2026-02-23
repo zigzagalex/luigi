@@ -44,6 +44,10 @@
   margin-left: auto; /* extra safety: keeps it pushed right */
 }
 
+.cartWrap {
+  position: relative;
+}
+
 /* Burger */
 .menuButton {
   border: none;
@@ -139,6 +143,8 @@
     max-width: 100%;
   }
 }
+
+
 
 @media (max-width: 520px) {
   .authButton {

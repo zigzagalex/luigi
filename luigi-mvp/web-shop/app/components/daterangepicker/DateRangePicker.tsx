@@ -16,6 +16,8 @@ type Props = {
   className?: string;
 };
 
+const MAX_DAYS = 29; 
+
 export function RangeCalendar({ value, onChange, className }: Props) {
   const today = startOfToday();
 
@@ -46,6 +48,8 @@ export function RangeCalendar({ value, onChange, className }: Props) {
         showOutsideDays
         // grey out and disable all past days
         disabled={{ before: today }}
+        excludeDisabled
+        max={MAX_DAYS}
       />
     </div>
   );
