@@ -205,7 +205,7 @@ func (h *Handler) Quote(w http.ResponseWriter, r *http.Request) {
 		// Better: use shop timezone (Europe/Zurich) consistently.
 		loc, _ := time.LoadLocation("Europe/Zurich")
 		startAt = time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, loc)
-		endAt = time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, loc)
+		endAt = time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, loc).Add(24 * time.Hour)
 
 	} else {
 		// Fallback to legacy RFC3339

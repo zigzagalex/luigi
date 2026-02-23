@@ -358,9 +358,9 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
 
   /** Quote */
   const isValidRange =
-    !!range.from &&
-    !!range.to &&
-    range.to.getTime() > range.from.getTime(); // safer than direct Date comparison
+  !!range.from &&
+  !!range.to &&
+  range.to.getTime() >= range.from.getTime();
 
   const canQuote =
     !!selectedVariant?.id &&
@@ -386,8 +386,8 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
         const payload = {
           product_variant_id: selectedVariant!.id,
           store_id: selectedStoreId!,
-          start_at: toRFC3339LocalMidnight(range.from!),
-          end_at: toRFC3339LocalMidnight(range.to!),
+          start_date: formatDateForApiLocal(range.from!),
+          end_date: formatDateForApiLocal(range.to!), // inclusive
           quantity,
         };
 

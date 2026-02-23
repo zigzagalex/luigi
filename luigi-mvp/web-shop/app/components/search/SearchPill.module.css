@@ -2,24 +2,32 @@
   display: flex;
   justify-content: center;
   margin: 16px 0 24px;
-  }
-  
+}
+
+/* ---- Main pill ---- */
 .pill {
   position: relative;
   display: flex;
   align-items: center;
 
   background: #ffffff;
-  border-radius: 9999px;
   border: 1px solid #e5e7eb;
+  border-radius: 9999px;
 
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
 
   padding: 8px 8px 8px 20px;
   max-width: 960px;
   width: 100%;
-  }
-  
+}
+
+.pillInner {
+  position: relative;
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
 .section {
   flex: 1;
   min-width: 0;
@@ -29,14 +37,14 @@
   align-items: flex-start;
 
   background: transparent;
-  border: none;
-  padding: 6px 16px;
-  cursor: pointer;
+  border: 0;
   border-radius: 9999px;
 
+  padding: 6px 16px;
+  cursor: pointer;
   text-align: left;
 }
-  
+
 .section:hover {
   background: #f3f4f6;
 }
@@ -47,12 +55,12 @@
 
 .label {
   font-size: 10px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: #6b7280;
 }
-  
+
 .value {
   font-size: 14px;
   color: #111827;
@@ -67,7 +75,7 @@
   background: #e5e7eb;
 }
 
-/* Search button */
+/* ---- Search button ---- */
 .submit {
   margin-left: 10px;
   margin-right: 4px;
@@ -97,59 +105,64 @@
   font-size: 16px;
 }
 
-/* Popover container */
+/* ---- Popover positioning (single clean panel) ---- */
 .popover {
   position: absolute;
-  left: 20px;
-  right: 20px;
-  top: 64px;
-
-  background: #ffffff;
-  border-radius: 16px;
-  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
-  padding: 16px 20px;
+  top: calc(100% + 12px);
+  left: 0;
+  width: 100%;
   z-index: 20;
 }
 
-/* Panel shells */
+
+/* Shared panel shell */
 .panel {
-  border-radius: 24px;
   background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.06);
+  border-radius: 22px;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
+  padding: 14px;
 }
 
-/* WHAT panel */
-.whatPanel {
-  padding: 20px 22px;
-  border-radius: 24px;
-  box-shadow:
-    0 18px 45px rgba(15, 23, 42, 0.25),
-    0 0 0 1px rgba(15, 23, 42, 0.04);
+/* Make list-panels scroll if many items */
+.whatPanel,
+.wherePanel {
+  max-height: 320px;
+  overflow: auto;
 }
 
+/* Neat vertical list for WHAT + WHERE */
 .categoryGrid {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 8px;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
 }
 
+/* Full-width row buttons */
 .categoryPill {
-  border-radius: 999px;
+  width: 100%;
+  text-align: left;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  border-radius: 14px;
   border: 1px solid #e5e7eb;
   background: #f9fafb;
-  padding: 8px 14px;
-  font-size: 13px;
+
+  padding: 12px 14px;
+  font-size: 14px;
   color: #111827;
+
   cursor: pointer;
-  transition:
-    background-color 0.12s ease-out,
-    border-color 0.12s ease-out,
-    box-shadow 0.12s ease-out,
-    color 0.12s ease-out;
+  transition: background-color 0.12s ease-out, border-color 0.12s ease-out,
+    box-shadow 0.12s ease-out, color 0.12s ease-out;
 }
 
 .categoryPill:hover {
   background: #eff6ff;
-  border-color: #2563eb33;
+  border-color: rgba(37, 99, 235, 0.25);
 }
 
 .categoryPillSelected {
@@ -158,15 +171,10 @@
   color: #ffffff;
   box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.6);
 }
-  
-/* WHEN panel */
+
+/* ---- Dates panel ---- */
 .datesPanel {
-  padding: 16px 18px;
-  border-radius: 24px;
-  background: #ffffff;
-  box-shadow:
-    0 18px 45px rgba(15, 23, 42, 0.25),
-    0 0 0 1px rgba(15, 23, 42, 0.04);
+  padding: 14px;
 }
 
 /* react-day-picker overrides (must be global selectors) */
@@ -255,88 +263,7 @@
   color: #111827;
 }
 
-  
-/* HOW MANY panel */
-.quantityPanel {
-  padding: 20px 22px;
-  border-radius: 24px;
-  background: #ffffff;
-  box-shadow:
-    0 18px 45px rgba(15, 23, 42, 0.25),
-    0 0 0 1px rgba(15, 23, 42, 0.04);
-  min-width: 320px;
-}
-
-.quantityRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 16px;
-}
-
-.quantityLabels {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-.quantityTitle {
-  font-size: 14px;
-  font-weight: 500;
-  color: #111827;
-}
-
-.quantitySubtitle {
-  font-size: 12px;
-  color: #6b7280;
-}
-
-.quantityControls {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.quantityBtn {
-  height: 32px;
-  width: 32px;
-  border-radius: 999px;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  font-size: 18px;
-  line-height: 1;
-  color: #111827;
-
-  cursor: pointer;
-  transition:
-    background-color 0.12s ease-out,
-    border-color 0.12s ease-out,
-    color 0.12s ease-out;
-}
-
-.quantityBtn:hover:not(:disabled) {
-  background: #f3f4f6;
-}
-
-.quantityBtn:disabled {
-  opacity: 0.35;
-  cursor: default;
-}
-
-.quantityValue {
-  min-width: 20px;
-  text-align: center;
-  font-size: 14px;
-  font-weight: 500;
-  color: #111827;
-}
-
-/* Mobile: make the pill less cramped */
+/* ---- Mobile ---- */
 @media (max-width: 768px) {
   .pill {
     padding: 8px;
@@ -347,7 +274,10 @@
   }
 
   .popover {
-    left: 8px;
-    right: 8px;
+    padding: 0; /* use full width on mobile */
+  }
+
+  .panel {
+    border-radius: 18px;
   }
 }

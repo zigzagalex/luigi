@@ -1,9 +1,18 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import { DayPicker, type DateRange } from "react-day-picker";
+import { DayPicker, type DateRange, type OnSelectHandler } from "react-day-picker";
 import { de } from "date-fns/locale";
-import { addMonths, endOfMonth, format, parseISO, startOfMonth, startOfToday } from "date-fns";
+import {
+  addDays,
+  addMonths,
+  endOfMonth,
+  format,
+  isSameDay,
+  parseISO,
+  startOfMonth,
+  startOfToday,
+} from "date-fns";
 import styles from "./AvailabilityRangeCalendar.module.css";
 
 export type RangeValue = { from?: Date; to?: Date };
@@ -34,11 +43,16 @@ export function AvailabilityRangeCalendar({
   const [month, setMonth] = useState<Date>(value.from ?? today);
   const [days, setDays] = useState<CalendarDay[]>([]);
 
+  useEffect(() => {
+    if (value.from) setMonth(value.from);
+  }, [value.from]);
+
   const selected: DateRange | undefined =
     value.from || value.to ? { from: value.from, to: value.to } : undefined;
 
   const fromFetch = useMemo(() => startOfMonth(month), [month]);
-  const toFetch = useMemo(() => endOfMonth(addMonths(month, 1)), [month]);
+  const toFetchInclusive = useMemo(() => endOfMonth(addMonths(month, 1)), [month]);
+  const toFetchExclusive = useMemo(() => addDays(toFetchInclusive, 1), [toFetchInclusive]);
 
   useEffect(() => {
     if (!variantId || !storeId) return;
@@ -50,7 +64,7 @@ export function AvailabilityRangeCalendar({
     url.searchParams.set("product_variant_id", String(variantId));
     url.searchParams.set("store_id", String(storeId));
     url.searchParams.set("from", iso(fromFetch));
-    url.searchParams.set("to", iso(toFetch));
+    url.searchParams.set("to", iso(toFetchExclusive));
     url.searchParams.set("quantity", String(quantity));
 
     fetch(url.toString(), { signal: ac.signal })
@@ -64,19 +78,37 @@ export function AvailabilityRangeCalendar({
       });
 
     return () => ac.abort();
-  }, [variantId, storeId, quantity, fromFetch, toFetch]);
+  }, [variantId, storeId, quantity, fromFetch, toFetchExclusive]);
 
   const unavailableDates = useMemo(
     () => days.filter((d) => d.available_quantity <= 0).map((d) => parseISO(d.date)),
     [days]
   );
-
   const availableDates = useMemo(
     () => days.filter((d) => d.available_quantity > 0).map((d) => parseISO(d.date)),
     [days]
   );
 
-  const disabled = useMemo(() => [{ before: today }, ...unavailableDates], [today, unavailableDates]);
+  const disabled = useMemo(
+    () => [{ before: today }, ...unavailableDates],
+    [today, unavailableDates]
+  );
+
+  const handleSelect: OnSelectHandler<DateRange | undefined> = (next, triggerDate) => {
+    // Workaround for “click same day twice” toggling behavior:
+    // if user had an open range (from set, to not set) and clicks the same day again,
+    // force a 1-day range (from === to).
+    if (!next) {
+      if (value.from && !value.to && isSameDay(value.from, triggerDate)) {
+        onChange({ from: triggerDate, to: triggerDate });
+        return;
+      }
+      onChange({ from: undefined, to: undefined });
+      return;
+    }
+
+    onChange({ from: next.from ?? undefined, to: next.to ?? undefined });
+  };
 
   return (
     <div className={`${styles.wrapper} ${className ?? ""}`}>
@@ -85,34 +117,17 @@ export function AvailabilityRangeCalendar({
         numberOfMonths={2}
         locale={de}
         selected={selected}
+        onSelect={handleSelect}
         month={month}
         onMonthChange={setMonth}
         pagedNavigation
         weekStartsOn={1}
-        startMonth={today}
+        fromMonth={today}
+        showOutsideDays
         disabled={disabled}
         excludeDisabled
         modifiers={{ available: availableDates, unavailable: unavailableDates }}
         modifiersClassNames={{ available: styles.availableDay, unavailable: styles.unavailableDay }}
-        onDayClick={(day, modifiers) => {
-          if (modifiers.disabled) return;
-
-          // Start new range if none started yet OR range already finished
-          if (!value.from || value.to) {
-            onChange({ from: day, to: undefined });
-            return;
-          }
-
-          // Finish range (allow same-day!)
-          const start = value.from;
-          const end = day;
-
-          if (end.getTime() < start.getTime()) {
-            onChange({ from: end, to: start });
-          } else {
-            onChange({ from: start, to: end });
-          }
-        }}
       />
     </div>
   );

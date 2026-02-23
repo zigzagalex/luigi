@@ -119,10 +119,15 @@ func (s *Service) Search(ctx context.Context, in SearchInput) ([]SearchResult, e
 	}
 
 	start := normalizeDate(in.StartDate)
-	end := normalizeDate(in.EndDate)
-	if end.IsZero() || !end.After(start) {
-		end = start.Add(day)
+	endInc := normalizeDate(in.EndDate)
+
+	// Treat EndDate as INCLUSIVE.
+	// If end is missing or before start, clamp it to start.
+	if endInc.IsZero() || endInc.Before(start) {
+		endInc = start
 	}
+	// Convert inclusive end date to exclusive end timestamp.
+	end := endInc.Add(day)
 
 	dayCount := calcDayCount(start, end)
 
@@ -189,7 +194,7 @@ func (s *Service) Search(ctx context.Context, in SearchInput) ([]SearchResult, e
 		// compute price for this variant (for the *requested* dayCount and quantity)
 		priceCategory, err := s.q.GetPriceCategoryForVariant(ctx, r.ProductVariantID)
 		if err != nil {
-			return nil, err
+			return nil, fmt.Errorf("GetPriceCategoryForVariant variant_id=%d: %w", r.ProductVariantID, err)
 		}
 
 		pp, err := s.q.GetPricePoint(ctx, &db.GetPricePointParams{
@@ -197,9 +202,8 @@ func (s *Service) Search(ctx context.Context, in SearchInput) ([]SearchResult, e
 			DayCount:      dayCount,
 		})
 		if err != nil {
-			// If no exact price exists for that dayCount, you could implement
-			// fallback logic here. For now: bubble up.
-			return nil, err
+			return nil, fmt.Errorf("GetPricePoint category=%s day_count=%d (variant_id=%d): %w",
+				priceCategory, dayCount, r.ProductVariantID, err)
 		}
 
 		totalPrice := pp.PriceTotalCents * in.Quantity
