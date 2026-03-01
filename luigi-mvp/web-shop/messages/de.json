@@ -1,0 +1,20 @@
+{
+    "auth": {
+      "loginSignup": "Anmelden / Registrieren",
+      "hi": "Hallo, {name}",
+      "there": "du",
+      "accountMenuLabel": "Kontomenü",
+      "reservations": "Reservierungen",
+      "profileSettings": "Profileinstellungen",
+      "logout": "Abmelden"
+    },
+    "header": {
+      "title": "Luigi's Bike Rentals",
+      "subtitle": "Bern, Zürich, Genf",
+      "openNavMenu": "Navigationsmenü öffnen",
+      "noStoresConfigured": "Noch keine Stores konfiguriert."
+    },
+    "locale": {
+      "switchLabel": "Sprache"
+    }
+  }
