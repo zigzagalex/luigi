@@ -3,8 +3,12 @@ import { getTranslations } from "next-intl/server";
 import { footerColumns } from "./FooterLinks";
 import styles from "./AppFooterShell.module.css";
 
-export default async function AppFooterShell() {
-  const t = await getTranslations("footer");
+type Props = {
+  locale: string;
+};
+
+export default async function AppFooterShell({ locale }: Props) {
+  const t = await getTranslations({ locale, namespace: "footer" });
 
   return (
     <footer className={styles.footer}>
