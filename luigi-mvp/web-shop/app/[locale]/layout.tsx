@@ -34,7 +34,7 @@ export default async function LocaleLayout({ children, params }: Props) {
         <CartProvider shopId={DEFAULT_SHOP_ID}>
           <AppHeaderShell />
           {children}
-          <AppFooterShell />
+          <AppFooterShell locale={locale} />
           <CartAddPopover />
         </CartProvider>
       </AuthProvider>
