@@ -3,6 +3,7 @@ import styles from "./page.module.css";
 import ProductGrid from "../components/products/ProductGrid";
 import { fetchApi } from "utils/fetchAPI";
 import { fetchProducts, type Product } from "@/../utils/products";
+import { getTranslations } from "next-intl/server";
 
 type RawSearchParams = {
   shop_id?: string;
@@ -41,6 +42,7 @@ type AvailabilitySearchBody = {
 };
 
 export default async function SearchPage({ searchParams }: SearchPageProps) {
+  const t = await getTranslations("searchPage");
   const sp: RawSearchParams = (await searchParams) ?? {};
 
   const shopId = Number(sp.shop_id ?? "1");
@@ -60,11 +62,11 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
   // Basic input checks (but keep one consistent layout)
   if (!storeIdRaw) {
-    info = "Please select a pickup location in the header first.";
+    info = t("selectLocation");
   } else if (!storeOk) {
-    info = "Invalid store selected.";
+    info = t("invalidStore");
   } else if (!from || !to) {
-    info = "Please choose dates in the search bar first.";
+    info = t("chooseDates");
   } else {
     try {
       const body: AvailabilitySearchBody = {
@@ -83,7 +85,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
       if (!res.ok) {
         const text = await res.text();
-        error = `API error ${res.status}: ${text}`;
+        error = t("apiError", { status: String(res.status), text });
       } else {
         const availability = (await res.json()) as AvailabilityRow[];
 
@@ -111,21 +113,21 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
       }
     } catch (err) {
       console.error("availability search failed:", err);
-      error = "Something went wrong while searching availability.";
+      error = t("searchError");
     }
   }
 
   return (
     <main className={styles.page}>
       <div className={styles.inner}>
-        <h1>Available bikes</h1>
+        <h1>{t("title")}</h1>
 
         {info ? (
           <p>{info}</p>
         ) : error ? (
           <p style={{ color: "red" }}>{error}</p>
         ) : products.length === 0 ? (
-          <p>No available bikes for that search.</p>
+          <p>{t("empty")}</p>
         ) : (
           <ProductGrid
             products={products}

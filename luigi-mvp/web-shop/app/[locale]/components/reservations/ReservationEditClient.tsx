@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 
 import type { ReservationView } from "@/lib/reservationClient";
 import {
@@ -23,15 +24,17 @@ function money(cents: number, currency: string) {
 }
 
 export default function ReservationEditClient({ initialReservation, shopId }: Props) {
+  const t = useTranslations("reservationEdit");
+  const locale = useLocale();
   const router = useRouter();
 
   const [view, setView] = useState<ReservationView>(initialReservation);
   const r = view.reservation;
   const store = view.store ?? null;
 
-  const createdDate = useMemo(() => new Date(r.created_at).toLocaleString(), [r.created_at]);
-  const startDate = useMemo(() => new Date(r.start_at).toLocaleDateString(), [r.start_at]);
-  const endDate = useMemo(() => new Date(r.end_at).toLocaleDateString(), [r.end_at]);
+  const createdDate = useMemo(() => new Date(r.created_at).toLocaleString(locale), [r.created_at, locale]);
+  const startDate = useMemo(() => new Date(r.start_at).toLocaleDateString(locale), [r.start_at, locale]);
+  const endDate = useMemo(() => new Date(r.end_at).toLocaleDateString(locale), [r.end_at, locale]);
 
   // form state
   const [pickupName, setPickupName] = useState(r.pickup_person_name ?? "");
@@ -79,10 +82,10 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
       setPickupPhone(updated.reservation.pickup_person_phone ?? "");
       setNotes(updated.reservation.notes ?? "");
 
-      setDetailsSaved("Saved.");
+      setDetailsSaved(t("saved"));
       router.refresh();
     } catch (e: any) {
-      setDetailsError(e?.message ?? "Failed to save changes.");
+      setDetailsError(e?.message ?? t("saveFailed"));
     } finally {
       setSavingDetails(false);
       // auto-hide "Saved" after a bit
@@ -104,7 +107,7 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
       setPendingRemoveId(null);
       router.refresh();
     } catch (e: any) {
-      setItemsError(e?.message ?? "Failed to remove item.");
+      setItemsError(e?.message ?? t("removeFailed"));
     } finally {
       setRemovingId(null);
     }
@@ -115,27 +118,27 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
       <div className={styles.topRow}>
         <div className={styles.breadcrumb}>
           <Link className={styles.backLink} href={`/reservations/${r.id}`}>
-            ← Back to reservation
+            {t("backToReservation")}
           </Link>
           <span className={styles.dot}>•</span>
           <Link className={styles.backLinkMuted} href="/reservations">
-            All reservations
+            {t("allReservations")}
           </Link>
         </div>
 
         <div className={styles.rightHint}>
-          Created {createdDate}
+          {t("created", { date: createdDate })}
         </div>
       </div>
 
       <div className={styles.headerCard}>
         <div className={styles.headerLeft}>
-          <div className={styles.hTitle}>Edit reservation {r.id}</div>
+          <div className={styles.hTitle}>{t("title", { id: String(r.id) })}</div>
           <div className={styles.range}>
             {startDate} → {endDate}
           </div>
           <div className={styles.smallMuted}>
-            Date changes are coming next. For now you can edit pickup details and remove items.
+            {t("dateChangesSoon")}
           </div>
         </div>
 
@@ -150,7 +153,7 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
 
       {isCancelled && (
         <div className={styles.warnCard}>
-          This reservation is cancelled. Editing is disabled.
+          {t("cancelledDisabled")}
         </div>
       )}
 
@@ -158,16 +161,16 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
         {/* LEFT: items */}
         <div className={styles.card}>
           <div className={styles.cardHeaderRow}>
-            <div className={styles.cardTitle}>Items</div>
+            <div className={styles.cardTitle}>{t("items")}</div>
             <div className={styles.cardSubtitle}>
-              Remove single items if needed.
+              {t("itemsSubtitle")}
             </div>
           </div>
 
           {itemsError && <div className={styles.errorBox}>{itemsError}</div>}
 
           {activeItems.length === 0 ? (
-            <div className={styles.muted}>No active items.</div>
+            <div className={styles.muted}>{t("noActiveItems")}</div>
           ) : (
             <div className={styles.itemList}>
               {activeItems.map((it) => {
@@ -183,20 +186,20 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
                         src={it.image_url || "/placeholder.png"}
-                        alt={it.product_name ?? "Item"}
+                        alt={it.product_name ?? t("itemAlt")}
                         className={styles.itemImg}
                       />
                     </div>
 
                     <div className={styles.itemInfo}>
                       <div className={styles.itemTitle}>
-                        {it.product_name ?? "Unnamed product"}
+                        {it.product_name ?? t("unnamedProduct")}
                       </div>
                       {it.variant_text ? (
                         <div className={styles.itemMeta}>{it.variant_text}</div>
                       ) : null}
                       <div className={styles.itemMeta}>
-                        {ri.quantity}× · {money(ri.unit_price_cents, r.currency)} each
+                        {ri.quantity}× · {money(ri.unit_price_cents, r.currency)} {t("each")}
                       </div>
                     </div>
 
@@ -209,7 +212,7 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
                           onClick={() => setPendingRemoveId(ri.id)}
                           disabled={isCancelled || isRemoving}
                         >
-                          Remove
+                          {t("remove")}
                         </button>
                       ) : (
                         <div className={styles.inlineConfirm}>
@@ -218,14 +221,14 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
                             onClick={() => setPendingRemoveId(null)}
                             disabled={isRemoving}
                           >
-                            Keep
+                            {t("keep")}
                           </button>
                           <button
                             className={styles.btnDangerSmall}
                             onClick={() => onConfirmRemoveItem(ri.id)}
                             disabled={isCancelled || isRemoving}
                           >
-                            {isRemoving ? "Removing…" : "Confirm"}
+                            {isRemoving ? t("removing") : t("confirm")}
                           </button>
                         </div>
                       )}
@@ -242,41 +245,41 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
           {/* Pickup details */}
           <div className={styles.card}>
             <div className={styles.cardHeaderRow}>
-              <div className={styles.cardTitle}>Pickup person</div>
-              <div className={styles.cardSubtitle}>Used at pickup.</div>
+              <div className={styles.cardTitle}>{t("pickupPerson")}</div>
+              <div className={styles.cardSubtitle}>{t("pickupPersonSubtitle")}</div>
             </div>
 
             <div className={styles.formGrid}>
               <label className={styles.field}>
-                <div className={styles.label}>Name</div>
+                <div className={styles.label}>{t("name")}</div>
                 <input
                   className={styles.input}
                   value={pickupName}
                   onChange={(e) => setPickupName(e.target.value)}
                   disabled={isCancelled || savingDetails}
-                  placeholder="Full name"
+                  placeholder={t("fullNamePlaceholder")}
                 />
               </label>
 
               <label className={styles.field}>
-                <div className={styles.label}>Email</div>
+                <div className={styles.label}>{t("email")}</div>
                 <input
                   className={styles.input}
                   value={pickupEmail}
                   onChange={(e) => setPickupEmail(e.target.value)}
                   disabled={isCancelled || savingDetails}
-                  placeholder="email@example.com"
+                  placeholder={t("emailPlaceholder")}
                 />
               </label>
 
               <label className={styles.field}>
-                <div className={styles.label}>Phone</div>
+                <div className={styles.label}>{t("phone")}</div>
                 <input
                   className={styles.input}
                   value={pickupPhone}
                   onChange={(e) => setPickupPhone(e.target.value)}
                   disabled={isCancelled || savingDetails}
-                  placeholder="+41 …"
+                  placeholder={t("phonePlaceholder")}
                 />
               </label>
             </div>
@@ -285,15 +288,15 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
           {/* Pickup location */}
           <div className={styles.card}>
             <div className={styles.cardHeaderRow}>
-              <div className={styles.cardTitle}>Pickup location</div>
-              <div className={styles.cardSubtitle}>Where you collect the bikes.</div>
+              <div className={styles.cardTitle}>{t("pickupLocation")}</div>
+              <div className={styles.cardSubtitle}>{t("pickupLocationSubtitle")}</div>
             </div>
 
             <div className={styles.kv}>
-              <div className={styles.k}>Store</div>
-              <div className={styles.v}>{store?.name ?? r.store_snapshot_name ?? "—"}</div>
+              <div className={styles.k}>{t("store")}</div>
+              <div className={styles.v}>{store?.name ?? r.store_snapshot_name ?? t("dash")}</div>
 
-              <div className={styles.k}>Address</div>
+              <div className={styles.k}>{t("address")}</div>
               <div className={styles.v}>
                 {store?.address1 ? (
                   <>
@@ -302,7 +305,7 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
                     {store.postal_code} {store.city}
                   </>
                 ) : (
-                  "—"
+                  t("dash")
                 )}
               </div>
             </div>
@@ -311,19 +314,19 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
           {/* Notes */}
           <div className={styles.card}>
             <div className={styles.cardHeaderRow}>
-              <div className={styles.cardTitle}>Notes</div>
-              <div className={styles.cardSubtitle}>Optional.</div>
+              <div className={styles.cardTitle}>{t("notes")}</div>
+              <div className={styles.cardSubtitle}>{t("notesSubtitle")}</div>
             </div>
 
             <label className={styles.field}>
-              <div className={styles.label}>Notes</div>
+              <div className={styles.label}>{t("notes")}</div>
               <textarea
                 className={styles.textarea}
                 rows={4}
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 disabled={isCancelled || savingDetails}
-                placeholder="Add a note…"
+                placeholder={t("notesPlaceholder")}
               />
             </label>
 
@@ -336,7 +339,7 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
                 onClick={onSaveDetails}
                 disabled={isCancelled || savingDetails}
               >
-                {savingDetails ? "Saving…" : "Save changes"}
+                {savingDetails ? t("saving") : t("saveChanges")}
               </button>
             </div>
           </div>

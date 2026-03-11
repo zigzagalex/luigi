@@ -1,10 +1,13 @@
 "use client";
 
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { useCart } from "@/[locale]/components/cart/CartContext";
 import styles from "./CartPage.module.css";
 
 export default function CartPage() {
+  const t = useTranslations("cartPage");
+  const locale = useLocale();
   const {
     cart,
     removeItem,
@@ -24,23 +27,23 @@ export default function CartPage() {
   return (
     <div className={styles.page}>
       <header className={styles.header}>
-        <h1>Your cart</h1>
+        <h1>{t("title")}</h1>
         <Link href="/" className={styles.continue}>
-          Continue shopping
+          {t("continueShopping")}
         </Link>
       </header>
 
       {/* Optional top warning */}
       {blockedItems.length > 0 && (
         <div className={styles.warning}>
-          Some items need updated dates before checkout.
+          {t("warningBlocked")}
         </div>
       )}
 
       {/* Store Info */}
       {store_name && (
         <div className={styles.storeCard}>
-          <div className={styles.storeLabel}>Pick-up location</div>
+          <div className={styles.storeLabel}>{t("pickupLocation")}</div>
           <div className={styles.storeName}>{store_name}</div>
           {(store_address || store_postalcode || store_city) && (
             <div className={styles.storeAddress}>
@@ -76,11 +79,11 @@ export default function CartPage() {
                 {variantLine && <div className={styles.variant}>{variantLine}</div>}
 
                 <div className={styles.meta}>
-                  {formatDate(item.start_at)} → {formatDate(item.end_at)}
+                  {formatDate(item.start_at, locale)} → {formatDate(item.end_at, locale)}
                 </div>
                 {blocked && (
                   <div className={styles.blocked}>
-                    {blockedLabel(reason)}
+                    {blockedLabel(reason, t)}
                   </div>
                 )}
               </div>
@@ -97,16 +100,16 @@ export default function CartPage() {
                     console.log("Adjust dates for cart item", item.id);
                   }}
                 >
-                  Adjust dates
+                  {t("adjustDates")}
                 </button>
 
                 <button
                   type="button"
                   className={styles.remove}
                   onClick={() => removeItem(item.id)}
-                  aria-label="Remove item"
+                  aria-label={t("removeItemAria")}
                 >
-                  🗑 Remove
+                  {t("removeItem")}
                 </button>
               </div>
             </div>
@@ -116,22 +119,22 @@ export default function CartPage() {
 
       <footer className={styles.footer}>
         <div className={styles.subtotal}>
-          <span>Subtotal</span>
+          <span>{t("subtotal")}</span>
           <strong>CHF {((cart?.subtotal_cents ?? 0) / 100).toFixed(2)}</strong>
         </div>
         {canCheckout ? (
             <Link href="/checkout" className={styles.checkout}>
-              Checkout
+              {t("checkout")}
             </Link>
           ) : (
             <button className={styles.checkout} disabled>
-            Checkout
+            {t("checkout")}
           </button>
         )}
 
         {!canCheckout && (
           <div className={styles.checkoutHint}>
-            Fix blocked items to continue.
+            {t("checkoutHint")}
           </div>
         )}
       </footer>
@@ -139,17 +142,17 @@ export default function CartPage() {
   );
 }
 
-function formatDate(d: string) {
-  return new Intl.DateTimeFormat("de-CH").format(new Date(d));
+function formatDate(d: string, locale: string) {
+  return new Intl.DateTimeFormat(locale).format(new Date(d));
 }
 
-function blockedLabel(reason?: string) {
+function blockedLabel(reason: string | undefined, t: ReturnType<typeof useTranslations>) {
   switch (reason) {
     case "start_date_in_past":
-      return "Start date is in the past — please select new dates.";
+      return t("blockedStartPast");
     case "not_available":
-      return "Not available for the selected dates — please select new dates.";
+      return t("blockedNotAvailable");
     default:
-      return "This item can’t be checked out — please select new dates.";
+      return t("blockedDefault");
   }
 }

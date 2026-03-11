@@ -1,5 +1,6 @@
 "use client";
 
+import { useTranslations } from "next-intl";
 import styles from "./StoreConflictModal.module.css";
 
 type Props = {
@@ -13,6 +14,7 @@ export default function StoreConflictModal({
   onClose,
   onClearCart,
 }: Props) {
+  const t = useTranslations("storeConflictModal");
   if (!open) return null;
 
   return (
@@ -29,16 +31,15 @@ export default function StoreConflictModal({
         aria-labelledby="store-conflict-title"
       >
         <h2 id="store-conflict-title">
-          Different pickup location
+          {t("title")}
         </h2>
 
         <p>
-          Your cart already contains items from another pickup location.
+          {t("description")}
         </p>
 
         <p>
-          If you continue, your current cart will be cleared and replaced
-          with this item.
+          {t("replacementNote")}
         </p>
 
         <div className={styles.actions}>
@@ -47,7 +48,7 @@ export default function StoreConflictModal({
             className={styles.secondary}
             onClick={onClose}
           >
-            Don’t add item
+            {t("cancelAdd")}
           </button>
 
           <button
@@ -55,7 +56,7 @@ export default function StoreConflictModal({
             className={styles.primary}
             onClick={onClearCart}
           >
-            Clear cart & add item
+            {t("clearAndAdd")}
           </button>
         </div>
       </div>

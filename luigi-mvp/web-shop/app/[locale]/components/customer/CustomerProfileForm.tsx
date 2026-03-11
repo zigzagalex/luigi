@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useTranslations } from "next-intl";
 import { emptyCustomerProfile, type CustomerProfile } from "@/types/customer";
 
 const REQUIRED: Array<keyof CustomerProfile> = [
@@ -36,18 +37,28 @@ function missingRequired(v: CustomerProfile): string[] {
   return missing;
 }
 
-function labelFor(k: keyof CustomerProfile) {
+function labelFor(k: keyof CustomerProfile, t: (key: string, values?: Record<string, string>) => string) {
   switch (k) {
     case "first_name":
-      return "First name";
+      return t("firstName");
     case "last_name":
-      return "Last name";
+      return t("lastName");
     case "postal_code":
-      return "Postal code";
+      return t("postalCode");
     case "address1":
-      return "Address line 1";
+      return t("address1");
     case "address2":
-      return "Address line 2";
+      return t("address2");
+    case "email":
+      return t("email");
+    case "phone":
+      return t("phone");
+    case "city":
+      return t("city");
+    case "country":
+      return t("country");
+    case "notes":
+      return t("notes");
     default:
       return k.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
@@ -63,6 +74,12 @@ function FieldRow({
   onSave,
   error,
   children,
+  requiredLabel = "(required)",
+  notSetLabel = "Not set",
+  addLabel = "Add",
+  editLabel = "Edit",
+  cancelLabel = "Cancel",
+  saveLabel = "Save",
 }: {
   label: string;
   value: string;
@@ -73,6 +90,12 @@ function FieldRow({
   onSave: () => void;
   error?: string | null;
   children?: React.ReactNode;
+  requiredLabel?: string;
+  notSetLabel?: string;
+  addLabel?: string;
+  editLabel?: string;
+  cancelLabel?: string;
+  saveLabel?: string;
 }) {
   const empty = !value.trim();
 
@@ -91,14 +114,14 @@ function FieldRow({
         {label}{" "}
         {required && (
           <span style={{ color: "#999", fontSize: 12 }}>
-            (required)
+            {requiredLabel}
           </span>
         )}
       </div>
 
       {!isEditing ? (
         <div style={{ color: empty ? "#999" : "#111" }}>
-          {empty ? "Not set" : value}
+          {empty ? notSetLabel : value}
         </div>
       ) : (
         <div style={{ display: "grid", gap: 6 }}>
@@ -120,7 +143,7 @@ function FieldRow({
             fontWeight: 700,
           }}
         >
-          {empty ? "Add" : "Edit"}
+          {empty ? addLabel : editLabel}
         </button>
       ) : (
         <div style={{ display: "flex", gap: 8 }}>
@@ -136,7 +159,7 @@ function FieldRow({
               fontWeight: 700,
             }}
           >
-            Cancel
+            {cancelLabel}
           </button>
           <button
             onClick={onSave}
@@ -150,7 +173,7 @@ function FieldRow({
               fontWeight: 900,
             }}
           >
-            Save
+            {saveLabel}
           </button>
         </div>
       )}
@@ -187,6 +210,7 @@ function Input({
 }
 
 export function CustomerProfileForm() {
+  const t = useTranslations("customerProfile");
   const [value, setValue] = React.useState<CustomerProfile>(emptyCustomerProfile);
   const [loading, setLoading] = React.useState(true);
 
@@ -206,7 +230,7 @@ export function CustomerProfileForm() {
       const res = await fetch("/api/me/customer", { method: "GET", cache: "no-store" });
       if (!res.ok) {
         const body = await res.json().catch(() => null);
-        if (!cancelled) setError(body?.error ?? "Failed to load profile.");
+        if (!cancelled) setError(body?.error ?? t("failedToLoad"));
         if (!cancelled) setLoading(false);
         return;
       }
@@ -221,7 +245,7 @@ export function CustomerProfileForm() {
         setValue({
           ...emptyCustomerProfile,
           ...data,
-          country: (data.country && String(data.country)) || "CH",
+          country: (data.country && String(data.country)) || t("countryPlaceholder"),
         });
       }
 
@@ -257,13 +281,13 @@ export function CustomerProfileForm() {
 
     // enforce required fields cannot be saved empty
     if (REQUIRED.includes(k) && !draft.trim()) {
-      setError(`${labelFor(k)} is required.`);
+      setError(t("requiredField", { field: labelFor(k, t) }));
       return;
     }
 
     // small convenience: default country if someone clears it
     if (k === "country" && !next.country.trim()) {
-      next.country = "CH";
+      next.country = t("countryPlaceholder");
     }
 
     setSaving(true);
@@ -276,13 +300,13 @@ export function CustomerProfileForm() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => null);
-        setError(body?.error ?? "Failed to save.");
+        setError(body?.error ?? t("failedToSave"));
         return;
       }
 
       const saved = await res.json().catch(() => null);
       if (saved) {
-        setValue({ ...next, ...saved, country: saved.country || next.country || "CH" });
+        setValue({ ...next, ...saved, country: saved.country || next.country || t("countryPlaceholder") });
       } else {
         setValue(next);
       }
@@ -306,30 +330,31 @@ export function CustomerProfileForm() {
       }}
     >
       <div style={{ display: "grid", gap: 6 }}>
-        <div style={{ fontSize: 18, fontWeight: 900 }}>Customer profile</div>
+        <div style={{ fontSize: 18, fontWeight: 900 }}>{t("profileTitle")}</div>
         <div style={{ fontSize: 13, color: "#666" }}>
-          This is the information used during checkout.
+          {t("profileSubtitle")}
         </div>
       </div>
 
       {missing.length > 0 && (
         <div style={{ padding: 12, borderRadius: 12, background: "#fff7e6", border: "1px solid #ffe2b5" }}>
-          <div style={{ fontWeight: 900, marginBottom: 4 }}>Profile incomplete</div>
+          <div style={{ fontWeight: 900, marginBottom: 4 }}>{t("profileIncomplete")}</div>
           <div style={{ color: "#666", fontSize: 13 }}>
-            Please add:{" "}
-            {missing
-              .map((k) => labelFor(k as keyof CustomerProfile))
-              .join(", ")}
+            {t("pleaseAdd", {
+              fields: missing
+                .map((k) => labelFor(k as keyof CustomerProfile, t))
+                .join(", "),
+            })}
           </div>
         </div>
       )}
 
       {/* CONTACT */}
-      <div style={{ marginTop: 6, fontSize: 14, fontWeight: 900 }}>Contact</div>
+      <div style={{ marginTop: 6, fontSize: 14, fontWeight: 900 }}>{t("contact")}</div>
       {(Array<keyof CustomerProfile>("first_name", "last_name", "email", "phone")).map((k) => (
         <FieldRow
           key={k}
-          label={labelFor(k)}
+          label={labelFor(k, t)}
           value={value[k]}
           required={REQUIRED.includes(k)}
           isEditing={editingKey === k}
@@ -337,23 +362,29 @@ export function CustomerProfileForm() {
           onCancel={cancelEdit}
           onSave={saveEdit}
           error={editingKey === k ? error : null}
+          requiredLabel={t("required")}
+          notSetLabel={t("notSet")}
+          addLabel={t("add")}
+          editLabel={t("edit")}
+          cancelLabel={t("cancel")}
+          saveLabel={t("save")}
         >
           <Input
             value={draft}
             onChange={setDraft}
             type={k === "email" ? "email" : "text"}
-            placeholder={labelFor(k)}
+            placeholder={labelFor(k, t)}
           />
-          {saving ? <div style={{ fontSize: 12, color: "#666" }}>Saving…</div> : null}
+          {saving ? <div style={{ fontSize: 12, color: "#666" }}>{t("saving")}</div> : null}
         </FieldRow>
       ))}
 
       {/* ADDRESS */}
-      <div style={{ marginTop: 12, fontSize: 14, fontWeight: 900 }}>Address</div>
+      <div style={{ marginTop: 12, fontSize: 14, fontWeight: 900 }}>{t("address")}</div>
       {(Array<keyof CustomerProfile>("address1", "address2", "postal_code", "city", "country")).map((k) => (
         <FieldRow
           key={k}
-          label={labelFor(k)}
+          label={labelFor(k, t)}
           value={value[k]}
           required={REQUIRED.includes(k)}
           isEditing={editingKey === k}
@@ -361,26 +392,37 @@ export function CustomerProfileForm() {
           onCancel={cancelEdit}
           onSave={saveEdit}
           error={editingKey === k ? error : null}
+          requiredLabel={t("required")}
+          notSetLabel={t("notSet")}
+          addLabel={t("add")}
+          editLabel={t("edit")}
+          cancelLabel={t("cancel")}
+          saveLabel={t("save")}
         >
           <Input
             value={draft}
             onChange={setDraft}
-            placeholder={k === "country" ? "CH" : labelFor(k)}
+            placeholder={k === "country" ? t("countryPlaceholder") : labelFor(k, t)}
           />
-          {saving ? <div style={{ fontSize: 12, color: "#666" }}>Saving…</div> : null}
+          {saving ? <div style={{ fontSize: 12, color: "#666" }}>{t("saving")}</div> : null}
         </FieldRow>
       ))}
 
       {/* NOTES */}
-      <div style={{ marginTop: 12, fontSize: 14, fontWeight: 900 }}>Notes</div>
+      <div style={{ marginTop: 12, fontSize: 14, fontWeight: 900 }}>{t("notes")}</div>
       <FieldRow
-        label="Notes"
+        label={t("notes")}
         value={value.notes}
         isEditing={editingKey === "notes"}
         onEdit={() => startEdit("notes")}
         onCancel={cancelEdit}
         onSave={saveEdit}
         error={editingKey === "notes" ? error : null}
+        notSetLabel={t("notSet")}
+        addLabel={t("add")}
+        editLabel={t("edit")}
+        cancelLabel={t("cancel")}
+        saveLabel={t("save")}
       >
         <textarea
           value={draft}
@@ -394,7 +436,7 @@ export function CustomerProfileForm() {
             resize: "vertical",
           }}
         />
-        {saving ? <div style={{ fontSize: 12, color: "#666" }}>Saving…</div> : null}
+        {saving ? <div style={{ fontSize: 12, color: "#666" }}>{t("saving")}</div> : null}
       </FieldRow>
     </div>
   );

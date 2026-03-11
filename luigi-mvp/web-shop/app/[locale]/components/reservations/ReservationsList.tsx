@@ -1,6 +1,7 @@
 "use client";
 
 import { ReservationView } from "@/lib/reservationClient";
+import { useTranslations } from "next-intl";
 import styles from "./ReservationsList.module.css";
 import ReservationRow from "./ReservationRow";
 
@@ -9,10 +10,11 @@ type Props = {
 };
 
 export default function ReservationsList({ reservations }: Props) {
+  const t = useTranslations("reservationsList");
   if (!reservations.length) {
     return (
       <div className={styles.empty}>
-        You don’t have any reservations yet.
+        {t("empty")}
       </div>
     );
   }

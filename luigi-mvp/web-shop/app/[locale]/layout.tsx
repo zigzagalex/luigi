@@ -12,6 +12,7 @@ import { CartAddPopover } from "./components/cart/CartAddPopover";
 
 const DEFAULT_SHOP_ID = 1;
 const locales = ["en", "de", "fr", "it"] as const;
+export const dynamic = "force-dynamic";
 
 type Props = {
   children: ReactNode;
@@ -25,7 +26,7 @@ export default async function LocaleLayout({ children, params }: Props) {
 
   setRequestLocale(locale);
 
-  const messages = await getMessages();
+  const messages = await getMessages({locale});
 
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>

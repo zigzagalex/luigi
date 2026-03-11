@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { ReservationView } from "@/lib/reservationClient";
+import { useLocale, useTranslations } from "next-intl";
 import styles from "./ReservationRow.module.css";
 import ReservationItemsPreview from "./ReservationItemsPreview";
 import ReservationStatusBadge from "./ReservationStatusBadge";
@@ -11,9 +12,11 @@ type Props = {
 };
 
 export default function ReservationRow({ reservation }: Props) {
+  const t = useTranslations("reservationRow");
+  const locale = useLocale();
   const r = reservation.reservation;
 
-  const formattedDate = new Date(r.created_at).toLocaleDateString();
+  const formattedDate = new Date(r.created_at).toLocaleDateString(locale);
   const total = (r.total_price_cents / 100).toFixed(2);
 
   return (
@@ -21,7 +24,7 @@ export default function ReservationRow({ reservation }: Props) {
       <div className={styles.header}>
         <div>
           <div className={styles.number}>
-            Reservation {r.id}
+            {t("reservationNumber", { id: String(r.id) })}
           </div>
           <div className={styles.date}>
             {formattedDate}
@@ -42,8 +45,8 @@ export default function ReservationRow({ reservation }: Props) {
       <ReservationItemsPreview items={reservation.items} />
 
       <div className={styles.range}>
-        {new Date(r.start_at).toLocaleDateString()} →{" "}
-        {new Date(r.end_at).toLocaleDateString()}
+        {new Date(r.start_at).toLocaleDateString(locale)} →{" "}
+        {new Date(r.end_at).toLocaleDateString(locale)}
       </div>
     </Link>
   );

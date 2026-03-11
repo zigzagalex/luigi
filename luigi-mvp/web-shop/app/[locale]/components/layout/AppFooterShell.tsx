@@ -1,20 +1,23 @@
 import Link from "next/link";
+import { getTranslations } from "next-intl/server";
 import { footerColumns } from "./FooterLinks";
 import styles from "./AppFooterShell.module.css";
 
-export default function AppFooterShell() {
+export default async function AppFooterShell() {
+  const t = await getTranslations("footer");
+
   return (
     <footer className={styles.footer}>
       <div className={styles.inner}>
-        <nav aria-label="Footer" className={styles.grid}>
+        <nav aria-label={t("navAria")} className={styles.grid}>
           {footerColumns.map((col) => (
-            <section key={col.title} className={styles.col}>
-              <h3 className={styles.title}>{col.title}</h3>
+            <section key={col.titleKey} className={styles.col}>
+              <h3 className={styles.title}>{t(col.titleKey)}</h3>
               <ul className={styles.list}>
                 {col.links.map((l) => (
                   <li key={l.href}>
                     <Link className={styles.link} href={l.href}>
-                      {l.label}
+                      {t(l.labelKey)}
                     </Link>
                   </li>
                 ))}

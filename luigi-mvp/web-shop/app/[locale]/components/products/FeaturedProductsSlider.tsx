@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import type { Product } from "@/../utils/products";
 import ProductCard from "./ProductCard";
 import styles from "./FeaturedProductsSlider.module.css";
@@ -14,6 +15,7 @@ const DESKTOP_VISIBLE_COUNT = 2;
 const INTERVAL_MS = 5000;
 
 export default function FeaturedProductsSlider({ products, title }: Props) {
+  const t = useTranslations("featuredProducts");
   const items = useMemo(() => products.slice(0, 12), [products]);
   const total = items.length;
 
@@ -62,7 +64,7 @@ export default function FeaturedProductsSlider({ products, title }: Props) {
   return (
     <section className={styles.slider}>
       <div className={styles.header}>
-        <h2>{title ?? "Featured bikes"}</h2>
+        <h2>{title ?? t("title")}</h2>
       </div>
 
       <div className={styles.viewport}>
