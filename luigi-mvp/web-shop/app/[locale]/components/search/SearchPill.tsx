@@ -2,6 +2,7 @@
 
 import { useState, useRef, useEffect, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import type { DateRange } from "react-day-picker";
 import { RangeCalendar } from "@/[locale]/components/daterangepicker/DateRangePicker";
 import type { CategoryOption, StoreOption } from "@/../utils/fetchAPI";
@@ -25,13 +26,14 @@ function formatDateForApiLocal(date: Date): string {
   return `${y}-${m}-${d}`;
 }
 
-function storeDisplayName(store?: StoreOption | null) {
-  if (!store) return "Choose location";
+function storeDisplayName(store?: StoreOption | null, fallback = "Choose location") {
+  if (!store) return fallback;
   // @ts-expect-error tolerate either shape
-  return store.name ?? store.label ?? "Choose location";
+  return store.name ?? store.label ?? fallback;
 }
 
 export default function SearchPill({ categories, stores, selectedStore, onStoreChange }: SearchPillProps) {
+  const t = useTranslations("searchPill");
   const router = useRouter();
   const [active, setActive] = useState<ActivePanel>(null);
 
@@ -39,18 +41,18 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
 
   // ---------- WHAT ----------
   const [categoryOptions] = useState<CategoryOption[]>(() =>
-    categories && categories.length > 0 ? categories : [{ id: null, label: "Any bike" }]
+    categories && categories.length > 0 ? categories : [{ id: null, label: t("anyBike") }]
   );
 
   const [selectedCategory, setSelectedCategory] = useState<CategoryOption>(
-    () => categoryOptions[0] ?? { id: null, label: "Any bike" }
+    () => categoryOptions[0] ?? { id: null, label: t("anyBike") }
   );
 
   // ---------- WHEN ----------
   const [range, setRange] = useState<DateRange | undefined>(undefined);
 
   const whenLabel = (() => {
-    if (!range?.from) return "Add dates";
+    if (!range?.from) return t("addDates");
     const from = range.from;
     const to = range.to ?? range.from;
 
@@ -173,7 +175,7 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
             className={`${styles.section} ${active === "what" ? styles.sectionActive : ""}`}
             onClick={() => setActive(active === "what" ? null : "what")}
           >
-            <span className={styles.label}>What</span>
+            <span className={styles.label}>{t("what")}</span>
             <span className={styles.value}>{selectedCategory.label}</span>
           </button>
 
@@ -186,7 +188,7 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
             className={`${styles.section} ${active === "when" ? styles.sectionActive : ""}`}
             onClick={() => setActive(active === "when" ? null : "when")}
           >
-            <span className={styles.label}>When</span>
+            <span className={styles.label}>{t("when")}</span>
             <span className={styles.value}>{whenLabel}</span>
           </button>
 
@@ -199,11 +201,11 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
             className={`${styles.section} ${active === "where" ? styles.sectionActive : ""}`}
             onClick={() => setActive(active === "where" ? null : "where")}
           >
-            <span className={styles.label}>Where</span>
-            <span className={styles.value}>{storeDisplayName(store)}</span>
+            <span className={styles.label}>{t("where")}</span>
+            <span className={styles.value}>{storeDisplayName(store, t("chooseLocation"))}</span>
           </button>
 
-          <button type="button" className={styles.submit} onClick={handleSearch} aria-label="Search">
+          <button type="button" className={styles.submit} onClick={handleSearch} aria-label={t("searchAria")}>
             <span className={styles.submitIcon}>🔍</span>
           </button>
 
@@ -264,7 +266,7 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
                           }}
                           className={`${styles.categoryPill} ${isSelected ? styles.categoryPillSelected : ""}`}
                         >
-                          {storeDisplayName(s)}
+                          {storeDisplayName(s, t("chooseLocation"))}
                         </button>
                       );
                     })}

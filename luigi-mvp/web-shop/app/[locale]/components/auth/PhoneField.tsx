@@ -3,6 +3,7 @@
 import PhoneInput from "react-phone-number-input";
 import "react-phone-number-input/style.css";
 import { isValidPhoneNumber } from "libphonenumber-js";
+import { useTranslations } from "next-intl";
 import styles from "./PhoneField.module.css";
 
 type Props = {
@@ -29,6 +30,7 @@ export default function PhoneField({
   defaultCountry = "CH",
   onValidityChange,
 }: Props) {
+  const t = useTranslations("phoneField");
   return (
     <PhoneInput
       international
@@ -45,7 +47,7 @@ export default function PhoneField({
         inputMode: "tel",
         pattern: "[0-9+]*",
       }}
-      placeholder="+41 79 123 45 67"
+      placeholder={t("placeholder")}
     />
   );
 }

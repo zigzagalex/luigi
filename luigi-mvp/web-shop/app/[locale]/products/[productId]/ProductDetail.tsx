@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Product } from "@/../utils/products";
 import { useSearchParams } from "next/navigation";
+import { useTranslations } from "next-intl";
 import styles from "./ProductDetail.module.css";
 import {
   AvailabilityRangeCalendar,
@@ -107,6 +108,7 @@ function formatPillDate(d?: Date) {
 }
 
 export default function ProductDetail({ product, variants, stores, inventory }: Props) {
+  const t = useTranslations("productDetail");
   /** ---------- Read incoming query params from URL ---------- */
   const sp = useSearchParams();
 
@@ -332,7 +334,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
           setShowStoreConflict(true);
           return;
         }
-        setAddError(e?.message ?? "Failed to add to cart");
+        setAddError(e?.message ?? t("failedToAddToCart"));
       } finally {
         setAdding(false);
       }
@@ -350,8 +352,8 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     
 
   /** ---------- UI labels ---------- */
-  const title = product.name || `Bike #${product.id}`;
-  const priceLabel = product.price_category || "standard";
+  const title = product.name || t("bikeFallback", { id: String(product.id) });
+  const priceLabel = product.price_category || t("standard");
 
   // We only want to let users pick dates if store + variant are selected
   const canPickDates = selectedVariant?.id != null && selectedStoreId != null;
@@ -414,7 +416,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
       } catch (e: any) {
         if (e?.name === "AbortError") return; // ignore rapid changes
         setQuote(null);
-        setQuoteError(e?.message ?? "Failed to fetch price");
+        setQuoteError(e?.message ?? t("failedToFetchPrice"));
       } finally {
         setQuoteLoading(false);
       }
@@ -433,7 +435,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
         <section className={styles.media}>
           {images.length === 0 ? (
             <div className={styles.mediaEmpty}>
-              <span>No images yet</span>
+              <span>{t("noImagesYet")}</span>
             </div>
           ) : (
             <>
@@ -442,7 +444,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
                   type="button"
                   className={`${styles.imageArrow} ${styles.imageArrowLeft}`}
                   onClick={handlePrevImage}
-                  aria-label="Previous image"
+                  aria-label={t("previousImage")}
                 >
                   ‹
                 </button>
@@ -450,7 +452,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={images[currentImageIndex]?.url}
-                  alt={images[currentImageIndex]?.alt_text || product.name || "Bike image"}
+                  alt={images[currentImageIndex]?.alt_text || product.name || t("bikeImage")}
                   className={styles.mainImage}
                 />
 
@@ -458,7 +460,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
                   type="button"
                   className={`${styles.imageArrow} ${styles.imageArrowRight}`}
                   onClick={handleNextImage}
-                  aria-label="Next image"
+                  aria-label={t("nextImage")}
                 >
                   ›
                 </button>
@@ -485,13 +487,13 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
           <header className={styles.header}>
             <h1 className={styles.title}>{title}</h1>
             <div className={styles.subtitle}>
-              <span>Shop #{product.shop_id}</span>
+              <span>{t("shop", { id: String(product.shop_id) })}</span>
             </div>
           </header>
 
           {/* Store selector */}
           <div className={styles.block}>
-            <h2 className={styles.blockTitle}>Pick-up location</h2>
+            <h2 className={styles.blockTitle}>{t("pickupLocation")}</h2>
             <div className={styles.chipRow}>
               {stores.map((store) => {
                 const hasInv = storeHasInventoryForSelectedVariant(store.id);
@@ -520,7 +522,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
 
           {/* Size selector */}
           <div className={styles.block}>
-            <h2 className={styles.blockTitle}>Size</h2>
+            <h2 className={styles.blockTitle}>{t("size")}</h2>
             <div className={styles.chipRow}>
               {sizeOptions.map((size) => {
                 const variantForSize = sizeMap.get(size);
@@ -556,23 +558,23 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
 
           {/* Dates */}
           <div className={styles.block}>
-            <h2 className={styles.blockTitle}>Pick-up &amp; return</h2>
+            <h2 className={styles.blockTitle}>{t("pickupReturn")}</h2>
 
             {/* Summary row that should now show query-param values when present */}
             <div className={styles.dateSummary}>
               <div>
-                <span className={styles.dateSummaryLabel}>PICK-UP</span>
-                <span className={styles.dateSummaryValue}>{formatPillDate(range.from)}</span>
+                <span className={styles.dateSummaryLabel}>{t("pickup")}</span>
+                <span className={styles.dateSummaryValue}>{range.from ? formatPillDate(range.from) : t("addDate")}</span>
               </div>
               <div>
-                <span className={styles.dateSummaryLabel}>RETURN</span>
-                <span className={styles.dateSummaryValue}>{formatPillDate(range.to)}</span>
+                <span className={styles.dateSummaryLabel}>{t("return")}</span>
+                <span className={styles.dateSummaryValue}>{range.to ? formatPillDate(range.to) : t("addDate")}</span>
               </div>
             </div>
 
             {!canPickDates && (
               <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>
-                Select a pick-up location to choose dates.
+                {t("selectStoreForDates")}
               </div>
             )}
 
@@ -590,10 +592,10 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
           {/* Quantity */}
           <div className={styles.block}>
             <h2 className={styles.blockTitle}>
-              Quantity{" "}
+              {t("quantity")}{" "}
               {availableQuantity > 0 && (
                 <span style={{ marginLeft: 8, fontSize: 12, opacity: 0.7 }}>
-                  ({availableQuantity} available)
+                  ({t("available", { count: String(availableQuantity) })})
                 </span>
               )}
             </h2>
@@ -622,16 +624,16 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
           {/* Price */}
           <div className={styles.priceBlock}>
             {quoteLoading ? (
-              <div className={styles.priceLoading}>Calculating…</div>
+              <div className={styles.priceLoading}>{t("calculating")}</div>
             ) : quote && Number.isFinite(quote.totalPriceCents) ? (
               <div className={styles.priceBig}>
                 {quote.currency} {(quote.totalPriceCents / 100).toFixed(2)}
               </div>
             ) : (
-              <div className={styles.pricePlaceholder}>Select dates to see price</div>
+              <div className={styles.pricePlaceholder}>{t("selectDatesForPrice")}</div>
             )}
 
-            <div className={styles.priceHint}>Price updates with your dates & quantity.</div>
+            <div className={styles.priceHint}>{t("priceHint")}</div>
             {quoteError && <div className={styles.priceError}>{quoteError}</div>}
           </div>
 
@@ -644,7 +646,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
               onClick={handleAddToCart}
               disabled={!canAddToCart || adding}
             >
-              {adding ? "Adding…" : "Add to cart"}
+              {adding ? t("adding") : t("addToCart")}
             </button>
           </div>
         </section>

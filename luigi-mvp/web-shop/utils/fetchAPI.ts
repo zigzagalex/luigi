@@ -119,7 +119,7 @@ export async function fetchCategoryOptions(
 
     if (!res.ok) {
       console.error("fetchCategoryOptions failed:", res.status);
-      return [{ id: null, label: "Any bike" }];
+      return [];
     }
 
     const data = (await res.json()) as CategoryDTO[];
@@ -134,16 +134,13 @@ export async function fetchCategoryOptions(
         return a.name.localeCompare(b.name);
       });
 
-    return [
-      { id: null, label: "Any bike" },
-      ...topLevel.map((c) => ({
-        id: c.id,
-        label: c.name,
-      })),
-    ];
+    return topLevel.map((c) => ({
+      id: c.id,
+      label: c.name,
+    }));
   } catch (err) {
     console.error("fetchCategoryOptions threw:", err);
-    return [{ id: null, label: "Any bike" }];
+    return [];
   }
 }
 

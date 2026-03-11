@@ -1,9 +1,12 @@
-export default function LocationsPage() {
-    return (
-      <div style={{ padding: 24 }}>
-        <h1>Locations</h1>
-        <p>Coming soon.</p>
-      </div>
-    );
-  }
-  
+import { getTranslations } from "next-intl/server";
+
+export default async function LocationsPage() {
+  const t = await getTranslations("infoPages");
+
+  return (
+    <div style={{ padding: 24 }}>
+      <h1>{t("locations")}</h1>
+      <p>{t("comingSoon")}</p>
+    </div>
+  );
+}

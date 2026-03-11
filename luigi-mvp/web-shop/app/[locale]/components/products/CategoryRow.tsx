@@ -1,6 +1,7 @@
 "use client";
 
 import { useRef } from "react";
+import { useTranslations } from "next-intl";
 import type { Product } from "@/../utils/products";
 import ProductCard from "./ProductCard";
 import styles from "./CategoryRow.module.css";
@@ -11,6 +12,7 @@ type Props = {
 };
 
 export default function CategoryRow({ title, products }: Props) {
+  const t = useTranslations("categoryRow");
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   if (!products.length) return null;
@@ -37,7 +39,7 @@ export default function CategoryRow({ title, products }: Props) {
           type="button"
           className={`${styles.arrow} ${styles.arrowLeft}`}
           onClick={() => scroll("left")}
-          aria-label="Scroll left"
+          aria-label={t("scrollLeft")}
         >
           ‹
         </button>
@@ -54,7 +56,7 @@ export default function CategoryRow({ title, products }: Props) {
           type="button"
           className={`${styles.arrow} ${styles.arrowRight}`}
           onClick={() => scroll("right")}
-          aria-label="Scroll right"
+          aria-label={t("scrollRight")}
         >
           ›
         </button>

@@ -1,4 +1,7 @@
+"use client";
+
 import type { ReservationItemView } from "@/lib/reservationClient";
+import { useTranslations } from "next-intl";
 import styles from "./ReservationItemsFullList.module.css";
 
 type Props = {
@@ -11,8 +14,9 @@ function money(cents: number, currency: string) {
 }
 
 export default function ReservationItemsFullList({ items, currency }: Props) {
+  const t = useTranslations("reservationItemsFull");
   if (!items.length) {
-    return <div className={styles.empty}>No items.</div>;
+    return <div className={styles.empty}>{t("empty")}</div>;
   }
 
   return (
@@ -27,7 +31,7 @@ export default function ReservationItemsFullList({ items, currency }: Props) {
               {item.image_url ? (
                 <img
                   src={item.image_url}
-                  alt={item.product_name ?? "Reservation item"}
+                  alt={item.product_name ?? t("alt")}
                   className={styles.imageTag}
                 />
               ) : (
@@ -38,7 +42,7 @@ export default function ReservationItemsFullList({ items, currency }: Props) {
             <div className={styles.main}>
               <div className={styles.titleRow}>
                 <div className={styles.name}>
-                  {item.product_name ?? "Unnamed product"}
+                  {item.product_name ?? t("unnamedProduct")}
                 </div>
                 <div className={styles.lineTotal}>
                   {money(lineTotal, currency)}

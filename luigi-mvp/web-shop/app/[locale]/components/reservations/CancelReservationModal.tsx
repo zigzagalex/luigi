@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import styles from "./CancelReservationModal.module.css";
 
 type Props = {
@@ -12,14 +13,6 @@ type Props = {
   onConfirm: (reason: string) => void | Promise<void>;
 };
 
-const REASON_SUGGESTIONS = [
-  "Change of plans",
-  "Found a better alternative",
-  "Dates no longer work",
-  "Accidental reservation",
-  "Other",
-] as const;
-
 export default function CancelReservationModal({
   open,
   busy = false,
@@ -28,16 +21,25 @@ export default function CancelReservationModal({
   onClose,
   onConfirm,
 }: Props) {
-  const [selected, setSelected] = useState<(typeof REASON_SUGGESTIONS)[number]>("Change of plans");
+  const t = useTranslations("cancelReservationModal");
+  const reasonSuggestions = [
+    t("reasonChangePlans"),
+    t("reasonBetterAlternative"),
+    t("reasonDatesNoWork"),
+    t("reasonAccidental"),
+    t("reasonOther"),
+  ] as const;
+
+  const [selected, setSelected] = useState<string>(reasonSuggestions[0]);
   const [details, setDetails] = useState("");
 
   const combinedReason = useMemo(() => {
-    const base = selected === "Other" ? "" : selected;
+    const base = selected === t("reasonOther") ? "" : selected;
     const extra = details.trim();
     if (!base && !extra) return "";
     if (base && extra) return `${base}: ${extra}`;
     return base || extra;
-  }, [selected, details]);
+  }, [selected, details, t]);
 
   useEffect(() => {
     if (!open) return;
@@ -51,9 +53,9 @@ export default function CancelReservationModal({
   useEffect(() => {
     if (!open) return;
     // reset each time it opens (feel free to remove if you want persistence)
-    setSelected("Change of plans");
+    setSelected(reasonSuggestions[0]);
     setDetails("");
-  }, [open]);
+  }, [open, reasonSuggestions]);
 
   if (!open) return null;
 
@@ -66,29 +68,26 @@ export default function CancelReservationModal({
       }}
       aria-hidden={!open}
     >
-      <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Cancel reservation">
+      <div className={styles.modal} role="dialog" aria-modal="true" aria-label={t("ariaLabel")}>
         <div className={styles.header}>
-          <div className={styles.title}>Cancel reservation</div>
-          <button className={styles.close} onClick={onClose} disabled={busy} aria-label="Close">
+          <div className={styles.title}>{t("title")}</div>
+          <button className={styles.close} onClick={onClose} disabled={busy} aria-label={t("close")}>
             ✕
           </button>
         </div>
 
         <div className={styles.body}>
-          <div className={styles.notice}>
-            You’re about to cancel <span className={styles.bold}>Reservation {reservationId}</span>.
-            This will mark it as cancelled and may affect availability.
-          </div>
+          <div className={styles.notice}>{t("notice", { id: String(reservationId) })}</div>
 
           <div className={styles.field}>
-            <label className={styles.label}>Reason</label>
+            <label className={styles.label}>{t("reason")}</label>
             <select
               className={styles.select}
               value={selected}
-              onChange={(e) => setSelected(e.target.value as any)}
+              onChange={(e) => setSelected(e.target.value)}
               disabled={busy}
             >
-              {REASON_SUGGESTIONS.map((r) => (
+              {reasonSuggestions.map((r) => (
                 <option key={r} value={r}>
                   {r}
                 </option>
@@ -98,14 +97,14 @@ export default function CancelReservationModal({
 
           <div className={styles.field}>
             <label className={styles.label}>
-              Details <span className={styles.optional}>(optional)</span>
+              {t("details")} <span className={styles.optional}>{t("optional")}</span>
             </label>
             <textarea
               className={styles.textarea}
               rows={4}
               value={details}
               onChange={(e) => setDetails(e.target.value)}
-              placeholder="Add a short note (optional)…"
+              placeholder={t("detailsPlaceholder")}
               disabled={busy}
             />
           </div>
@@ -115,15 +114,15 @@ export default function CancelReservationModal({
 
         <div className={styles.footer}>
           <button className={styles.secondary} onClick={onClose} disabled={busy}>
-            Keep reservation
+            {t("keepReservation")}
           </button>
           <button
             className={styles.danger}
             onClick={() => onConfirm(combinedReason)}
             disabled={busy}
-            title="Confirm cancellation"
+            title={t("confirmTitle")}
           >
-            {busy ? "Cancelling…" : "Yes, cancel"}
+            {busy ? t("cancelling") : t("confirmCancel")}
           </button>
         </div>
       </div>
