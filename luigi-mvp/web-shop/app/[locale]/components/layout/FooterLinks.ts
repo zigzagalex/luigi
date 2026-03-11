@@ -1,33 +1,33 @@
-export type FooterLink = { label: string; href: string };
+export type FooterLink = { labelKey: string; href: string };
 
 export type FooterColumn = {
-  title: string;
+  titleKey: string;
   links: FooterLink[];
 };
 
 export const footerColumns: FooterColumn[] = [
   {
-    title: "Support",
+    titleKey: "support",
     links: [
-      { label: "FAQ", href: "/faq" },
-      { label: "Kontakt", href: "/contact" },
-      { label: "Standort", href: "/location" },
+      { labelKey: "faq", href: "/faq" },
+      { labelKey: "contact", href: "/contact" },
+      { labelKey: "locations", href: "/locations" },
     ],
   },
   {
-    title: "Unternehmen",
+    titleKey: "company",
     links: [
-      { label: "Über uns", href: "/about" },
-      { label: "Produkte", href: "/products" },
-      { label: "Suche", href: "/search" },
+      { labelKey: "about", href: "/about" },
+      { labelKey: "products", href: "/products" },
+      { labelKey: "search", href: "/search" },
     ],
   },
   {
-    title: "Rechtliches",
+    titleKey: "legal",
     links: [
-      { label: "AGB", href: "/agb" },
-      { label: "Datenschutz", href: "/privacy" },
-      { label: "Impressum", href: "/imprint" },
+      { labelKey: "agb", href: "/agbs" },
+      { labelKey: "privacy", href: "/privacy" },
+      { labelKey: "imprint", href: "/imprint" },
     ],
   },
 ];

@@ -1,12 +1,15 @@
 "use client";
 
 import Link from "next/link";
+import { useLocale, useTranslations } from "next-intl";
 import { useCart } from "./CartContext";
 import styles from "./CartPopover.module.css";
 
 type Props = { onClose: () => void };
 
 export function CartPopover({ onClose }: Props) {
+  const t = useTranslations("cartPopover");
+  const locale = useLocale();
   const {
     cart,
     removeItem,
@@ -22,12 +25,12 @@ export function CartPopover({ onClose }: Props) {
     <div className={styles.pop}>
       {/* Header */}
       <div className={styles.head}>
-        <div className={styles.title}>Your cart</div>
+        <div className={styles.title}>{t("title")}</div>
         <button
           type="button"
           className={styles.close}
           onClick={onClose}
-          aria-label="Close cart"
+          aria-label={t("closeAria")}
         >
           ×
         </button>
@@ -35,7 +38,7 @@ export function CartPopover({ onClose }: Props) {
 
       {/* Body */}
       {visibleItems.length === 0 ? (
-        <div className={styles.muted}>Your cart is empty</div>
+        <div className={styles.muted}>{t("empty")}</div>
       ) : (
         <div className={styles.list}>
           {visibleItems.map((item) => {
@@ -53,7 +56,7 @@ export function CartPopover({ onClose }: Props) {
                   <div className={styles.rowTitle}>{name}</div>
                   {variantLine && <div className={styles.rowSub}>{variantLine}</div>}
                   <div className={styles.rowMeta}>
-                    {formatDate(item.start_at)} → {formatDate(item.end_at)}
+                    {formatDate(item.start_at, locale)} → {formatDate(item.end_at, locale)}
                   </div>
                 </div>
 
@@ -65,7 +68,7 @@ export function CartPopover({ onClose }: Props) {
                     type="button"
                     className={styles.trash}
                     onClick={() => removeItem(item.id)}
-                    aria-label="Remove item"
+                    aria-label={t("removeItemAria")}
                   >
                     🗑
                   </button>
@@ -80,14 +83,14 @@ export function CartPopover({ onClose }: Props) {
       {items.length > 0 && (
         <div className={styles.footer}>
           <div className={styles.totalRow}>
-            <span className={styles.totalLabel}>Subtotal</span>
+            <span className={styles.totalLabel}>{t("subtotal")}</span>
             <strong className={styles.totalValue}>
               CHF {((cart?.subtotal_cents ?? 0) / 100).toFixed(2)}
             </strong>
           </div>
 
           <Link href="/cart" className={styles.cta} onClick={onClose}>
-            View cart
+            {t("viewCart")}
           </Link>
         </div>
       )}
@@ -95,6 +98,6 @@ export function CartPopover({ onClose }: Props) {
   );
 }
 
-function formatDate(d: string) {
-  return new Intl.DateTimeFormat("de-CH").format(new Date(d));
+function formatDate(d: string, locale: string) {
+  return new Intl.DateTimeFormat(locale).format(new Date(d));
 }

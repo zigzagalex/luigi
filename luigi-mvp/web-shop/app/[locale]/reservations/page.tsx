@@ -4,8 +4,10 @@ import { fetchApi } from "../../../utils/fetchAPI";
 import type { ReservationView } from "@/lib/reservationClient";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
+import { getTranslations } from "next-intl/server";
 
 export default async function ReservationsPage() {
+  const t = await getTranslations("reservationsPage");
   try {
     const SHOP_ID = 1; 
 
@@ -33,8 +35,8 @@ export default async function ReservationsPage() {
 
       return (
         <div className={styles.container}>
-          <h1 className={styles.title}>Your reservations</h1>
-          <p>Failed to load reservations.</p>
+          <h1 className={styles.title}>{t("title")}</h1>
+          <p>{t("loadFailed")}</p>
         </div>
       );
     }
@@ -43,7 +45,7 @@ export default async function ReservationsPage() {
 
     return (
       <div className={styles.container}>
-        <h1 className={styles.title}>Your reservations</h1>
+        <h1 className={styles.title}>{t("title")}</h1>
         <ReservationsList reservations={reservations} />
       </div>
     );
@@ -52,8 +54,8 @@ export default async function ReservationsPage() {
 
     return (
       <div className={styles.container}>
-        <h1 className={styles.title}>Your reservations</h1>
-        <p>Unexpected error occurred.</p>
+        <h1 className={styles.title}>{t("title")}</h1>
+        <p>{t("unexpectedError")}</p>
       </div>
     );
   }

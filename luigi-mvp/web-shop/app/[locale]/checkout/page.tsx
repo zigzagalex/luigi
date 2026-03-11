@@ -3,6 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 
 import styles from "./checkout.module.css";
 
@@ -145,6 +146,8 @@ function Field({
 }
 
 export default function CheckoutPage() {
+  const t = useTranslations("checkout");
+  const locale = useLocale();
   const router = useRouter();
   const { me, loading: authLoading } = useAuth();
 
@@ -249,7 +252,7 @@ export default function CheckoutPage() {
 
     async function onBuy() {
       if (!agreed) {
-        alert("Please accept terms");
+        alert(t("acceptTermsAlert"));
         return;
       }
     
@@ -286,26 +289,26 @@ export default function CheckoutPage() {
     
         if (!res.ok) {
           console.error(data);
-          alert("Checkout failed");
+          alert(t("checkoutFailed"));
           return;
         }
     
         router.push(`/checkout/confirmation?success=1`);
       } catch (err) {
         console.error(err);
-        alert("Unexpected error");
+        alert(t("unexpectedError"));
       }
     }
 
-  if (authLoading) return <div className={styles.page}>Loading…</div>;
+  if (authLoading) return <div className={styles.page}>{t("loadingCart")}</div>;
 
   if (!me) {
     return (
       <div className={styles.page}>
-        <h1 className={styles.h1}>Checkout</h1>
-        <p className={styles.muted}>Please sign in to continue.</p>
+        <h1 className={styles.h1}>{t("title")}</h1>
+        <p className={styles.muted}>{t("signInToContinue")}</p>
         <Link className={styles.link} href="/cart">
-          Back to cart
+          {t("backToCart")}
         </Link>
       </div>
     );
@@ -314,9 +317,9 @@ export default function CheckoutPage() {
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h1 className={styles.h1}>Checkout</h1>
+        <h1 className={styles.h1}>{t("title")}</h1>
         <Link className={styles.link} href="/cart">
-          Back to cart
+          {t("backToCart")}
         </Link>
       </div>
 
@@ -324,8 +327,8 @@ export default function CheckoutPage() {
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <div>
-            <div className={styles.cardTitle}>Your details</div>
-            <div className={styles.cardSubtitle}>Used for pickup and billing.</div>
+            <div className={styles.cardTitle}>{t("yourDetails")}</div>
+            <div className={styles.cardSubtitle}>{t("detailsSubtitle")}</div>
           </div>
 
           {!profileExpanded ? (
@@ -337,7 +340,7 @@ export default function CheckoutPage() {
               }}
               disabled={loadingCustomer}
             >
-              {profileComplete ? "Edit" : "Complete"}
+              {profileComplete ? t("edit") : t("complete")}
             </button>
           ) : null}
         </div>
@@ -346,23 +349,23 @@ export default function CheckoutPage() {
           <div className={styles.summary}>
             {missing.length > 0 ? (
               <div className={styles.warnBox}>
-                <div className={styles.warnTitle}>Profile incomplete</div>
+                <div className={styles.warnTitle}>{t("profileIncomplete")}</div>
                 <div className={styles.warnText}>
-                  Please add: {missing.map(labelFor).join(", ")}
+                  {t("pleaseAdd", { fields: missing.map(labelFor).join(", ") })}
                 </div>
               </div>
             ) : null}
 
             <div className={styles.summaryGrid}>
-              <SummaryRow label="Name" value={`${customer.first_name} ${customer.last_name}`.trim() || "—"} />
-              <SummaryRow label="Email" value={customer.email || "—"} />
-              <SummaryRow label="Phone" value={customer.phone || "—"} />
+              <SummaryRow label={t("name")} value={`${customer.first_name} ${customer.last_name}`.trim() || t("dash")} />
+              <SummaryRow label={t("email")} value={customer.email || t("dash")} />
+              <SummaryRow label={t("phone")} value={customer.phone || t("dash")} />
               <SummaryRow
-                label="Address"
+                label={t("address")}
                 value={
                   customer.address1
                     ? `${customer.address1}${customer.postal_code || customer.city ? `, ${customer.postal_code} ${customer.city}` : ""}`
-                    : "—"
+                    : t("dash")
                 }
               />
             </div>
@@ -370,15 +373,15 @@ export default function CheckoutPage() {
         ) : (
           <div className={styles.expand}>
             <div className={styles.expandGrid}>
-              <Field label="First name" required value={profileDraft.first_name} onChange={(v) => setProfileDraft((p) => ({ ...p, first_name: v }))} disabled={profileSaving} />
-              <Field label="Last name" required value={profileDraft.last_name} onChange={(v) => setProfileDraft((p) => ({ ...p, last_name: v }))} disabled={profileSaving} />
-              <Field label="Email" required type="email" value={profileDraft.email} onChange={(v) => setProfileDraft((p) => ({ ...p, email: v }))} disabled={profileSaving} />
-              <Field label="Phone" required placeholder="+41 …" value={profileDraft.phone} onChange={(v) => setProfileDraft((p) => ({ ...p, phone: v }))} disabled={profileSaving} />
-              <Field label="Address line 1" required value={profileDraft.address1} onChange={(v) => setProfileDraft((p) => ({ ...p, address1: v }))} disabled={profileSaving} />
-              <Field label="Postal code" required value={profileDraft.postal_code} onChange={(v) => setProfileDraft((p) => ({ ...p, postal_code: v }))} disabled={profileSaving} />
-              <Field label="City" required value={profileDraft.city} onChange={(v) => setProfileDraft((p) => ({ ...p, city: v }))} disabled={profileSaving} />
-              <Field label="Country" placeholder="CH" value={profileDraft.country} onChange={(v) => setProfileDraft((p) => ({ ...p, country: v }))} disabled={profileSaving} />
-              <Field label="Address line 2" value={profileDraft.address2} onChange={(v) => setProfileDraft((p) => ({ ...p, address2: v }))} disabled={profileSaving} />
+              <Field label={t("firstName")} required value={profileDraft.first_name} onChange={(v) => setProfileDraft((p) => ({ ...p, first_name: v }))} disabled={profileSaving} />
+              <Field label={t("lastName")} required value={profileDraft.last_name} onChange={(v) => setProfileDraft((p) => ({ ...p, last_name: v }))} disabled={profileSaving} />
+              <Field label={t("email")} required type="email" value={profileDraft.email} onChange={(v) => setProfileDraft((p) => ({ ...p, email: v }))} disabled={profileSaving} />
+              <Field label={t("phone")} required placeholder={t("phonePlaceholder")} value={profileDraft.phone} onChange={(v) => setProfileDraft((p) => ({ ...p, phone: v }))} disabled={profileSaving} />
+              <Field label={t("address1")} required value={profileDraft.address1} onChange={(v) => setProfileDraft((p) => ({ ...p, address1: v }))} disabled={profileSaving} />
+              <Field label={t("postalCode")} required value={profileDraft.postal_code} onChange={(v) => setProfileDraft((p) => ({ ...p, postal_code: v }))} disabled={profileSaving} />
+              <Field label={t("city")} required value={profileDraft.city} onChange={(v) => setProfileDraft((p) => ({ ...p, city: v }))} disabled={profileSaving} />
+              <Field label={t("country")} placeholder={t("countryPlaceholder")} value={profileDraft.country} onChange={(v) => setProfileDraft((p) => ({ ...p, country: v }))} disabled={profileSaving} />
+              <Field label={t("address2")} value={profileDraft.address2} onChange={(v) => setProfileDraft((p) => ({ ...p, address2: v }))} disabled={profileSaving} />
             </div>
 
             {profileError ? <div className={styles.errorBox}>{profileError}</div> : null}
@@ -393,16 +396,16 @@ export default function CheckoutPage() {
                 }}
                 disabled={profileSaving}
               >
-                Cancel
+                {t("cancel")}
               </button>
 
               <button
                 className={styles.btnPrimary}
                 onClick={onContinueProfile}
                 disabled={profileSaving || missingDraft.length > 0}
-                title={missingDraft.length > 0 ? `Missing: ${missingDraft.map(labelFor).join(", ")}` : ""}
+                title={missingDraft.length > 0 ? t("missingTitle", { fields: missingDraft.map(labelFor).join(", ") }) : ""}
               >
-                {profileSaving ? "Saving…" : "Continue"}
+                {profileSaving ? t("saving") : t("continue")}
               </button>
             </div>
           </div>
@@ -414,9 +417,9 @@ export default function CheckoutPage() {
         <div className={styles.card}>
           <div className={styles.cardHeader}>
             <div>
-              <div className={styles.cardTitle}>Pick-up location</div>
+              <div className={styles.cardTitle}>{t("pickupLocation")}</div>
               <div className={styles.cardSubtitle}>
-                This is where you will collect your bikes.
+                {t("pickupLocationSubtitle")}
               </div>
             </div>
           </div>
@@ -424,13 +427,13 @@ export default function CheckoutPage() {
           <div className={styles.summary}>
             <div className={styles.summaryGrid}>
               <div className={styles.summaryRow}>
-                <div className={styles.summaryLabel}>Store</div>
+                  <div className={styles.summaryLabel}>{t("store")}</div>
                 <div className={styles.summaryValue}>{store_name}</div>
               </div>
 
               {(store_address || store_postalcode || store_city) && (
                 <div className={styles.summaryRow}>
-                  <div className={styles.summaryLabel}>Address</div>
+                  <div className={styles.summaryLabel}>{t("address")}</div>
                   <div className={styles.summaryValue}>
                     {store_address}
                     {(store_postalcode || store_city) && (
@@ -451,24 +454,24 @@ export default function CheckoutPage() {
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <div>
-            <div className={styles.cardTitle}>Cart summary</div>
-            <div className={styles.cardSubtitle}>Items, dates, pickup location, total.</div>
+            <div className={styles.cardTitle}>{t("cartSummary")}</div>
+            <div className={styles.cardSubtitle}>{t("cartSummarySubtitle")}</div>
           </div>
         </div>
 
         {blockedItems.length > 0 ? (
           <div className={styles.warnBox}>
-            <div className={styles.warnTitle}>Some items are blocked</div>
+            <div className={styles.warnTitle}>{t("blockedItemsTitle")}</div>
             <div className={styles.warnText}>
-              Please fix blocked items in your cart before checkout.
+              {t("blockedItemsText")}
             </div>
           </div>
         ) : null}
 
         {cartLoading ? (
-          <div className={styles.muted}>Loading cart…</div>
+          <div className={styles.muted}>{t("loadingCart")}</div>
         ) : items.length === 0 ? (
-          <div className={styles.muted}>Your cart is empty.</div>
+          <div className={styles.muted}>{t("cartEmpty")}</div>
         ) : (
           <div className={styles.cartList}>
             {items.map((item: any) => {
@@ -493,8 +496,8 @@ export default function CheckoutPage() {
                     <div className={styles.cartTitle}>{name}</div>
                     {variantLine ? <div className={styles.cartMeta}>{variantLine}</div> : null}
                     <div className={styles.cartMeta}>
-                      {start && end ? `${formatDate(start)} → ${formatDate(end)}` : "Dates: —"}
-                      {blocked ? " · Blocked" : ""}
+                      {start && end ? `${formatDate(start)} → ${formatDate(end)}` : t("datesFallback")}
+                      {blocked ? ` · ${t("blocked")}` : ""}
                     </div>
                   </div>
 
@@ -504,7 +507,7 @@ export default function CheckoutPage() {
             })}
 
             <div className={styles.cartTotalRow}>
-              <div className={styles.cartTotalLabel}>Total</div>
+              <div className={styles.cartTotalLabel}>{t("total")}</div>
               <div className={styles.cartTotalValue}>
                 {formatMoneyCents(Number(cart?.subtotal_cents ?? 0), currency)}
               </div>
@@ -517,12 +520,12 @@ export default function CheckoutPage() {
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <div>
-            <div className={styles.cardTitle}>Pickup person</div>
-            <div className={styles.cardSubtitle}>Optional: someone else can pick up the bikes.</div>
+            <div className={styles.cardTitle}>{t("pickupPerson")}</div>
+            <div className={styles.cardSubtitle}>{t("pickupPersonSubtitle")}</div>
           </div>
 
           <button className={styles.btn} onClick={() => setPickupExpanded((v) => !v)}>
-            {pickupExpanded ? "Collapse" : "Edit"}
+            {pickupExpanded ? t("collapse") : t("edit")}
           </button>
         </div>
 
@@ -530,13 +533,13 @@ export default function CheckoutPage() {
           <div className={styles.summary}>
             <div className={styles.summaryGrid}>
               <SummaryRow
-                label="Pickup by"
-                value={pickup.enabled ? `${pickup.first_name} ${pickup.last_name}`.trim() || "—" : "Same as customer"}
+                label={t("pickupBy")}
+                value={pickup.enabled ? `${pickup.first_name} ${pickup.last_name}`.trim() || t("dash") : t("sameAsCustomer")}
               />
               {pickup.enabled ? (
                 <>
-                  <SummaryRow label="Email" value={pickup.email || "—"} />
-                  <SummaryRow label="Phone" value={pickup.phone || "—"} />
+                  <SummaryRow label={t("email")} value={pickup.email || t("dash")} />
+                  <SummaryRow label={t("phone")} value={pickup.phone || t("dash")} />
                 </>
               ) : null}
             </div>
@@ -549,18 +552,18 @@ export default function CheckoutPage() {
                 checked={pickup.enabled}
                 onChange={(e) => setPickup((p) => ({ ...p, enabled: e.target.checked }))}
               />
-              <span>Set a different pickup person</span>
+              <span>{t("differentPickupPerson")}</span>
             </label>
 
             {pickup.enabled ? (
               <div className={styles.expandGrid}>
-                <Field label="First name" value={pickup.first_name} onChange={(v) => setPickup((p) => ({ ...p, first_name: v }))} />
-                <Field label="Last name" value={pickup.last_name} onChange={(v) => setPickup((p) => ({ ...p, last_name: v }))} />
-                <Field label="Email" type="email" value={pickup.email} onChange={(v) => setPickup((p) => ({ ...p, email: v }))} />
-                <Field label="Phone" value={pickup.phone} onChange={(v) => setPickup((p) => ({ ...p, phone: v }))} />
+                <Field label={t("firstName")} value={pickup.first_name} onChange={(v) => setPickup((p) => ({ ...p, first_name: v }))} />
+                <Field label={t("lastName")} value={pickup.last_name} onChange={(v) => setPickup((p) => ({ ...p, last_name: v }))} />
+                <Field label={t("email")} type="email" value={pickup.email} onChange={(v) => setPickup((p) => ({ ...p, email: v }))} />
+                <Field label={t("phone")} value={pickup.phone} onChange={(v) => setPickup((p) => ({ ...p, phone: v }))} />
               </div>
             ) : (
-              <div className={styles.muted}>Pickup person will be the customer.</div>
+              <div className={styles.muted}>{t("pickupWillBeCustomer")}</div>
             )}
           </div>
         )}
@@ -570,18 +573,18 @@ export default function CheckoutPage() {
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <div>
-            <div className={styles.cardTitle}>Payment</div>
-            <div className={styles.cardSubtitle}>Choose how you want to pay.</div>
+            <div className={styles.cardTitle}>{t("payment")}</div>
+            <div className={styles.cardSubtitle}>{t("paymentSubtitle")}</div>
           </div>
         </div>
 
         <div className={styles.radioList}>
           {[
-            { v: "pay_at_pickup", label: "Pay at pickup" },
-            { v: "credit_card", label: "Credit card" },
-            { v: "bank_transfer", label: "Transfer before pickup" },
-            { v: "twint", label: "TWINT" },
-            { v: "paypal", label: "PayPal" },
+            { v: "pay_at_pickup", label: t("payAtPickup") },
+            { v: "credit_card", label: t("creditCard") },
+            { v: "bank_transfer", label: t("bankTransfer") },
+            { v: "twint", label: t("twint") },
+            { v: "paypal", label: t("paypal") },
           ].map((o) => (
             <label key={o.v} className={styles.radioRow}>
               <input
@@ -602,13 +605,13 @@ export default function CheckoutPage() {
         <label className={styles.checkboxRow}>
           <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
           <span>
-            I agree to the{" "}
+            {t("agreePrefix")}{" "}
             <Link className={styles.inlineLink} href="/agbs">
-              AGBs
+              {t("agbs")}
             </Link>{" "}
-            and the{" "}
+            {t("agreeMiddle")}{" "}
             <Link className={styles.inlineLink} href="/privacy">
-              Privacy terms
+              {t("privacyTerms")}
             </Link>
             .
           </span>
@@ -620,20 +623,20 @@ export default function CheckoutPage() {
           onClick={onBuy}
           title={
             !canCheckout
-              ? "Fix blocked items in cart"
+              ? t("fixBlockedItemsTitle")
               : !profileComplete
-              ? "Complete your profile first"
+              ? t("completeProfileTitle")
               : !agreed
-              ? "Accept AGBs and privacy terms"
+              ? t("acceptTermsTitle")
               : items.length === 0
-              ? "Cart is empty"
+              ? t("cartEmptyTitle")
               : ""
           }
         >
-          Rent
+          {t("rent")}
         </button>
 
-        {!canCheckout ? <div className={styles.muted}>Your cart has blocked items — fix them before checkout.</div> : null}
+        {!canCheckout ? <div className={styles.muted}>{t("blockedCheckoutHint")}</div> : null}
       </div>
     </div>
   );

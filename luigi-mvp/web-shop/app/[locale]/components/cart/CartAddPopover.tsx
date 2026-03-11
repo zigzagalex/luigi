@@ -2,11 +2,13 @@
 
 import { useEffect, useCallback } from "react";
 import { useRouter } from "next/navigation";
+import { useTranslations } from "next-intl";
 import { useCart } from "@/[locale]/components/cart/CartContext";
 import styles from "./CartAddPopover.module.css";
 
 
 export function CartAddPopover() {
+    const t = useTranslations("cartAddPopover");
     const router = useRouter();
 
     const { isAddPopoverOpen, lastAdded, closeAddPopover } = useCart();
@@ -41,12 +43,12 @@ export function CartAddPopover() {
     if (!isAddPopoverOpen) return null;
 
     // Fallback UI if state is open but lastAdded is missing
-    const title = lastAdded?.title ?? "Added to cart";
+    const title = lastAdded?.title ?? t("fallbackTitle");
     const imageUrl = lastAdded?.imageUrl;
     const subtitleParts = [
-        lastAdded?.storeName ? `Pick-up: ${lastAdded.storeName}` : null,
-        lastAdded?.from && lastAdded?.to ? `Dates: ${lastAdded.from} → ${lastAdded.to}` : null,
-        typeof lastAdded?.quantity === "number" ? `Qty: ${lastAdded.quantity}` : null,
+        lastAdded?.storeName ? t("pickup", { value: lastAdded.storeName }) : null,
+        lastAdded?.from && lastAdded?.to ? t("dates", { from: lastAdded.from, to: lastAdded.to }) : null,
+        typeof lastAdded?.quantity === "number" ? t("qty", { count: String(lastAdded.quantity) }) : null,
     ].filter(Boolean);
 
     return (
@@ -59,15 +61,15 @@ export function CartAddPopover() {
             className={styles.panel}
             role="dialog"
             aria-modal="true"
-            aria-label="Added to cart"
+            aria-label={t("ariaLabel")}
           >
             <div className={styles.header}>
-              <div className={styles.headerTitle}>Added to cart</div>
+              <div className={styles.headerTitle}>{t("title")}</div>
               <button
                 type="button"
                 className={styles.close}
                 onClick={handleContinueShopping}
-                aria-label="Close"
+                aria-label={t("closeAria")}
               >
                 ✕
               </button>
@@ -104,7 +106,7 @@ export function CartAddPopover() {
                 className={styles.secondary}
                 onClick={handleContinueShopping}
               >
-                Continue shopping
+                {t("continueShopping")}
               </button>
     
               <button
@@ -112,7 +114,7 @@ export function CartAddPopover() {
                 className={styles.primary}
                 onClick={handleGoToCart}
               >
-                Go to cart
+                {t("goToCart")}
               </button>
             </div>
           </div>

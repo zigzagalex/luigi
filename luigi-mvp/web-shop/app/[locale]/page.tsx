@@ -5,6 +5,7 @@ import {
   groupProductsByMainCategory,
   type Product,
 } from "@/../utils/products";
+import { getTranslations } from "next-intl/server";
 import styles from "./PageShell.module.css";
 
 export const dynamic = "force-dynamic";
@@ -12,6 +13,7 @@ export const dynamic = "force-dynamic";
 const DEFAULT_SHOP_ID = 1;
 
 export default async function HomePage() {
+  const t = await getTranslations("home");
   let products: Product[] = [];
 
   try {
@@ -44,7 +46,7 @@ export default async function HomePage() {
 
         {products.length === 0 && (
           <p className={styles.emptyMsg}>
-            No bikes to show yet. Check your API config or seed some products.
+            {t("empty")}
           </p>
         )}
       </div>

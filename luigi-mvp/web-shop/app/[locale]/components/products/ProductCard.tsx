@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import type { Product } from "@/../utils/products";
 import styles from "./ProductCard.module.css";
 
@@ -43,6 +46,7 @@ export default function ProductCard({
   availableQuantity,
   linkSearchParams,
 }: Props) {
+  const t = useTranslations("productCard");
   const imageUrl = product.primary_image_url ?? FALLBACK_IMAGE;
   const href = buildProductHref(product.id, linkSearchParams);
 
@@ -69,9 +73,9 @@ export default function ProductCard({
 
         {minPriceCents != null && (
           <p className={styles.price}>
-            From CHF {(minPriceCents / 100).toFixed(2)}
+            {t("fromPrice", { price: (minPriceCents / 100).toFixed(2) })}
             {typeof availableQuantity === "number" &&
-              ` · ${availableQuantity} bike${availableQuantity === 1 ? "" : "s"} available`}
+              ` · ${t("availableBikes", { count: String(availableQuantity), suffix: availableQuantity === 1 ? "" : "s" })}`}
           </p>
         )}
       </div>
