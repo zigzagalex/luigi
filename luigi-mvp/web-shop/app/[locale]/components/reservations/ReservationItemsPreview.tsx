@@ -1,4 +1,7 @@
+"use client";
+
 import { ReservationItemView } from "@/lib/reservationClient";
+import { useTranslations } from "next-intl";
 import styles from "./ReservationItemsPreview.module.css";
 
 type Props = {
@@ -6,6 +9,7 @@ type Props = {
 };
 
 export default function ReservationItemsPreview({ items }: Props) {
+  const t = useTranslations("reservationItemsPreview");
   const preview = items.slice(0, 3);
 
   return (
@@ -16,7 +20,7 @@ export default function ReservationItemsPreview({ items }: Props) {
             {item.image_url && (
               <img
                 src={item.image_url}
-                alt={item.product_name ?? "Reservation item"}
+                alt={item.product_name ?? t("alt")}
                 className={styles.imageTag}
               />
             )}
@@ -47,7 +51,7 @@ export default function ReservationItemsPreview({ items }: Props) {
 
       {items.length > 3 && (
         <div className={styles.more}>
-          +{items.length - 3} more
+          {t("more", { count: String(items.length - 3) })}
         </div>
       )}
     </div>

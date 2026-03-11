@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
+import { useTranslations } from "next-intl";
 import { useAuth } from "./AuthContext";
 import styles from "./UserMenu.module.css";
 
@@ -10,6 +11,7 @@ type Props = {
 };
 
 export default function UserMenu({ onOpenAuth }: Props) {
+  const t = useTranslations("auth");
   const { me, loading, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -52,7 +54,7 @@ export default function UserMenu({ onOpenAuth }: Props) {
   if (!me) {
     return (
       <button className={styles.button} type="button" onClick={onOpenAuth}>
-        Log in / Sign up
+        {t("loginSignup")}
       </button>
     );
   }
@@ -66,16 +68,16 @@ export default function UserMenu({ onOpenAuth }: Props) {
         aria-haspopup="menu"
         aria-expanded={open}
       >
-        Hi, {firstName ?? "there"}
+        {t("hi", { name: firstName ?? t("there") })}
       </button>
 
       {open && (
-        <div className={styles.popover} role="menu" aria-label="Account menu">
+        <div className={styles.popover} role="menu" aria-label={t("accountMenuLabel")}>
           <Link className={styles.item} role="menuitem" href="/reservations" onClick={() => setOpen(false)}>
-            Reservations
+            {t("reservations")}
           </Link>
           <Link className={styles.item} role="menuitem" href="/profile" onClick={() => setOpen(false)}>
-            Profile Settings
+            {t("profileSettings")}
           </Link>
           <button
             className={`${styles.item} ${styles.danger}`}
@@ -86,7 +88,7 @@ export default function UserMenu({ onOpenAuth }: Props) {
               await logout();
             }}
           >
-            Logout
+            {t("logout")}
           </button>
         </div>
       )}

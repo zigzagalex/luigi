@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslations } from "next-intl";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebaseClient";
 import { exchangeIdTokenForSessionCookie } from "@/lib/AuthSession";
@@ -31,6 +32,7 @@ function clean(s: string) {
 }
 
 export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
+  const t = useTranslations("authModal");
   const [mode, setMode] = useState<Mode>("login");
   const [status, setStatus] = useState<string>("");
   const [busy, setBusy] = useState(false);
@@ -65,13 +67,13 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  const title = useMemo(() => (mode === "login" ? "WELCOME BACK." : "CREATE YOUR ACCOUNT."), [mode]);
+  const title = useMemo(() => (mode === "login" ? t("welcomeBack") : t("createAccountTitle")), [mode, t]);
   const subtitle = useMemo(
     () =>
       mode === "login"
-        ? "Log in for faster checkout and easy trip management."
-        : "Create an account in a few clicks. You can always change details later.",
-    [mode]
+        ? t("loginSubtitle")
+        : t("signupSubtitle"),
+    [mode, t]
   );
 
   if (!open) return null;
@@ -88,7 +90,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
 
       if (mode === "login") {
         if (!eMail || !password) {
-          setStatus("Please enter email + password.");
+          setStatus(t("emailPasswordRequired"));
           return;
         }
 
@@ -97,7 +99,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
 
         await exchangeIdTokenForSessionCookie({ shop_id: SHOP_ID });
 
-        setStatus("Success. Session cookie set.");
+        setStatus(t("loginSuccess"));
         await onLoginSuccess();
         onClose();
         return;
@@ -109,12 +111,12 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
       const ph = clean(phone);
 
       if (!fn || !ln || !ph || !eMail || !password) {
-        setStatus("Please fill in all fields.");
+        setStatus(t("fillAllFields"));
         return;
       }
 
       if (!phoneValid) {
-        setStatus("That phone number is not valid.");
+        setStatus(t("invalidPhone"));
         return;
       }
 
@@ -128,11 +130,11 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
         phone: ph,
       });
 
-      setStatus("Success. Account created & session cookie set.");
+      setStatus(t("signupSuccess"));
       await onLoginSuccess();
       onClose();
     } catch (err: any) {
-      setStatus(err?.message ?? "Something went wrong.");
+      setStatus(err?.message ?? t("somethingWentWrong"));
     } finally {
       setBusy(false);
     }
@@ -162,7 +164,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
         aria-labelledby="auth-title"
         aria-describedby="auth-subtitle"
       >
-        <button className={styles.close} type="button" onClick={onClose} aria-label="Close" disabled={busy}>
+        <button className={styles.close} type="button" onClick={onClose} aria-label={t("closeAria")} disabled={busy}>
           ×
         </button>
 
@@ -174,7 +176,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
             <>
               <div className={styles.twoCol}>
                 <label htmlFor="first_name" className={styles.field}>
-                  <span className={styles.label}>First name</span>
+                  <span className={styles.label}>{t("firstName")}</span>
                   <input
                     ref={firstFieldRef}
                     className={styles.input}
@@ -188,7 +190,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
                 </label>
 
                 <label htmlFor="last_name" className={styles.field}>
-                  <span className={styles.label}>Last name</span>
+                  <span className={styles.label}>{t("lastName")}</span>
                   <input
                     className={styles.input}
                     value={lastName}
@@ -202,7 +204,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
               </div>
 
               <label htmlFor="phone" className={styles.field}>
-                <span className={styles.label}>Phone number</span>
+                <span className={styles.label}>{t("phoneNumber")}</span>
                 <PhoneField
                   value={phone}
                   onChange={setPhone}
@@ -214,7 +216,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
           )}
 
           <label htmlFor="email" className={styles.field}>
-            <span className={styles.label}>Email address</span>
+            <span className={styles.label}>{t("emailAddress")}</span>
             <input
               ref={mode === "login" ? firstFieldRef : undefined}
               className={styles.input}
@@ -229,7 +231,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
           </label>
 
           <label htmlFor="password" className={styles.field}>
-            <span className={styles.label}>Password</span>
+            <span className={styles.label}>{t("password")}</span>
             <input
               className={styles.input}
               type="password"
@@ -248,31 +250,31 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
               <button
                 type="button"
                 className={styles.link}
-                onClick={() => setStatus("Forgot password: TODO")}
+                onClick={() => setStatus(t("forgotPasswordTodo"))}
                 disabled={busy}
               >
-                Forgot password?
+                {t("forgotPassword")}
               </button>
             </div>
           )}
 
           <button className={styles.primary} type="submit" disabled={busy}>
-            {mode === "login" ? "Log in" : "Create account"}
+            {mode === "login" ? t("login") : t("createAccount")}
           </button>
 
           <div className={styles.switchRow}>
             {mode === "login" ? (
               <>
-                <span>Don’t have an account?</span>
+                <span>{t("dontHaveAccount")}</span>
                 <button type="button" className={styles.link} onClick={() => switchMode("signup")} disabled={busy}>
-                  Create account
+                  {t("createAccount")}
                 </button>
               </>
             ) : (
               <>
-                <span>Already have an account?</span>
+                <span>{t("alreadyHaveAccount")}</span>
                 <button type="button" className={styles.link} onClick={() => switchMode("login")} disabled={busy}>
-                  Log in
+                  {t("login")}
                 </button>
               </>
             )}

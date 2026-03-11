@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
 import { auth } from "@/lib/firebaseClient";
 import { exchangeIdTokenForSessionCookie } from "@/lib/AuthSession";
@@ -17,6 +18,7 @@ function clean(s: string) {
 }
 
 export function AuthBox() {
+  const t = useTranslations("authBox");
   const [mode, setMode] = useState<Mode>("login");
 
   const [firstName, setFirstName] = useState("");
@@ -52,9 +54,9 @@ export function AuthBox() {
     setBusy(true);
     try {
       await fn();
-      setMsg("Success. Session cookie set.");
+      setMsg(t("success"));
     } catch (e: any) {
-      setMsg(e?.message ?? "Something failed.");
+      setMsg(e?.message ?? t("failed"));
     } finally {
       setBusy(false);
     }
@@ -62,7 +64,7 @@ export function AuthBox() {
 
   async function doLogin() {
     const e = clean(email);
-    if (!e || !password) throw new Error("Email + password required.");
+    if (!e || !password) throw new Error(t("emailPasswordRequired"));
 
     await signInWithEmailAndPassword(auth, e, password);
     await exchangeIdTokenForSessionCookie({ shop_id: SHOP_ID });
@@ -75,9 +77,9 @@ export function AuthBox() {
     const ph = clean(phone);
     const e = clean(email);
 
-    if (!fn || !ln || !ph) throw new Error("First name, last name, and phone are required.");
-    if (!phoneValid) throw new Error("That phone number is not valid.");
-    if (!e || !password) throw new Error("Email + password required.");
+    if (!fn || !ln || !ph) throw new Error(t("signupRequiredFields"));
+    if (!phoneValid) throw new Error(t("invalidPhone"));
+    if (!e || !password) throw new Error(t("emailPasswordRequired"));
 
     await createUserWithEmailAndPassword(auth, e, password);
     await exchangeIdTokenForSessionCookie({
@@ -102,7 +104,7 @@ export function AuthBox() {
             setMsg(null);
           }}
         >
-          Log in
+          {t("login")}
         </button>
 
         <button
@@ -114,14 +116,14 @@ export function AuthBox() {
             setMsg(null);
           }}
         >
-          Sign up
+          {t("signup")}
         </button>
       </div>
 
       {mode === "signup" && (
         <>
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="auth-first">First name</label>
+            <label className={styles.label} htmlFor="auth-first">{t("firstName")}</label>
             <input
               id="auth-first"
               className={styles.input}
@@ -133,7 +135,7 @@ export function AuthBox() {
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label} htmlFor="auth-last">Last name</label>
+            <label className={styles.label} htmlFor="auth-last">{t("lastName")}</label>
             <input
               id="auth-last"
               className={styles.input}
@@ -145,7 +147,7 @@ export function AuthBox() {
           </div>
 
           <div className={styles.field}>
-            <label className={styles.label}>Phone</label>
+            <label className={styles.label}>{t("phone")}</label>
             <PhoneField
               value={phone}
               onChange={setPhone}
@@ -157,11 +159,11 @@ export function AuthBox() {
       )}
 
       <div className={styles.field}>
-        <label className={styles.label} htmlFor="auth-email">Email</label>
+        <label className={styles.label} htmlFor="auth-email">{t("email")}</label>
         <input
           id="auth-email"
           className={styles.input}
-          placeholder="you@example.com"
+          placeholder={t("emailPlaceholder")}
           value={email}
           onChange={(e) => setEmail(e.target.value)}
           autoComplete="email"
@@ -171,11 +173,11 @@ export function AuthBox() {
       </div>
 
       <div className={styles.field}>
-        <label className={styles.label} htmlFor="auth-password">Password</label>
+        <label className={styles.label} htmlFor="auth-password">{t("password")}</label>
         <input
           id="auth-password"
           className={styles.input}
-          placeholder="••••••••"
+          placeholder={t("passwordPlaceholder")}
           type="password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}
@@ -191,7 +193,7 @@ export function AuthBox() {
           disabled={busy || !canSubmit}
           onClick={() => run(mode === "login" ? doLogin : doSignup)}
         >
-          {mode === "login" ? "Log in" : "Create account"}
+          {mode === "login" ? t("login") : t("createAccount")}
         </button>
       </div>
 

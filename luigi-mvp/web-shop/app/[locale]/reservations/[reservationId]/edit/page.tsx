@@ -5,12 +5,14 @@ import { notFound } from "next/navigation";
 import { fetchApi } from "../../../../../utils/fetchAPI";
 import type { ReservationView } from "@/lib/reservationClient";
 import ReservationEditClient from "@/[locale]/components/reservations/ReservationEditClient";
+import { getTranslations } from "next-intl/server";
 
 export default async function ReservationEditPage({
   params,
 }: {
   params: Promise<{ reservationId: string }>;
 }) {
+  const t = await getTranslations("reservationEditPage");
   const SHOP_ID = 1;
 
   const { reservationId } = await params;
@@ -40,8 +42,8 @@ export default async function ReservationEditPage({
 
       return (
         <div className={styles.container}>
-          <h1 className={styles.title}>Edit reservation</h1>
-          <div className={styles.errorCard}>Failed to load this reservation.</div>
+          <h1 className={styles.title}>{t("title")}</h1>
+          <div className={styles.errorCard}>{t("loadFailed")}</div>
         </div>
       );
     }
@@ -58,8 +60,8 @@ export default async function ReservationEditPage({
 
     return (
       <div className={styles.container}>
-        <h1 className={styles.title}>Edit reservation</h1>
-        <div className={styles.errorCard}>Unexpected error occurred.</div>
+        <h1 className={styles.title}>{t("title")}</h1>
+        <div className={styles.errorCard}>{t("unexpectedError")}</div>
       </div>
     );
   }

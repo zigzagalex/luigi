@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useLocale, useTranslations } from "next-intl";
 
 import type { ReservationView } from "@/lib/reservationClient";
 import { cancelReservation } from "@/lib/reservationClient";
@@ -22,6 +23,8 @@ function money(cents: number, currency: string) {
 }
 
 export default function ReservationDetailsClient({ initialReservation, shopId }: Props) {
+  const t = useTranslations("reservationDetails");
+  const locale = useLocale();
   const router = useRouter();
   const [reservationView, setReservationView] = useState<ReservationView>(initialReservation);
 
@@ -32,20 +35,20 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
   const [cancelBusy, setCancelBusy] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
 
-  const createdDate = useMemo(() => new Date(r.created_at).toLocaleString(), [r.created_at]);
-  const updatedDate = useMemo(() => new Date(r.updated_at).toLocaleString(), [r.updated_at]);
-  const startDate = useMemo(() => new Date(r.start_at).toLocaleDateString(), [r.start_at]);
-  const endDate = useMemo(() => new Date(r.end_at).toLocaleDateString(), [r.end_at]);
+  const createdDate = useMemo(() => new Date(r.created_at).toLocaleString(locale), [r.created_at, locale]);
+  const updatedDate = useMemo(() => new Date(r.updated_at).toLocaleString(locale), [r.updated_at, locale]);
+  const startDate = useMemo(() => new Date(r.start_at).toLocaleDateString(locale), [r.start_at, locale]);
+  const endDate = useMemo(() => new Date(r.end_at).toLocaleDateString(locale), [r.end_at, locale]);
 
   const cancelledAtLabel = useMemo(() => {
-    return r.cancelled_at ? new Date(r.cancelled_at).toLocaleString() : null;
-  }, [r.cancelled_at]);
+    return r.cancelled_at ? new Date(r.cancelled_at).toLocaleString(locale) : null;
+  }, [r.cancelled_at, locale]);
 
   const paymentMethod =
-    (r as any).payment_method ?? (r as any).payment_method_name ?? "Pay at pickup";
+    (r as any).payment_method ?? (r as any).payment_method_name ?? t("payAtPickup");
 
   const paymentStatus =
-    r.status === "pending" ? "Pending payment" : r.status === "cancelled" ? "Cancelled" : "—";
+    r.status === "pending" ? t("pendingPayment") : r.status === "cancelled" ? t("cancelled") : t("dash");
 
   const isCancelled = r.status === "cancelled" || !!r.cancelled_at;
 
@@ -64,7 +67,7 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
       setCancelOpen(false);
       router.refresh();
     } catch (e: any) {
-      setCancelError(e?.message ?? "Cancellation failed.");
+      setCancelError(e?.message ?? t("cancelFailed"));
     } finally {
       setCancelBusy(false);
     }
@@ -75,18 +78,18 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
       <div className={styles.topRow}>
         <div className={styles.breadcrumb}>
           <Link className={styles.backLink} href="/reservations">
-            ← Back to reservations
+            {t("backToReservations")}
           </Link>
         </div>
       </div>
 
       <div className={styles.headerCard}>
         <div className={styles.headerLeft}>
-          <div className={styles.hTitle}>Reservation {r.id}</div>
+          <div className={styles.hTitle}>{t("reservationNumber", { id: String(r.id) })}</div>
           <div className={styles.hSub}>
-            <span className={styles.muted}>Created:</span> {createdDate}
+            <span className={styles.muted}>{t("created")}</span> {createdDate}
             <span className={styles.dot}>•</span>
-            <span className={styles.muted}>Updated:</span> {updatedDate}
+            <span className={styles.muted}>{t("updated")}</span> {updatedDate}
           </div>
 
           <div className={styles.range}>
@@ -105,13 +108,13 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
 
       {isCancelled && (
         <div className={styles.infoCard}>
-          <div className={styles.infoTitle}>Cancellation</div>
+          <div className={styles.infoTitle}>{t("cancellation")}</div>
           <div className={styles.infoGrid}>
-            <div className={styles.infoKey}>Cancelled at</div>
-            <div className={styles.infoVal}>{cancelledAtLabel ?? "—"}</div>
+            <div className={styles.infoKey}>{t("cancelledAt")}</div>
+            <div className={styles.infoVal}>{cancelledAtLabel ?? t("dash")}</div>
 
-            <div className={styles.infoKey}>Reason</div>
-            <div className={styles.infoVal}>{r.cancel_reason ?? "—"}</div>
+            <div className={styles.infoKey}>{t("reason")}</div>
+            <div className={styles.infoVal}>{r.cancel_reason ?? t("dash")}</div>
           </div>
         </div>
       )}
@@ -119,7 +122,7 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
       <div className={styles.grid}>
         <div className={styles.card}>
           <div className={styles.cardHeaderRow}>
-            <div className={styles.cardTitle}>Items</div>
+              <div className={styles.cardTitle}>{t("items")}</div>
           </div>
 
           <ReservationItemsFullList items={reservationView.items} currency={r.currency} />
@@ -128,31 +131,31 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
         <div className={styles.side}>
           <div className={styles.card}>
             <div className={styles.cardHeaderRow}>
-              <div className={styles.cardTitle}>Pickup details</div>
+              <div className={styles.cardTitle}>{t("pickupDetails")}</div>
             </div>
 
             <div className={styles.kv}>
-              <div className={styles.k}>Name</div>
-              <div className={styles.v}>{r.pickup_person_name ?? "—"}</div>
+              <div className={styles.k}>{t("name")}</div>
+              <div className={styles.v}>{r.pickup_person_name ?? t("dash")}</div>
 
-              <div className={styles.k}>Phone</div>
-              <div className={styles.v}>{r.pickup_person_phone ?? "—"}</div>
+              <div className={styles.k}>{t("phone")}</div>
+              <div className={styles.v}>{r.pickup_person_phone ?? t("dash")}</div>
 
-              <div className={styles.k}>Email</div>
-              <div className={styles.v}>{r.pickup_person_email ?? "—"}</div>
+              <div className={styles.k}>{t("email")}</div>
+              <div className={styles.v}>{r.pickup_person_email ?? t("dash")}</div>
             </div>
           </div>
 
           <div className={styles.card}>
             <div className={styles.cardHeaderRow}>
-              <div className={styles.cardTitle}>Pickup location</div>
+              <div className={styles.cardTitle}>{t("pickupLocation")}</div>
             </div>
 
             <div className={styles.kv}>
-              <div className={styles.k}>Store</div>
-              <div className={styles.v}>{store?.name ?? r.store_snapshot_name ?? "—"}</div>
+              <div className={styles.k}>{t("store")}</div>
+              <div className={styles.v}>{store?.name ?? r.store_snapshot_name ?? t("dash")}</div>
 
-              <div className={styles.k}>Address</div>
+              <div className={styles.k}>{t("address")}</div>
               <div className={styles.v}>
                 {store?.address1 ? (
                   <>
@@ -161,7 +164,7 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
                     {store.postal_code} {store.city}
                   </>
                 ) : (
-                  "—"
+                  t("dash")
                 )}
               </div>
             </div>
@@ -169,25 +172,25 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
 
           <div className={styles.card}>
             <div className={styles.cardHeaderRow}>
-              <div className={styles.cardTitle}>Payment</div>
+              <div className={styles.cardTitle}>{t("payment")}</div>
             </div>
 
             <div className={styles.kv}>
-              <div className={styles.k}>Method</div>
+              <div className={styles.k}>{t("method")}</div>
               <div className={styles.v}>{paymentMethod}</div>
 
-              <div className={styles.k}>Status</div>
+              <div className={styles.k}>{t("status")}</div>
               <div className={styles.v}>{paymentStatus}</div>
             </div>
           </div>
 
           <div className={styles.card}>
             <div className={styles.cardHeaderRow}>
-              <div className={styles.cardTitle}>Notes</div>
+              <div className={styles.cardTitle}>{t("notes")}</div>
             </div>
 
             <div className={styles.notes}>
-              {r.notes?.trim() ? r.notes : <span className={styles.muted}>No notes.</span>}
+              {r.notes?.trim() ? r.notes : <span className={styles.muted}>{t("noNotes")}</span>}
             </div>
           </div>
         </div>
@@ -200,9 +203,9 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
           className={styles.dangerButton}
           onClick={() => setCancelOpen(true)}
           disabled={isCancelled}
-          title={isCancelled ? "Reservation is already cancelled" : "Cancel reservation"}
+          title={isCancelled ? t("alreadyCancelledTitle") : t("cancelTitle")}
         >
-          Cancel reservation
+          {t("cancelReservation")}
         </button>
       </div>
 
