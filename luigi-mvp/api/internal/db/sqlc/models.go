@@ -22,6 +22,15 @@ type Accessory struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
+type AccessoryTranslation struct {
+	AccessoryID int64          `json:"accessory_id"`
+	Locale      string         `json:"locale"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+}
+
 type Cart struct {
 	ID         int64          `json:"id"`
 	ShopID     int64          `json:"shop_id"`
@@ -166,6 +175,15 @@ type ProductCategory struct {
 type ProductCategoryAssignment struct {
 	ProductID  int64 `json:"product_id"`
 	CategoryID int64 `json:"category_id"`
+}
+
+type ProductTranslation struct {
+	ProductID   int64          `json:"product_id"`
+	Locale      string         `json:"locale"`
+	Name        string         `json:"name"`
+	Description sql.NullString `json:"description"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
 type ProductVariant struct {

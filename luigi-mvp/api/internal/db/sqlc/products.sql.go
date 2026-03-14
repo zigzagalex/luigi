@@ -108,22 +108,41 @@ func (q *Queries) DeleteProduct(ctx context.Context, id int64) (Product, error) 
 
 const getProduct = `-- name: GetProduct :one
 SELECT
-  id,
-  shop_id,
-  sku,
-  name,
-  description,
-  price_category,
-  is_active,
-  created_at,
-  updated_at
-FROM products
-WHERE id = $1
+  p.id,
+  p.shop_id,
+  p.sku,
+  COALESCE(pt.name, p.name) AS name,
+  COALESCE(pt.description, p.description) AS description,
+  p.price_category,
+  p.is_active,
+  p.created_at,
+  p.updated_at
+FROM products p
+LEFT JOIN product_translations pt 
+  ON p.id = pt.product_id AND pt.locale = $1
+WHERE p.id = $2
 `
 
-func (q *Queries) GetProduct(ctx context.Context, id int64) (Product, error) {
-	row := q.db.QueryRowContext(ctx, getProduct, id)
-	var i Product
+type GetProductParams struct {
+	RequestedLocale string `json:"requested_locale"`
+	ID              int64  `json:"id"`
+}
+
+type GetProductRow struct {
+	ID            int64          `json:"id"`
+	ShopID        int64          `json:"shop_id"`
+	Sku           sql.NullString `json:"sku"`
+	Name          string         `json:"name"`
+	Description   sql.NullString `json:"description"`
+	PriceCategory string         `json:"price_category"`
+	IsActive      bool           `json:"is_active"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+}
+
+func (q *Queries) GetProduct(ctx context.Context, arg *GetProductParams) (GetProductRow, error) {
+	row := q.db.QueryRowContext(ctx, getProduct, arg.RequestedLocale, arg.ID)
+	var i GetProductRow
 	err := row.Scan(
 		&i.ID,
 		&i.ShopID,
@@ -140,39 +159,59 @@ func (q *Queries) GetProduct(ctx context.Context, id int64) (Product, error) {
 
 const listProducts = `-- name: ListProducts :many
 SELECT
-  id,
-  shop_id,
-  sku,
-  name,
-  description,
-  price_category,
-  is_active,
-  created_at,
-  updated_at
-FROM products
+  p.id,
+  p.shop_id,
+  p.sku,
+  COALESCE(pt.name, p.name) AS name,
+  COALESCE(pt.description, p.description) AS description,
+  p.price_category,
+  p.is_active,
+  p.created_at,
+  p.updated_at
+FROM products p
+LEFT JOIN product_translations pt 
+  ON p.id = pt.product_id AND pt.locale = $1
 WHERE (
-    $1::bigint IS NULL
-    OR shop_id = $1::bigint
+  $2::bigint IS NULL
+  OR p.shop_id = $2::bigint
 )
-ORDER BY id
-LIMIT $3 OFFSET $2
+ORDER BY p.id
+LIMIT $4 OFFSET $3
 `
 
 type ListProductsParams struct {
-	ShopID     sql.NullInt64 `json:"shop_id"`
-	PageOffset int32         `json:"page_offset"`
-	PageLimit  int32         `json:"page_limit"`
+	RequestedLocale string        `json:"requested_locale"`
+	ShopID          sql.NullInt64 `json:"shop_id"`
+	PageOffset      int32         `json:"page_offset"`
+	PageLimit       int32         `json:"page_limit"`
 }
 
-func (q *Queries) ListProducts(ctx context.Context, arg *ListProductsParams) ([]Product, error) {
-	rows, err := q.db.QueryContext(ctx, listProducts, arg.ShopID, arg.PageOffset, arg.PageLimit)
+type ListProductsRow struct {
+	ID            int64          `json:"id"`
+	ShopID        int64          `json:"shop_id"`
+	Sku           sql.NullString `json:"sku"`
+	Name          string         `json:"name"`
+	Description   sql.NullString `json:"description"`
+	PriceCategory string         `json:"price_category"`
+	IsActive      bool           `json:"is_active"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+}
+
+func (q *Queries) ListProducts(ctx context.Context, arg *ListProductsParams) ([]ListProductsRow, error) {
+	rows, err := q.db.QueryContext(ctx, listProducts,
+		arg.RequestedLocale,
+		arg.ShopID,
+		arg.PageOffset,
+		arg.PageLimit,
+	)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []Product
+	var items []ListProductsRow
 	for rows.Next() {
-		var i Product
+		var i ListProductsRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.ShopID,
@@ -202,42 +241,39 @@ SELECT
   p.id,
   p.shop_id,
   p.sku,
-  p.name,
-  p.description,
+  COALESCE(pt.name, p.name) AS name,
+  COALESCE(pt.description, p.description) AS description,
   p.price_category,
   p.is_active,
   p.created_at,
   p.updated_at,
   COALESCE(pi.object_key, '') AS primary_image_object_key
 FROM products p
+LEFT JOIN product_translations pt 
+  ON p.id = pt.product_id AND pt.locale = $1
 LEFT JOIN LATERAL (
   SELECT pvi.object_key
   FROM product_variants pv
   JOIN product_variant_images pvi
-    ON pvi.product_variant_id = pv.id
-   AND pvi.is_primary = TRUE
+      ON pvi.product_variant_id = pv.id
+     AND pvi.is_primary = TRUE
   WHERE pv.product_id = p.id
   ORDER BY pv.created_at ASC 
   LIMIT 1
 ) AS pi ON TRUE
 WHERE
-  (
-    $1::bigint IS NULL 
-    OR p.shop_id = $1::bigint
-  )
-  AND (
-    $2::bigint[] IS NULL
-    OR p.id = ANY($2)
-  )
+  ($2::bigint IS NULL OR p.shop_id = $2::bigint)
+  AND ($3::bigint[] IS NULL OR p.id = ANY($3))
 ORDER BY p.id
-LIMIT $4 OFFSET $3
+LIMIT $5 OFFSET $4
 `
 
 type ListProductsWithPrimaryImageParams struct {
-	ShopID     sql.NullInt64 `json:"shop_id"`
-	Ids        []int64       `json:"ids"`
-	PageOffset int32         `json:"page_offset"`
-	PageLimit  int32         `json:"page_limit"`
+	RequestedLocale string        `json:"requested_locale"`
+	ShopID          sql.NullInt64 `json:"shop_id"`
+	Ids             []int64       `json:"ids"`
+	PageOffset      int32         `json:"page_offset"`
+	PageLimit       int32         `json:"page_limit"`
 }
 
 type ListProductsWithPrimaryImageRow struct {
@@ -255,6 +291,7 @@ type ListProductsWithPrimaryImageRow struct {
 
 func (q *Queries) ListProductsWithPrimaryImage(ctx context.Context, arg *ListProductsWithPrimaryImageParams) ([]ListProductsWithPrimaryImageRow, error) {
 	rows, err := q.db.QueryContext(ctx, listProductsWithPrimaryImage,
+		arg.RequestedLocale,
 		arg.ShopID,
 		pq.Array(arg.Ids),
 		arg.PageOffset,
