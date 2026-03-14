@@ -2,6 +2,7 @@ package dbutil
 
 import (
 	"database/sql"
+	"net/http"
 	"strings"
 )
 
@@ -74,4 +75,28 @@ func NullStringPtr(ns sql.NullString) *string {
 		return nil
 	}
 	return &v
+}
+
+// getLocale checks ?locale= query param first, then Accept-Language header, falls back to 'de'
+func GetLocale(r *http.Request) string {
+	// Check query param ?locale=en
+	if l := strings.TrimSpace(r.URL.Query().Get("locale")); l != "" {
+		return l
+	}
+
+	// Check Accept-Language header (very basic check, e.g., "en-US,en;q=0.9")
+	if lang := r.Header.Get("Accept-Language"); lang != "" {
+		// Just take the first two characters (e.g., 'en', 'de', 'fr')
+		// In a production app, you might want a more robust parser for q-factors
+		parts := strings.Split(lang, ",")
+		if len(parts) > 0 {
+			first := strings.TrimSpace(parts[0])
+			if len(first) >= 2 {
+				return strings.ToLower(first[:2])
+			}
+		}
+	}
+
+	// Ultimate fallback
+	return "de"
 }

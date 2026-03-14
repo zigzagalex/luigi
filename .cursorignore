@@ -1,0 +1,13 @@
+# 1. Ignore all datasets (Protecting PII / Proprietary Data)
+*.csv
+*.tsv
+*.parquet
+*.jsonl
+data/
+raw_data/
+
+# 2. Ignore Environment Variables & Secrets
+.env
+keys/
+credentials.json
+.env.local
