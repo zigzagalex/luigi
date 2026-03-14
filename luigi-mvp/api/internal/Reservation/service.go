@@ -248,7 +248,7 @@ func (s *Service) loadStoreView(ctx context.Context, storeID int64) (*StoreView,
 // -------------------- Enricher --------------------
 //
 
-func (s *Service) buildReservationItemViews(ctx context.Context, items []db.ReservationItem) ([]ReservationItemView, error) {
+func (s *Service) buildReservationItemViews(ctx context.Context, items []db.ReservationItem, locale string) ([]ReservationItemView, error) {
 	out := make([]ReservationItemView, 0, len(items))
 
 	for _, it := range items {
@@ -264,7 +264,10 @@ func (s *Service) buildReservationItemViews(ctx context.Context, items []db.Rese
 
 		if it.ProductID.Valid {
 			productID := it.ProductID.Int64
-			product, err := s.q.GetProduct(ctx, productID)
+			product, err := s.q.GetProduct(ctx, &db.GetProductParams{
+				ID:              productID,
+				RequestedLocale: locale,
+			})
 			if err != nil {
 				if !errors.Is(err, sql.ErrNoRows) {
 					return nil, fmt.Errorf("load product %d: %w", productID, err)
@@ -311,6 +314,7 @@ type CheckoutInput struct {
 	ShopID     int64
 	StoreID    int64
 	CustomerID int64
+	Locale     string
 
 	IdempotencyKey string
 
@@ -421,7 +425,7 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 			return nil, err
 		}
 
-		itemViews, err := s.buildReservationItemViews(ctx, itemRows)
+		itemViews, err := s.buildReservationItemViews(ctx, itemRows, in.Locale)
 		if err != nil {
 			return nil, err
 		}
@@ -454,6 +458,7 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 type ListMyReservationsInput struct {
 	ShopID     int64
 	CustomerID int64
+	Locale     string
 	Limit      int32
 	Offset     int32
 }
@@ -492,7 +497,7 @@ func (s *Service) ListMyReservations(ctx context.Context, in ListMyReservationsI
 		return nil, err
 	}
 
-	itemViews, err := s.buildReservationItemViews(ctx, itemRows)
+	itemViews, err := s.buildReservationItemViews(ctx, itemRows, in.Locale)
 	if err != nil {
 		return nil, err
 	}
@@ -514,7 +519,7 @@ func (s *Service) ListMyReservations(ctx context.Context, in ListMyReservationsI
 	return out, nil
 }
 
-func (s *Service) GetMyReservation(ctx context.Context, shopID, customerID, reservationID int64) (ReservationView, error) {
+func (s *Service) GetMyReservation(ctx context.Context, shopID, customerID, reservationID int64, locale string) (ReservationView, error) {
 	if shopID <= 0 || customerID <= 0 || reservationID <= 0 {
 		return ReservationView{}, ErrReservationNotFound
 	}
@@ -536,7 +541,7 @@ func (s *Service) GetMyReservation(ctx context.Context, shopID, customerID, rese
 		return ReservationView{}, err
 	}
 
-	itemViews, err := s.buildReservationItemViews(ctx, itemRows)
+	itemViews, err := s.buildReservationItemViews(ctx, itemRows, locale)
 	if err != nil {
 		return ReservationView{}, err
 	}
@@ -561,6 +566,7 @@ type CancelInput struct {
 	ShopID          int64
 	CustomerID      int64
 	ReservationID   int64
+	Locale          string
 	ExpectedVersion int32
 	CancelReason    *string
 }
@@ -604,7 +610,7 @@ func (s *Service) CancelMyReservation(ctx context.Context, in CancelInput) (Rese
 		return ReservationView{}, err
 	}
 
-	itemViews, err := s.buildReservationItemViews(ctx, itemRows)
+	itemViews, err := s.buildReservationItemViews(ctx, itemRows, in.Locale)
 	if err != nil {
 		return ReservationView{}, err
 	}
@@ -634,6 +640,7 @@ type RescheduleInput struct {
 	ShopID          int64
 	CustomerID      int64
 	ReservationID   int64
+	Locale          string
 	ExpectedVersion int32
 	StartAt         time.Time
 	EndAt           time.Time
@@ -689,7 +696,7 @@ func (s *Service) RescheduleMyReservation(ctx context.Context, in RescheduleInpu
 		return ReservationView{}, err
 	}
 
-	itemViews, err := s.buildReservationItemViews(ctx, itemRows)
+	itemViews, err := s.buildReservationItemViews(ctx, itemRows, in.Locale)
 	if err != nil {
 		return ReservationView{}, err
 	}
@@ -782,6 +789,7 @@ type UpdateDetailsInput struct {
 	ShopID          int64
 	CustomerID      int64
 	ReservationID   int64
+	Locale          string
 	ExpectedVersion int32
 
 	PickupPersonName  *string
@@ -828,7 +836,7 @@ func (s *Service) UpdateMyReservationDetails(ctx context.Context, in UpdateDetai
 		return ReservationView{}, err
 	}
 
-	itemViews, err := s.buildReservationItemViews(ctx, itemRows)
+	itemViews, err := s.buildReservationItemViews(ctx, itemRows, in.Locale)
 	if err != nil {
 		return ReservationView{}, err
 	}
@@ -854,6 +862,7 @@ type CancelItemInput struct {
 	CustomerID        int64
 	ReservationID     int64
 	ReservationItemID int64
+	Locale            string
 	ExpectedVersion   int32
 }
 
@@ -892,7 +901,7 @@ func (s *Service) CancelMyReservationItem(ctx context.Context, in CancelItemInpu
 		return ReservationView{}, err
 	}
 
-	itemViews, err := s.buildReservationItemViews(ctx, itemRows)
+	itemViews, err := s.buildReservationItemViews(ctx, itemRows, in.Locale)
 	if err != nil {
 		return ReservationView{}, err
 	}
