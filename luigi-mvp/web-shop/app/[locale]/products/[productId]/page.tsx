@@ -73,8 +73,8 @@ type InventoryItem = {
 
 // API helpers
 
-async function fetchProduct(productId: string): Promise<Product> {
-  const res = await fetchApi(`/v1/products/${productId}`);
+async function fetchProduct(productId: string, locale: string): Promise<Product> {
+  const res = await fetchApi(`/v1/products/${productId}${buildQuery({ locale })}`);
   return parseJSON<Product>(res);
 }
 
@@ -104,12 +104,12 @@ async function fetchInventory(shopId: number): Promise<InventoryItem[]> {
 export default async function ProductPage({
   params,
 }: {
-  params: Promise<{ productId: string }>;
+  params: Promise<{ locale: string; productId: string }>;
 }) {
-  const { productId } = await params;
+  const { locale, productId } = await params;
 
   // 1) product
-  const product = await fetchProduct(productId);
+  const product = await fetchProduct(productId, locale);
 
   // 2) variants + images
   const variants = await fetchVariants(productId);
