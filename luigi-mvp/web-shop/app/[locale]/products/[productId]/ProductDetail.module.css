@@ -278,16 +278,7 @@
 /* Add to cart */
 
 .addToCart {
-  width: 100%;
-  border: none;
-  border-radius: 9999px;
-  padding: 12px 18px;
-  font-size: 15px;
-  font-weight: 600;
-  background: #0f172a;
-  color: #f9fafb;
-  cursor: pointer;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.3);
+  composes: darkPrimaryCta from "../../components/ui/primitives.module.css";
 }
 
 .addToCart:hover {

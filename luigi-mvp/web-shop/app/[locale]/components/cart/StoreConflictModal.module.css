@@ -48,14 +48,7 @@
 
 /* Secondary button (ghost style) */
 .secondary {
-  background: transparent;
-  border: 1px solid #ddd;
-  color: #333;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  composes: modalGhostButton from "../ui/primitives.module.css";
 }
 
 .secondary:hover {
@@ -65,14 +58,7 @@
 
 /* Primary button (matches your buy buttons) */
 .primary {
-  background: #111;
-  color: #fff;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.05s ease;
+  composes: modalPrimaryButton from "../ui/primitives.module.css";
 }
 
 .primary:hover {
