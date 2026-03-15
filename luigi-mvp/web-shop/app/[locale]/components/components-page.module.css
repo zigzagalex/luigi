@@ -21,6 +21,11 @@
   font-size: 14px;
 }
 
+.introCode {
+  margin-top: 8px;
+  color: #4b5563;
+}
+
 .grid {
   margin-top: 24px;
   display: grid;
@@ -65,4 +70,25 @@
   border-radius: 12px;
   padding: 12px;
   display: inline-flex;
+}
+
+.tokenGrid {
+  display: grid;
+  gap: 8px;
+}
+
+.tokenRow {
+  display: grid;
+  grid-template-columns: 132px 1fr;
+  gap: 8px;
+  align-items: baseline;
+}
+
+.typeSamples {
+  display: grid;
+  gap: 8px;
+}
+
+.sampleHeading {
+  margin: 0;
 }

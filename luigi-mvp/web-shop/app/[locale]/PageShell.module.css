@@ -14,12 +14,14 @@
 }
 
 .introTitle {
+  composes: fontHeading from "./components/ui/typography.module.css";
   font-size: 28px;
   font-weight: 700;
   margin: 0 0 4px;
 }
 
 .introSubtitle {
+  composes: fontBody from "./components/ui/typography.module.css";
   font-size: 14px;
   color: #4b5563;
   margin: 0;
@@ -30,12 +32,14 @@
 }
 
 .sectionTitle {
+  composes: fontSectionTitle from "./components/ui/typography.module.css";
   font-size: 16px;
   font-weight: 600;
   margin: 0 0 12px;
 }
 
 .noProductsMsg {
+  composes: fontLabel from "./components/ui/typography.module.css";
   margin-top: 16px;
   font-size: 13px;
   color: #6b7280;

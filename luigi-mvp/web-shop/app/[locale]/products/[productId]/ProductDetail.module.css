@@ -130,12 +130,14 @@
 }
 
 .title {
+  composes: fontHeading from "../../components/ui/typography.module.css";
   margin: 0;
   font-size: 26px;
   line-height: 1.2;
 }
 
 .subtitle {
+  composes: fontLabel from "../../components/ui/typography.module.css";
   font-size: 13px;
   color: #6b7280;
 }
@@ -145,28 +147,33 @@
 }
 
 .priceBig {
+  composes: fontHeading from "../../components/ui/typography.module.css";
   font-size: 26px;
   font-weight: 700;
   line-height: 1.1;
 }
 
 .priceLoading {
+  composes: fontBody from "../../components/ui/typography.module.css";
   font-size: 14px;
   opacity: 0.7;
 }
 
 .pricePlaceholder {
+  composes: fontBody from "../../components/ui/typography.module.css";
   font-size: 14px;
   opacity: 0.55;
 }
 
 .priceHint {
+  composes: fontLabel from "../../components/ui/typography.module.css";
   margin-top: 4px;
   font-size: 12px;
   opacity: 0.6;
 }
 
 .priceError {
+  composes: fontLabel from "../../components/ui/typography.module.css";
   margin-top: 6px;
   font-size: 12px;
   color: #c03434;
@@ -181,6 +188,7 @@
 }
 
 .blockTitle {
+  composes: fontBody from "../../components/ui/typography.module.css";
   margin: 0 0 8px;
   font-size: 14px;
   font-weight: 600;
@@ -195,6 +203,7 @@
 }
 
 .chip {
+  composes: fontBody from "../../components/ui/typography.module.css";
   border-radius: 9999px;
   border: 1px solid #d1d5db;
   background: #ffffff;
@@ -236,6 +245,7 @@
 }
 
 .dateField label {
+  font-family: var(--font-sans);
   display: block;
   font-size: 12px;
   color: #6b7280;
@@ -326,6 +336,7 @@
 }
 
 .dateLabel {
+  composes: fontLabel from "../../components/ui/typography.module.css";
   display: block;
   font-size: 12px;
   font-weight: 700;
@@ -334,6 +345,7 @@
 }
 
 .dateValue {
+  composes: fontBody from "../../components/ui/typography.module.css";
   display: block;
   margin-top: 6px;
   font-size: 18px;
@@ -380,6 +392,7 @@
 }
 
 .dateSummaryLabel {
+  composes: fontLabel from "../../components/ui/typography.module.css";
   display: block;
   font-size: 11px;
   letter-spacing: 0.06em;
@@ -387,6 +400,7 @@
 }
 
 .dateSummaryValue {
+  composes: fontBody from "../../components/ui/typography.module.css";
   display: block;
   font-weight: 600;
   margin-top: 2px;

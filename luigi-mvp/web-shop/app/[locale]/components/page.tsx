@@ -1,6 +1,7 @@
 import Link from "next/link";
 import styles from "./components-page.module.css";
 import ui from "./ui/primitives.module.css";
+import typography from "./ui/typography.module.css";
 
 export default function ComponentsPage() {
   return (
@@ -10,8 +11,40 @@ export default function ComponentsPage() {
         <p className={styles.subtitle}>
           Shared primitives used across the web-shop. This page helps review consistency in one place.
         </p>
+        <p className={`${styles.introCode} ${typography.fontCode}`}>
+          Global default font: <code>--font-sans</code>. Utility token for code/UI metadata:{" "}
+          <code>--font-mono</code>.
+        </p>
 
         <div className={styles.grid}>
+          <section className={styles.card} aria-labelledby="fonts-tokens">
+            <h2 id="fonts-tokens" className={`${styles.cardTitle} ${typography.fontSectionTitle}`}>
+              Font Tokens
+            </h2>
+            <div className={styles.tokenGrid}>
+              <div className={styles.tokenRow}>
+                <span className={typography.fontCode}>--font-sans</span>
+                <span className={typography.fontBody}>Primary UI font for headings, body, controls and labels.</span>
+              </div>
+              <div className={styles.tokenRow}>
+                <span className={typography.fontCode}>--font-mono</span>
+                <span className={typography.fontBody}>Code-like metadata and technical labels.</span>
+              </div>
+            </div>
+          </section>
+
+          <section className={styles.card} aria-labelledby="typography-scale">
+            <h2 id="typography-scale" className={`${styles.cardTitle} ${typography.fontSectionTitle}`}>
+              Typography Scale
+            </h2>
+            <div className={styles.typeSamples}>
+              <h3 className={`${styles.sampleHeading} ${typography.fontHeading}`}>Heading Example</h3>
+              <p className={typography.fontBody}>Body text example used for normal content across pages.</p>
+              <p className={typography.fontLabel}>Label text example for fields and smaller descriptions.</p>
+              <p className={typography.fontCode}>Code token / technical metadata example.</p>
+            </div>
+          </section>
+
           <section className={styles.card} aria-labelledby="surface-buttons">
             <h2 id="surface-buttons" className={styles.cardTitle}>
               Surface Buttons
