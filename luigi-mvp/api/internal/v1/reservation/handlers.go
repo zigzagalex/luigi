@@ -18,6 +18,7 @@ import (
 	"github.com/zigzagalex/luigi/api/internal/images"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	"github.com/zigzagalex/luigi/api/internal/reservation"
+	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
 
 type Handler struct {
@@ -97,6 +98,7 @@ func (h *Handler) CheckoutFromCart(w http.ResponseWriter, r *http.Request) {
 		httpx.Fail(w, http.StatusUnauthorized, "not_authenticated", nil)
 		return
 	}
+	locale := u.GetLocale(r)
 
 	var req checkoutRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -108,6 +110,7 @@ func (h *Handler) CheckoutFromCart(w http.ResponseWriter, r *http.Request) {
 		ShopID:            req.ShopID,
 		StoreID:           req.StoreID,
 		CustomerID:        customerID,
+		Locale:            locale,
 		IdempotencyKey:    req.IdempotencyKey,
 		Notes:             req.Notes,
 		PickupPersonName:  req.PickupPersonName,
@@ -139,6 +142,7 @@ func (h *Handler) ListMyReservations(w http.ResponseWriter, r *http.Request) {
 		httpx.Fail(w, http.StatusUnauthorized, "not_authenticated", nil)
 		return
 	}
+	locale := u.GetLocale(r)
 
 	shopID, err := parseIntQuery(r, "shop_id")
 	if err != nil || shopID <= 0 {
@@ -152,6 +156,7 @@ func (h *Handler) ListMyReservations(w http.ResponseWriter, r *http.Request) {
 	in := reservation.ListMyReservationsInput{
 		ShopID:     shopID,
 		CustomerID: customerID,
+		Locale:     locale,
 		Limit:      int32(limit),
 		Offset:     int32(offset),
 	}
@@ -171,6 +176,7 @@ func (h *Handler) GetMyReservation(w http.ResponseWriter, r *http.Request) {
 		httpx.Fail(w, http.StatusUnauthorized, "not_authenticated", nil)
 		return
 	}
+	locale := u.GetLocale(r)
 
 	shopID, err := parseIntQuery(r, "shop_id")
 	if err != nil || shopID <= 0 {
@@ -184,7 +190,7 @@ func (h *Handler) GetMyReservation(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	res, err := h.svc.GetMyReservation(r.Context(), shopID, customerID, resID)
+	res, err := h.svc.GetMyReservation(r.Context(), shopID, customerID, resID, locale)
 	if err != nil {
 		if errors.Is(err, reservation.ErrReservationNotFound) {
 			httpx.Fail(w, 404, "not_found", err.Error())
@@ -203,6 +209,7 @@ func (h *Handler) CancelMyReservation(w http.ResponseWriter, r *http.Request) {
 		httpx.Fail(w, 401, "not_authenticated", nil)
 		return
 	}
+	locale := u.GetLocale(r)
 
 	var req cancelRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -220,6 +227,7 @@ func (h *Handler) CancelMyReservation(w http.ResponseWriter, r *http.Request) {
 		ShopID:          req.ShopID,
 		CustomerID:      customerID,
 		ReservationID:   resID,
+		Locale:          locale,
 		ExpectedVersion: req.ExpectedVersion,
 		CancelReason:    req.CancelReason,
 	}
@@ -243,6 +251,7 @@ func (h *Handler) RescheduleMyReservation(w http.ResponseWriter, r *http.Request
 		httpx.Fail(w, 401, "not_authenticated", nil)
 		return
 	}
+	locale := u.GetLocale(r)
 
 	var req rescheduleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
@@ -266,6 +275,7 @@ func (h *Handler) RescheduleMyReservation(w http.ResponseWriter, r *http.Request
 		ShopID:          req.ShopID,
 		CustomerID:      customerID,
 		ReservationID:   resID,
+		Locale:          locale,
 		ExpectedVersion: req.ExpectedVersion,
 		StartAt:         startAt,
 		EndAt:           endAt,
@@ -302,6 +312,7 @@ func (h *Handler) customerIDFromContext(r *http.Request) (int64, error) {
 
 func (h *Handler) UpdateMyReservationDetails(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	locale := u.GetLocale(r)
 
 	// route params
 	reservationID, err := parseChiIDParam(r, "reservation_id") // use your existing helper; see below if you don’t have one
@@ -331,6 +342,7 @@ func (h *Handler) UpdateMyReservationDetails(w http.ResponseWriter, r *http.Requ
 		ShopID:            body.ShopID,
 		CustomerID:        customerID,
 		ReservationID:     reservationID,
+		Locale:            locale,
 		ExpectedVersion:   body.ExpectedVersion,
 		PickupPersonName:  body.PickupPersonName,
 		PickupPersonPhone: body.PickupPersonPhone,
@@ -354,6 +366,7 @@ func (h *Handler) UpdateMyReservationDetails(w http.ResponseWriter, r *http.Requ
 
 func (h *Handler) CancelMyReservationItem(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
+	locale := u.GetLocale(r)
 
 	reservationID, err := parseChiIDParam(r, "reservation_id")
 	if err != nil {
@@ -388,6 +401,7 @@ func (h *Handler) CancelMyReservationItem(w http.ResponseWriter, r *http.Request
 		CustomerID:        customerID,
 		ReservationID:     reservationID,
 		ReservationItemID: reservationItemID,
+		Locale:            locale,
 		ExpectedVersion:   body.ExpectedVersion,
 	})
 	if err != nil {

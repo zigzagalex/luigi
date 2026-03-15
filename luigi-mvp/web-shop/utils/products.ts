@@ -71,8 +71,8 @@ export async function fetchProducts(params?: Record<string, any>): Promise<Produ
 }
 
 // GET /v1/products/:id
-export async function fetchProductById(id: string | number): Promise<Product> {
-  const res = await fetchApi(`/v1/products/${id}`);
+export async function fetchProductById(id: string | number, locale?: string): Promise<Product> {
+  const res = await fetchApi(`/v1/products/${id}${buildQuery({ locale })}`);
   return parseJSON<Product>(res);
 }
 

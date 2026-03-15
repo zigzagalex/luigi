@@ -1,20 +1,22 @@
 -- name: ListProducts :many
 SELECT
-  id,
-  shop_id,
-  sku,
-  name,
-  description,
-  price_category,
-  is_active,
-  created_at,
-  updated_at
-FROM products
+  p.id,
+  p.shop_id,
+  p.sku,
+  COALESCE(pt.name, p.name) AS name,
+  COALESCE(pt.description, p.description) AS description,
+  p.price_category,
+  p.is_active,
+  p.created_at,
+  p.updated_at
+FROM products p
+LEFT JOIN product_translations pt 
+  ON p.id = pt.product_id AND pt.locale = sqlc.arg(requested_locale)
 WHERE (
-    sqlc.narg(shop_id)::bigint IS NULL
-    OR shop_id = sqlc.narg(shop_id)::bigint
+  sqlc.narg(shop_id)::bigint IS NULL
+  OR p.shop_id = sqlc.narg(shop_id)::bigint
 )
-ORDER BY id
+ORDER BY p.id
 LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
 
 
@@ -86,46 +88,44 @@ SELECT
   p.id,
   p.shop_id,
   p.sku,
-  p.name,
-  p.description,
+  COALESCE(pt.name, p.name) AS name,
+  COALESCE(pt.description, p.description) AS description,
   p.price_category,
   p.is_active,
   p.created_at,
   p.updated_at,
   COALESCE(pi.object_key, '') AS primary_image_object_key
 FROM products p
+LEFT JOIN product_translations pt 
+  ON p.id = pt.product_id AND pt.locale = sqlc.arg(requested_locale)
 LEFT JOIN LATERAL (
   SELECT pvi.object_key
   FROM product_variants pv
   JOIN product_variant_images pvi
-    ON pvi.product_variant_id = pv.id
-   AND pvi.is_primary = TRUE
+      ON pvi.product_variant_id = pv.id
+     AND pvi.is_primary = TRUE
   WHERE pv.product_id = p.id
   ORDER BY pv.created_at ASC 
   LIMIT 1
 ) AS pi ON TRUE
 WHERE
-  (
-    sqlc.narg(shop_id)::bigint IS NULL 
-    OR p.shop_id = sqlc.narg(shop_id)::bigint
-  )
-  AND (
-    sqlc.narg(ids)::bigint[] IS NULL
-    OR p.id = ANY(sqlc.narg(ids))
-  )
+  (sqlc.narg(shop_id)::bigint IS NULL OR p.shop_id = sqlc.narg(shop_id)::bigint)
+  AND (sqlc.narg(ids)::bigint[] IS NULL OR p.id = ANY(sqlc.narg(ids)))
 ORDER BY p.id
 LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
 
 -- name: GetProduct :one
 SELECT
-  id,
-  shop_id,
-  sku,
-  name,
-  description,
-  price_category,
-  is_active,
-  created_at,
-  updated_at
-FROM products
-WHERE id = sqlc.arg(id);
+  p.id,
+  p.shop_id,
+  p.sku,
+  COALESCE(pt.name, p.name) AS name,
+  COALESCE(pt.description, p.description) AS description,
+  p.price_category,
+  p.is_active,
+  p.created_at,
+  p.updated_at
+FROM products p
+LEFT JOIN product_translations pt 
+  ON p.id = pt.product_id AND pt.locale = sqlc.arg(requested_locale)
+WHERE p.id = sqlc.arg(id);

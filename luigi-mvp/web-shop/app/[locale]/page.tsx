@@ -12,7 +12,12 @@ export const dynamic = "force-dynamic";
 
 const DEFAULT_SHOP_ID = 1;
 
-export default async function HomePage() {
+export default async function HomePage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
   const t = await getTranslations("home");
   let products: Product[] = [];
 
@@ -20,6 +25,7 @@ export default async function HomePage() {
     products = await fetchProducts({
       shop_id: DEFAULT_SHOP_ID,
       limit: 32,
+      locale,
     });
   } catch (err) {
     console.error("Failed to fetch products for homepage:", err);

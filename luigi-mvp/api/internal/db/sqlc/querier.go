@@ -51,11 +51,13 @@ type Querier interface {
 	DeletePricePoint(ctx context.Context, arg *DeletePricePointParams) error
 	DeleteProduct(ctx context.Context, id int64) (Product, error)
 	DeleteProductCategory(ctx context.Context, id int64) (ProductCategory, error)
+	DeleteProductTranslation(ctx context.Context, arg *DeleteProductTranslationParams) error
 	DeleteProductVariant(ctx context.Context, id int64) (ProductVariant, error)
 	DeleteProductVariantImage(ctx context.Context, id int64) error
 	DeleteStore(ctx context.Context, id int64) (Store, error)
 	DeleteUser(ctx context.Context, id int64) (User, error)
 	ExpireOpenCarts(ctx context.Context) error
+	GetAccessoryTranslations(ctx context.Context, accessoryID int64) ([]AccessoryTranslation, error)
 	GetCartByID(ctx context.Context, cartID int64) (Cart, error)
 	GetCartItemByID(ctx context.Context, cartItemID int64) (CartItem, error)
 	GetCartItemWithCart(ctx context.Context, cartItemID int64) (GetCartItemWithCartRow, error)
@@ -66,8 +68,9 @@ type Querier interface {
 	GetPriceCategoryForVariant(ctx context.Context, productVariantID int64) (string, error)
 	GetPricePoint(ctx context.Context, arg *GetPricePointParams) (PricePoint, error)
 	GetPrimaryImageByVariantID(ctx context.Context, productVariantID int64) (ProductVariantImage, error)
-	GetProduct(ctx context.Context, id int64) (Product, error)
+	GetProduct(ctx context.Context, arg *GetProductParams) (GetProductRow, error)
 	GetProductCategory(ctx context.Context, id int64) (ProductCategory, error)
+	GetProductTranslations(ctx context.Context, productID int64) ([]ProductTranslation, error)
 	GetProductVariantByID(ctx context.Context, id int64) (ProductVariant, error)
 	GetProductVariantImage(ctx context.Context, id int64) (ProductVariantImage, error)
 	GetStoreById(ctx context.Context, storeID int64) (Store, error)
@@ -96,7 +99,7 @@ type Querier interface {
 	ListMyReservations(ctx context.Context, arg *ListMyReservationsParams) ([]Reservation, error)
 	ListPricePoints(ctx context.Context) ([]PricePoint, error)
 	ListProductVariants(ctx context.Context, arg *ListProductVariantsParams) ([]ProductVariant, error)
-	ListProducts(ctx context.Context, arg *ListProductsParams) ([]Product, error)
+	ListProducts(ctx context.Context, arg *ListProductsParams) ([]ListProductsRow, error)
 	ListProductsWithPrimaryImage(ctx context.Context, arg *ListProductsWithPrimaryImageParams) ([]ListProductsWithPrimaryImageRow, error)
 	ListReservationItemsByReservationIDs(ctx context.Context, reservationIds []int64) ([]ReservationItem, error)
 	ListShops(ctx context.Context, arg *ListShopsParams) ([]Shop, error)
@@ -128,7 +131,9 @@ type Querier interface {
 	UpdateShop(ctx context.Context, arg *UpdateShopParams) (Shop, error)
 	UpdateStore(ctx context.Context, arg *UpdateStoreParams) (Store, error)
 	UpdateUser(ctx context.Context, arg *UpdateUserParams) (User, error)
+	UpsertAccessoryTranslation(ctx context.Context, arg *UpsertAccessoryTranslationParams) (AccessoryTranslation, error)
 	UpsertPricePoint(ctx context.Context, arg *UpsertPricePointParams) (PricePoint, error)
+	UpsertProductTranslation(ctx context.Context, arg *UpsertProductTranslationParams) (ProductTranslation, error)
 }
 
 var _ Querier = (*Queries)(nil)
