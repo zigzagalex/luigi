@@ -25,12 +25,14 @@
   }
   
   .title {
+    composes: fontHeading from "../../components/ui/typography.module.css";
     font-size: 28px;
     font-weight: 900;
     margin: 0;
   }
   
   .subtitle {
+    composes: fontBody from "../../components/ui/typography.module.css";
     font-size: 14px;
     color: #666;
     line-height: 1.6;

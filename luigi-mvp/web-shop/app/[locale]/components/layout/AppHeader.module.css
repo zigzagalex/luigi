@@ -27,11 +27,13 @@
 }
 
 .logoTitle {
+  composes: fontSectionTitle from "../ui/typography.module.css";
   font-weight: 700;
   font-size: 1.1rem;
 }
 
 .logoSubtitle {
+  composes: fontLabel from "../ui/typography.module.css";
   font-size: 0.85rem;
   opacity: 0.8;
 }
@@ -79,6 +81,7 @@
 }
 
 .disabled {
+  composes: fontBody from "../ui/typography.module.css";
   background: rgba(255, 255, 255, 0.08);
   border: 1px solid rgba(255, 255, 255, 0.18);
   color: rgba(255, 255, 255, 0.85);
@@ -89,6 +92,7 @@
 
 /* Auth button (if still used somewhere) */
 .authButton {
+  composes: fontButton from "../ui/typography.module.css";
   display: inline-flex;
   align-items: center;
   height: 36px;

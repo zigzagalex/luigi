@@ -54,6 +54,7 @@
 }
 
 .label {
+  composes: fontLabel from "../ui/typography.module.css";
   font-size: 10px;
   font-weight: 700;
   text-transform: uppercase;
@@ -62,6 +63,7 @@
 }
 
 .value {
+  composes: fontBody from "../ui/typography.module.css";
   font-size: 14px;
   color: #111827;
   overflow: hidden;
@@ -140,6 +142,7 @@
 
 /* Full-width row buttons */
 .categoryPill {
+  composes: fontBody from "../ui/typography.module.css";
   width: 100%;
   text-align: left;
 
