@@ -57,33 +57,15 @@
   }
   
   .btn {
-    height: 36px;
-    padding: 0 12px;
-    border-radius: 12px;
-    border: 1px solid #e6e6e6;
-    background: white;
-    cursor: pointer;
-    font-weight: 800;
+    composes: surfaceButtonSm from "../components/ui/primitives.module.css";
   }
   
   .btnGhost {
-    height: 40px;
-    padding: 0 14px;
-    border-radius: 12px;
-    border: 1px solid #e6e6e6;
-    background: white;
-    cursor: pointer;
-    font-weight: 800;
+    composes: surfaceButtonMdMuted from "../components/ui/primitives.module.css";
   }
   
   .btnPrimary {
-    height: 40px;
-    padding: 0 14px;
-    border-radius: 12px;
-    border: 1px solid #e6e6e6;
-    background: white;
-    cursor: pointer;
-    font-weight: 900;
+    composes: surfaceButtonMdStrong from "../components/ui/primitives.module.css";
   }
   
   .btnPrimary:disabled,
@@ -147,11 +129,7 @@
   }
   
   .input {
-    height: 42px;
-    border-radius: 12px;
-    border: 1px solid #e6e6e6;
-    padding: 0 12px;
-    outline: none;
+    composes: surfaceInput from "../components/ui/primitives.module.css";
   }
   
   .expandActions {
@@ -283,12 +261,7 @@
   }
   
   .buyBtn {
-    height: 44px;
-    border-radius: 12px;
-    border: 1px solid #e6e6e6;
-    background: white;
-    cursor: pointer;
-    font-weight: 900;
+    composes: surfaceButtonLgStrong from "../components/ui/primitives.module.css";
   }
   
   .buyBtn:disabled {
