@@ -41,6 +41,7 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 	return func(w http.ResponseWriter, r *http.Request) {
 		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 		offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
+		locale := u.GetLocale(r)
 
 		// shop_id optional
 		var shopIDPtr *int64
@@ -65,6 +66,7 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 			r.Context(),
 			productsvc.ListWithImageInput{
 				ShopID: shopIDPtr,
+				Locale: locale,
 				Ids:    ids,
 				Limit:  int32(limit),
 				Offset: int32(offset),
@@ -90,8 +92,9 @@ func getHandler(svc *productsvc.Service) http.HandlerFunc {
 			httpx.Fail(w, http.StatusBadRequest, "invalid_id", nil)
 			return
 		}
+		locale := u.GetLocale(r)
 
-		dto, err := svc.GetDTO(r.Context(), id)
+		dto, err := svc.GetDTO(r.Context(), id, locale)
 		if err != nil {
 			if err == productsvc.ErrNotFound {
 				httpx.Fail(w, http.StatusNotFound, "product_not_found", nil)

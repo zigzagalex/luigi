@@ -11,13 +11,15 @@ import (
 
 type productQuerier interface {
 	CreateProduct(ctx context.Context, arg *db.CreateProductParams) (db.Product, error)
-	ListProducts(ctx context.Context, arg *db.ListProductsParams) ([]db.Product, error)
+	ListProducts(ctx context.Context, arg *db.ListProductsParams) ([]db.ListProductsRow, error)
 	ListProductsWithPrimaryImage(ctx context.Context, arg *db.ListProductsWithPrimaryImageParams) ([]db.ListProductsWithPrimaryImageRow, error)
 	UpdateProduct(ctx context.Context, arg *db.UpdateProductParams) (db.Product, error)
 	DeleteProduct(ctx context.Context, id int64) (db.Product, error)
 	ListCategoriesForProduct(ctx context.Context, productID int64) ([]db.ProductCategory, error)
 
-	GetProduct(ctx context.Context, id int64) (db.Product, error)
+	GetProduct(ctx context.Context, arg *db.GetProductParams) (db.GetProductRow, error)
+
+	UpsertProductTranslation(ctx context.Context, arg *db.UpsertProductTranslationParams) (db.ProductTranslation, error)
 }
 
 type Service struct {
@@ -30,11 +32,12 @@ var ErrNotFound = sql.ErrNoRows
 
 type ListInput struct {
 	ShopID *int64
+	Locale string
 	Limit  int32
 	Offset int32
 }
 
-func (s *Service) List(ctx context.Context, in ListInput) ([]db.Product, error) {
+func (s *Service) List(ctx context.Context, in ListInput) ([]db.ListProductsRow, error) {
 	if in.Limit <= 0 || in.Limit > 200 {
 		in.Limit = 50
 	}
@@ -43,14 +46,18 @@ func (s *Service) List(ctx context.Context, in ListInput) ([]db.Product, error) 
 	}
 
 	return s.q.ListProducts(ctx, &db.ListProductsParams{
-		ShopID:     u.ToNullInt64(in.ShopID),
-		PageOffset: in.Offset,
-		PageLimit:  in.Limit,
+		ShopID:          u.ToNullInt64(in.ShopID),
+		RequestedLocale: in.Locale,
+		PageOffset:      in.Offset,
+		PageLimit:       in.Limit,
 	})
 }
 
-func (s *Service) Get(ctx context.Context, id int64) (db.Product, error) {
-	return s.q.GetProduct(ctx, id)
+func (s *Service) Get(ctx context.Context, id int64, locale string) (db.GetProductRow, error) {
+	return s.q.GetProduct(ctx, &db.GetProductParams{
+		ID:              id,
+		RequestedLocale: locale,
+	})
 }
 
 type CreateInput struct {
@@ -86,8 +93,6 @@ type UpdateInput struct {
 }
 
 func (s *Service) Update(ctx context.Context, in UpdateInput) (db.Product, error) {
-	// Name + price_category are NOT NULL in schema, but we keep current value
-	// if caller passes nil / empty.
 	return s.q.UpdateProduct(ctx, &db.UpdateProductParams{
 		Sku:           u.ToNullString(in.SKU),
 		Name:          u.ToNullString(in.Name),
@@ -104,12 +109,12 @@ func (s *Service) Delete(ctx context.Context, id int64) (db.Product, error) {
 
 type ListWithImageInput struct {
 	ShopID *int64
+	Locale string
 	Ids    []int64
 	Limit  int32
 	Offset int32
 }
 
-// Raw rows, used internally if needed
 func (s *Service) ListWithPrimaryImage(ctx context.Context, in ListWithImageInput) ([]db.ListProductsWithPrimaryImageRow, error) {
 	if in.Limit <= 0 || in.Limit > 200 {
 		in.Limit = 50
@@ -119,14 +124,14 @@ func (s *Service) ListWithPrimaryImage(ctx context.Context, in ListWithImageInpu
 	}
 
 	return s.q.ListProductsWithPrimaryImage(ctx, &db.ListProductsWithPrimaryImageParams{
-		ShopID:     u.ToNullInt64(in.ShopID),
-		Ids:        in.Ids,
-		PageOffset: in.Offset,
-		PageLimit:  in.Limit,
+		ShopID:          u.ToNullInt64(in.ShopID),
+		RequestedLocale: in.Locale,
+		Ids:             in.Ids,
+		PageOffset:      in.Offset,
+		PageLimit:       in.Limit,
 	})
 }
 
-// High-level API: ready-to-serve DTOs with image URL + categories
 func (s *Service) ListWithPrimaryImageDTO(
 	ctx context.Context,
 	in ListWithImageInput,
@@ -139,41 +144,33 @@ func (s *Service) ListWithPrimaryImageDTO(
 
 	out := make([]ProductDTO, 0, len(rows))
 	for _, row := range rows {
-		// base product + primary image
 		dto := RowToDTO(row, mediaBaseURL)
-
-		// attach categories from product_category_assignments
 		if err := s.attachCategories(ctx, &dto); err != nil {
 			return nil, err
 		}
-
 		out = append(out, dto)
 	}
 
 	return out, nil
 }
 
-// GetDTO returns a single product as a ProductDTO, including categories.
-// PrimaryImageURL is left nil here
-func (s *Service) GetDTO(ctx context.Context, id int64) (ProductDTO, error) {
-	p, err := s.q.GetProduct(ctx, id)
+func (s *Service) GetDTO(ctx context.Context, id int64, locale string) (ProductDTO, error) {
+	p, err := s.Get(ctx, id, locale)
 	if err != nil {
-		return ProductDTO{}, err // ErrNotFound bubbles up as-is
+		return ProductDTO{}, err
 	}
 
 	dto := ProductDTO{
-		ID:              p.ID,
-		ShopID:          p.ShopID,
-		SKU:             toStringPtr(p.Sku),
-		Name:            p.Name,
-		Description:     toStringPtr(p.Description),
-		PriceCategory:   p.PriceCategory,
-		IsActive:        p.IsActive,
-		PrimaryImageURL: nil, // detail page uses the gallery; no primary image here
-		Categories:      nil,
+		ID:            p.ID,
+		ShopID:        p.ShopID,
+		SKU:           toStringPtr(p.Sku),
+		Name:          p.Name,
+		Description:   toStringPtr(p.Description),
+		PriceCategory: p.PriceCategory,
+		IsActive:      p.IsActive,
+		Categories:    nil,
 	}
 
-	// Attach categories like on the list endpoint
 	if err := s.attachCategories(ctx, &dto); err != nil {
 		return ProductDTO{}, err
 	}
@@ -197,4 +194,20 @@ func (s *Service) attachCategories(ctx context.Context, dto *ProductDTO) error {
 	}
 	dto.Categories = out
 	return nil
+}
+
+type TranslationInput struct {
+	ProductID   int64
+	Locale      string
+	Name        string
+	Description *string
+}
+
+func (s *Service) UpsertTranslation(ctx context.Context, in TranslationInput) (db.ProductTranslation, error) {
+	return s.q.UpsertProductTranslation(ctx, &db.UpsertProductTranslationParams{
+		ProductID:   in.ProductID,
+		Locale:      in.Locale,
+		Name:        strings.TrimSpace(in.Name),
+		Description: u.ToNullString(in.Description),
+	})
 }
