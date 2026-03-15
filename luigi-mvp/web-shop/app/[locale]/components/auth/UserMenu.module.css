@@ -5,13 +5,7 @@
 
 /* Keep the pill matching the header (dark background) */
 .button {
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.35);
-  color: #fff;
-  border-radius: 999px;
-  padding: 0.6rem 0.95rem;
-  font-weight: 700;
-  letter-spacing: 0.01em;
+  composes: headerPillButton from "../ui/primitives.module.css";
 }
 
 .button:hover {

@@ -1,0 +1,133 @@
+.surfaceControl {
+  border: 1px solid #e6e6e6;
+  border-radius: 12px;
+  background: white;
+}
+
+.surfaceButton {
+  composes: surfaceControl;
+  cursor: pointer;
+}
+
+.surfaceButtonSm {
+  composes: surfaceButton;
+  height: 36px;
+  padding: 0 12px;
+  font-weight: 800;
+}
+
+.surfaceButtonMd {
+  composes: surfaceButton;
+  height: 40px;
+  padding: 0 14px;
+}
+
+.surfaceButtonMdStrong {
+  composes: surfaceButtonMd;
+  font-weight: 900;
+}
+
+.surfaceButtonMdMuted {
+  composes: surfaceButtonMd;
+  font-weight: 800;
+}
+
+.surfaceButtonLgStrong {
+  composes: surfaceButton;
+  height: 44px;
+  font-weight: 900;
+}
+
+.surfaceLinkButton {
+  composes: surfaceButtonLgStrong;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.surfaceLinkButtonMuted {
+  composes: surfaceLinkButton;
+  font-weight: 800;
+  color: #444;
+}
+
+.surfaceInput {
+  composes: surfaceControl;
+  height: 42px;
+  padding: 0 12px;
+  outline: none;
+}
+
+.headerPillButton {
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  color: #fff;
+  border-radius: 999px;
+  padding: 0.6rem 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+}
+
+.modalGhostButton {
+  background: transparent;
+  border: 1px solid #ddd;
+  color: #333;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.modalPrimaryButton {
+  background: #111;
+  color: #fff;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 8px;
+  font-size: 13px;
+  cursor: pointer;
+  transition: background 0.15s ease, transform 0.05s ease;
+}
+
+.cartIconButton {
+  position: relative;
+  width: 44px;
+  height: 44px;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.cartIconBadge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: white;
+  color: black;
+  font-size: 12px;
+  display: grid;
+  place-items: center;
+}
+
+.darkPrimaryCta {
+  width: 100%;
+  border: none;
+  border-radius: 9999px;
+  padding: 12px 18px;
+  font-size: 15px;
+  font-weight: 600;
+  background: #0f172a;
+  color: #f9fafb;
+  cursor: pointer;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.3);
+}
