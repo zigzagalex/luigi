@@ -1,18 +1,18 @@
 .page {
     max-width: 900px;
     margin: 0 auto;
-    padding: 64px 24px;
+    padding: var(--space-16) var(--space-6);
     display: flex;
     justify-content: center;
   }
   
   .card {
-    border: 1px solid #eee;
+    border: 1px solid var(--color-border);
     border-radius: 20px;
-    padding: 48px 32px;
+    padding: var(--space-12) var(--space-8);
     background: white;
     display: grid;
-    gap: 20px;
+    gap: var(--space-5);
     text-align: center;
     max-width: 520px;
     width: 100%;
@@ -26,22 +26,22 @@
   
   .title {
     composes: fontHeading from "../../components/ui/typography.module.css";
-    font-size: 28px;
+    font-size: var(--text-h2-size);
     font-weight: 900;
     margin: 0;
   }
   
   .subtitle {
     composes: fontBody from "../../components/ui/typography.module.css";
-    font-size: 14px;
-    color: #666;
+    font-size: var(--text-meta-size);
+    color: var(--color-text-meta);
     line-height: 1.6;
   }
   
   .actions {
-    margin-top: 12px;
+    margin-top: var(--space-3);
     display: grid;
-    gap: 12px;
+    gap: var(--space-3);
   }
   
   .primary {
@@ -55,6 +55,6 @@
   
   .primary:hover,
   .secondary:hover {
-    background: #fafafa;
+    background: var(--color-bg-subtle);
   }
   

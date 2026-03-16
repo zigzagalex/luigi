@@ -1,7 +1,7 @@
 .heroWrapper {
   display: flex;
   justify-content: center;
-  margin: 16px 0 24px;
+  margin: var(--space-4) 0 var(--space-6);
 }
 
 /* ---- Main pill ---- */
@@ -10,13 +10,13 @@
   display: flex;
   align-items: center;
 
-  background: #ffffff;
-  border: 1px solid #e5e7eb;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border);
   border-radius: 9999px;
 
   box-shadow: 0 12px 32px rgba(15, 23, 42, 0.12);
 
-  padding: 8px 8px 8px 20px;
+  padding: var(--space-2) var(--space-2) var(--space-2) var(--space-5);
   max-width: 960px;
   width: 100%;
 }
@@ -40,17 +40,17 @@
   border: 0;
   border-radius: 9999px;
 
-  padding: 6px 16px;
+  padding: var(--space-2) var(--space-4);
   cursor: pointer;
   text-align: left;
 }
 
 .section:hover {
-  background: #f3f4f6;
+  background: var(--color-bg-subtle);
 }
 
 .sectionActive {
-  background: #e5f0ff;
+  background: var(--color-bg-subtle);
 }
 
 .label {
@@ -59,13 +59,13 @@
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.08em;
-  color: #6b7280;
+  color: var(--color-text-meta);
 }
 
 .value {
   composes: fontBody from "../ui/typography.module.css";
-  font-size: 14px;
-  color: #111827;
+  font-size: var(--text-meta-size);
+  color: var(--color-text-strong);
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -74,21 +74,21 @@
 .divider {
   width: 1px;
   height: 28px;
-  background: #e5e7eb;
+  background: var(--color-border);
 }
 
 /* ---- Search button ---- */
 .submit {
-  margin-left: 10px;
-  margin-right: 4px;
+  margin-left: var(--space-3);
+  margin-right: var(--space-1);
   width: 40px;
   height: 40px;
 
   border-radius: 9999px;
   border: none;
 
-  background: linear-gradient(135deg, #a4aec9, #bfc9e6);
-  color: #ffffff;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-hover));
+  color: var(--color-bg-surface);
 
   display: flex;
   align-items: center;
@@ -104,7 +104,7 @@
 }
 
 .submitIcon {
-  font-size: 16px;
+  font-size: var(--text-body-size);
 }
 
 /* ---- Popover positioning (single clean panel) ---- */
@@ -119,11 +119,11 @@
 
 /* Shared panel shell */
 .panel {
-  background: #ffffff;
+  background: var(--color-bg-surface);
   border: 1px solid rgba(15, 23, 42, 0.06);
   border-radius: 22px;
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.18);
-  padding: 14px;
+  padding: var(--space-4);
 }
 
 /* Make list-panels scroll if many items */
@@ -137,7 +137,7 @@
 .categoryGrid {
   display: grid;
   grid-template-columns: 1fr;
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 /* Full-width row buttons */
@@ -151,12 +151,12 @@
   justify-content: space-between;
 
   border-radius: 14px;
-  border: 1px solid #e5e7eb;
-  background: #f9fafb;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
 
-  padding: 12px 14px;
-  font-size: 14px;
-  color: #111827;
+  padding: var(--space-3) var(--space-4);
+  font-size: var(--text-meta-size);
+  color: var(--color-text-strong);
 
   cursor: pointer;
   transition: background-color 0.12s ease-out, border-color 0.12s ease-out,
@@ -164,46 +164,46 @@
 }
 
 .categoryPill:hover {
-  background: #eff6ff;
+  background: var(--color-bg-subtle);
   border-color: rgba(37, 99, 235, 0.25);
 }
 
 .categoryPillSelected {
-  background: #111827;
-  border-color: #111827;
-  color: #ffffff;
+  background: var(--color-text-strong);
+  border-color: var(--color-text-strong);
+  color: var(--color-bg-surface);
   box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.6);
 }
 
 /* ---- Dates panel ---- */
 .datesPanel {
-  padding: 14px;
+  padding: var(--space-4);
 }
 
 /* react-day-picker overrides (must be global selectors) */
 .datesPanel :global(.rdp) {
-  --rdp-accent-color: #111827;
-  --rdp-accent-background-color: #111827;
-  --rdp-range_middle-background-color: #1118270d;
-  --rdp-range_middle-color: #111827;
+  --rdp-accent-color: var(--color-text-strong);
+  --rdp-accent-background-color: var(--color-text-strong);
+  --rdp-range_middle-background-color: var(--color-overlay-subtle);
+  --rdp-range_middle-color: var(--color-text-strong);
 
-  font-size: 13px;
-  color: #111827;
+  font-size: var(--text-meta-size);
+  color: var(--color-text-strong);
 }
 
 .datesPanel :global(.rdp-months) {
   display: flex;
-  gap: 24px;
+  gap: var(--space-6);
 }
 
 .datesPanel :global(.rdp-caption) {
   font-weight: 600;
-  color: #111827;
+  color: var(--color-text-strong);
 }
 
 .datesPanel :global(.rdp-head_cell),
 .datesPanel :global(.rdp-weekday) {
-  color: #6b7280;
+  color: var(--color-text-meta);
   font-weight: 500;
 }
 
@@ -216,20 +216,20 @@
   border-radius: 999px;
   height: 34px;
   width: 34px;
-  margin: 2px;
-  color: #111827;
+  margin: var(--space-1);
+  color: var(--color-text-strong);
   background: transparent;
 }
 
 .datesPanel :global(.rdp-day_selected),
 .datesPanel :global(.rdp-day_selected:focus-visible),
 .datesPanel :global(.rdp-day_selected:hover) {
-  background-color: #111827;
-  color: #ffffff;
+  background-color: var(--color-text-strong);
+  color: var(--color-bg-surface);
 }
 
 .datesPanel :global(.rdp-day_range_middle) {
-  background-color: #1118270d;
+  background-color: var(--color-overlay-subtle);
   border-radius: 0;
 }
 
@@ -242,11 +242,11 @@
   font-weight: 600;
   border: 1px solid rgba(148, 163, 184, 0.7);
   background: transparent;
-  color: #111827;
+  color: var(--color-text-strong);
 }
 
 .datesPanel :global(.rdp-day_disabled) {
-  color: #d1d5db;
+  color: var(--color-border);
   cursor: not-allowed;
   background: transparent;
 }
@@ -256,24 +256,24 @@
 }
 
 .datesPanel :global(.rdp-caption_label) {
-  color: #111827;
+  color: var(--color-text-strong);
 }
 
 .datesPanel :global(.rdp-dropdown),
 .datesPanel :global(.rdp-dropdown_month),
 .datesPanel :global(.rdp-dropdown_year),
 .datesPanel :global(.rdp-dropdown select) {
-  color: #111827;
+  color: var(--color-text-strong);
 }
 
 /* ---- Mobile ---- */
 @media (max-width: 768px) {
   .pill {
-    padding: 8px;
+    padding: var(--space-2);
   }
 
   .section {
-    padding: 8px 10px;
+    padding: var(--space-2) var(--space-3);
   }
 
   .popover {

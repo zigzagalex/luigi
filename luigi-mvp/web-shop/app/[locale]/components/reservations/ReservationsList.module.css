@@ -1,11 +1,11 @@
 .list {
     display: flex;
     flex-direction: column;
-    gap: 24px;
+    gap: var(--space-6);
   }
   
   .empty {
-    color: #777;
-    font-size: 14px;
+    color: var(--color-text-meta);
+    font-size: var(--text-meta-size);
   }
   

@@ -1,7 +1,7 @@
 .phone {
     width: 100%;
     display: flex;
-    gap: 10px;
+    gap: var(--space-3);
     align-items: center;
   }
   
@@ -9,12 +9,12 @@
   .phone :global(.PhoneInputCountry) {
     display: flex;
     align-items: center;
-    gap: 8px;
-    padding: 0 12px;
+    gap: var(--space-2);
+    padding: 0 var(--space-3);
     height: 52px;
     border: 1px solid rgba(15, 23, 42, 0.12);
     border-radius: 14px;
-    background: #fff;
+    background: var(--color-bg-surface);
   }
   
   .phone :global(.PhoneInputCountrySelect) {
@@ -29,10 +29,10 @@
   .phone :global(.PhoneInputInput) {
     flex: 1;
     height: 52px;
-    padding: 0 14px;
+    padding: 0 var(--space-4);
     border: 1px solid rgba(15, 23, 42, 0.12);
     border-radius: 14px;
-    background: #fff;
+    background: var(--color-bg-surface);
     font: inherit;
     outline: none;
   }

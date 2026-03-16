@@ -2,27 +2,27 @@
 .container {
   max-width: 980px;
   margin: 0 auto;
-  padding: 24px 16px 48px;
+  padding: var(--space-6) var(--space-4) var(--space-12);
 }
 
 .headerRow {
   display: flex;
   align-items: flex-end;
   justify-content: space-between;
-  gap: 12px;
-  margin-bottom: 16px;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
 }
 
 .title {
-  font-size: 28px;
+  font-size: var(--text-h2-size);
   font-weight: 650;
   letter-spacing: -0.02em;
   margin: 0;
 }
 
 .errorCard {
-  background: #fff;
+  background: var(--color-bg-surface);
   border: 1px solid rgba(0,0,0,0.08);
   border-radius: 14px;
-  padding: 14px 16px;
+  padding: var(--space-4) var(--space-4);
 }

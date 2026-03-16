@@ -28,7 +28,7 @@
   border: 1px solid rgba(11, 18, 32, 0.12);
   border-radius: 16px;
 
-  padding: 10px;
+  padding: var(--space-3);
   box-shadow: 0 18px 45px rgba(0, 0, 0, 0.18);
   z-index: 50;
 }
@@ -39,10 +39,10 @@
   width: 100%;
   text-align: left;
 
-  padding: 12px 14px;
+  padding: var(--space-3) var(--space-4);
   border-radius: 12px;
 
-  color: #0b1220;
+  color: var(--color-bg-inverse);
   text-decoration: none;
   background: transparent;
   border: 0;
@@ -63,7 +63,7 @@
 
 /* Logout */
 .danger {
-  color: #b42318;
+  color: var(--color-accent-danger);
 }
 
 .danger:hover {

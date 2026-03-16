@@ -3,7 +3,7 @@
 }
 
 .header {
-  margin-bottom: 12px;
+  margin-bottom: var(--space-3);
 }
 
 .viewport {

@@ -1,12 +1,12 @@
 .container {
     max-width: 1000px;
     margin: 0 auto;
-    padding: 48px 24px;
+    padding: var(--space-12) var(--space-6);
   }
   
   .title {
-    font-size: 28px;
+    font-size: var(--text-h2-size);
     font-weight: 600;
-    margin-bottom: 40px;
+    margin-bottom: var(--space-10);
   }
   
