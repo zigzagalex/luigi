@@ -4,7 +4,7 @@
   
   .btn:hover { background: rgba(255,255,255,0.10); }
   
-  .icon { font-size: 18px; line-height: 1; }
+  .icon { font-size: var(--text-h3-size); line-height: 1; }
   
   .badge {
     composes: cartIconBadge from "../ui/primitives.module.css";

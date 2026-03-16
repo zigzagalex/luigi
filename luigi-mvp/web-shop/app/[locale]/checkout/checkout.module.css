@@ -1,36 +1,36 @@
 .page {
     max-width: 900px;
     margin: 0 auto;
-    padding: 48px 24px;
+    padding: var(--space-12) var(--space-6);
     display: grid;
-    gap: 16px;
+    gap: var(--space-4);
   }
   
   .header {
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    margin-bottom: 8px;
+    margin-bottom: var(--space-2);
   }
   
   .h1 {
     composes: fontHeading from "../components/ui/typography.module.css";
-    font-size: 32px;
+    font-size: var(--text-h1-size);
     font-weight: 900;
     margin: 0;
   }
   
   .link {
-    color: #444;
+    color: var(--color-text-body);
     text-decoration: underline;
   }
   
   .card {
-    border: 1px solid #eee;
+    border: 1px solid var(--color-border);
     border-radius: 16px;
-    padding: 20px;
+    padding: var(--space-5);
     display: grid;
-    gap: 14px;
+    gap: var(--space-4);
     background: white;
   }
   
@@ -38,26 +38,26 @@
     display: flex;
     justify-content: space-between;
     align-items: flex-start;
-    gap: 16px;
+    gap: var(--space-4);
   }
   
   .cardTitle {
     composes: fontSectionTitle from "../components/ui/typography.module.css";
-    font-size: 18px;
+    font-size: var(--text-h3-size);
     font-weight: 900;
   }
   
   .cardSubtitle {
     composes: fontLabel from "../components/ui/typography.module.css";
-    font-size: 13px;
-    color: #666;
-    margin-top: 4px;
+    font-size: var(--text-meta-size);
+    color: var(--color-text-meta);
+    margin-top: var(--space-1);
   }
   
   .muted {
     composes: fontLabel from "../components/ui/typography.module.css";
-    color: #666;
-    font-size: 13px;
+    color: var(--color-text-meta);
+    font-size: var(--text-meta-size);
   }
   
   .btn {
@@ -81,57 +81,57 @@
   
   .summary {
     display: grid;
-    gap: 12px;
+    gap: var(--space-3);
   }
   
   .summaryGrid {
     display: grid;
-    gap: 10px;
+    gap: var(--space-3);
   }
   
   .summaryRow {
     display: grid;
     grid-template-columns: 140px 1fr;
-    gap: 12px;
+    gap: var(--space-3);
     align-items: baseline;
   }
   
   .summaryLabel {
     composes: fontLabel from "../components/ui/typography.module.css";
-    font-size: 13px;
-    color: #666;
+    font-size: var(--text-meta-size);
+    color: var(--color-text-meta);
   }
   
   .summaryValue {
     composes: fontBody from "../components/ui/typography.module.css";
-    font-size: 14px;
-    color: #111;
+    font-size: var(--text-meta-size);
+    color: var(--color-text-strong);
   }
   
   .expand {
     display: grid;
-    gap: 12px;
+    gap: var(--space-3);
   }
   
   .expandGrid {
     display: grid;
     grid-template-columns: 1fr 1fr;
-    gap: 12px;
+    gap: var(--space-3);
   }
   
   .field {
     display: grid;
-    gap: 6px;
+    gap: var(--space-2);
   }
   
   .fieldLabel {
     composes: fontLabel from "../components/ui/typography.module.css";
-    font-size: 13px;
-    color: #444;
+    font-size: var(--text-meta-size);
+    color: var(--color-text-body);
   }
   
   .req {
-    color: #999;
+    color: var(--color-text-meta);
     font-weight: 900;
   }
   
@@ -142,49 +142,49 @@
   .expandActions {
     display: flex;
     justify-content: flex-end;
-    gap: 10px;
+    gap: var(--space-3);
   }
   
   .warnBox {
-    padding: 12px;
+    padding: var(--space-3);
     border-radius: 12px;
-    background: #fff7e6;
-    border: 1px solid #ffe2b5;
+    background: var(--color-accent-warning-bg);
+    border: 1px solid var(--color-accent-warning);
   }
   
   .warnTitle {
     font-weight: 900;
-    margin-bottom: 4px;
+    margin-bottom: var(--space-1);
   }
   
   .warnText {
     composes: fontLabel from "../components/ui/typography.module.css";
-    color: #666;
-    font-size: 13px;
+    color: var(--color-text-meta);
+    font-size: var(--text-meta-size);
   }
   
   .errorBox {
     composes: fontLabel from "../components/ui/typography.module.css";
-    padding: 12px;
+    padding: var(--space-3);
     border-radius: 12px;
-    background: #fff5f5;
-    border: 1px solid #ffe1e1;
-    color: #8a0b0b;
-    font-size: 13px;
+    background: var(--color-accent-danger-bg);
+    border: 1px solid var(--color-accent-danger);
+    color: var(--color-accent-danger);
+    font-size: var(--text-meta-size);
   }
   
   .cartList {
     display: grid;
-    gap: 12px;
+    gap: var(--space-3);
   }
   
   .cartRow {
     display: grid;
     grid-template-columns: 72px 1fr auto;
-    gap: 14px;
+    gap: var(--space-4);
     align-items: center;
-    padding: 12px;
-    border: 1px solid #eee;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
     border-radius: 14px;
   }
   
@@ -193,7 +193,7 @@
     height: 72px;
     border-radius: 12px;
     overflow: hidden;
-    background: #f5f5f5;
+    background: var(--color-bg-page);
   }
   
   .cartImg {
@@ -205,12 +205,12 @@
   .cartImgFallback {
     width: 100%;
     height: 100%;
-    background: #eee;
+    background: var(--color-border);
   }
   
   .cartInfo {
     display: grid;
-    gap: 4px;
+    gap: var(--space-1);
   }
   
   .cartTitle {
@@ -219,8 +219,8 @@
   
   .cartMeta {
     composes: fontLabel from "../components/ui/typography.module.css";
-    font-size: 13px;
-    color: #666;
+    font-size: var(--text-meta-size);
+    color: var(--color-text-meta);
   }
   
   .cartPrice {
@@ -232,8 +232,8 @@
     display: flex;
     justify-content: space-between;
     align-items: baseline;
-    padding-top: 8px;
-    border-top: 1px solid #eee;
+    padding-top: var(--space-2);
+    border-top: 1px solid var(--color-border);
   }
   
   .cartTotalLabel {
@@ -248,26 +248,26 @@
     composes: fontBody from "../components/ui/typography.module.css";
     display: flex;
     align-items: flex-start;
-    gap: 10px;
-    font-size: 14px;
+    gap: var(--space-3);
+    font-size: var(--text-meta-size);
   }
   
   .inlineLink {
     text-decoration: underline;
-    color: #444;
+    color: var(--color-text-body);
   }
   
   .radioList {
     display: grid;
-    gap: 10px;
+    gap: var(--space-3);
   }
   
   .radioRow {
     display: flex;
-    gap: 10px;
+    gap: var(--space-3);
     align-items: center;
-    padding: 10px 12px;
-    border: 1px solid #eee;
+    padding: var(--space-3) var(--space-3);
+    border: 1px solid var(--color-border);
     border-radius: 12px;
   }
   
@@ -283,32 +283,32 @@
   /* --- Store Info Card --- */
 
 .storeCard {
-  border: 1px solid #eee;
+  border: 1px solid var(--color-border);
   border-radius: 16px;
-  padding: 20px;
-  background: #fafafa; /* slightly softer than white */
+  padding: var(--space-5);
+  background: var(--color-bg-subtle); /* slightly softer than white */
   display: grid;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .storeLabel {
   composes: fontLabel from "../components/ui/typography.module.css";
-  font-size: 12px;
+  font-size: var(--text-meta-size);
   font-weight: 900;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #888;
+  color: var(--color-text-meta);
 }
 
 .storeName {
-  font-size: 16px;
+  font-size: var(--text-body-size);
   font-weight: 900;
-  color: #111;
+  color: var(--color-text-strong);
 }
 
 .storeAddress {
   composes: fontBody from "../components/ui/typography.module.css";
-  font-size: 14px;
-  color: #555;
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
   line-height: 1.4;
 }

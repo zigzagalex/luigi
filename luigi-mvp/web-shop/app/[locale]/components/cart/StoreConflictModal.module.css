@@ -8,41 +8,41 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
-  padding: 24px;
+  padding: var(--space-6);
 }
 
 /* Modal container */
 .modal {
-  background: #ffffff;
+  background: var(--color-bg-surface);
   border-radius: 12px;
   max-width: 420px;
   width: 100%;
-  padding: 28px 28px 24px;
+  padding: var(--space-6) var(--space-6) var(--space-6);
   box-shadow: 0 20px 50px rgba(0, 0, 0, 0.08);
   animation: fadeIn 0.15s ease-out;
 }
 
 /* Title */
 .modal h2 {
-  font-size: 20px;
+  font-size: var(--text-h3-size);
   font-weight: 600;
-  margin: 0 0 12px 0;
+  margin: 0 0 var(--space-3) 0;
   letter-spacing: 0.02em;
 }
 
 /* Body text */
 .modal p {
-  font-size: 14px;
+  font-size: var(--text-meta-size);
   line-height: 1.6;
-  margin: 0 0 10px 0;
-  color: #555;
+  margin: 0 0 var(--space-3) 0;
+  color: var(--color-text-meta);
 }
 
 /* Action row */
 .actions {
   display: flex;
-  gap: 12px;
-  margin-top: 20px;
+  gap: var(--space-3);
+  margin-top: var(--space-5);
   justify-content: flex-end;
 }
 
@@ -52,8 +52,8 @@
 }
 
 .secondary:hover {
-  background: #f5f5f5;
-  border-color: #ccc;
+  background: var(--color-bg-page);
+  border-color: var(--color-border);
 }
 
 /* Primary button (matches your buy buttons) */
@@ -62,7 +62,7 @@
 }
 
 .primary:hover {
-  background: #000;
+  background: var(--color-text-strong);
 }
 
 .primary:active {

@@ -1,22 +1,22 @@
 .container {
     display: flex;
-    gap: 16px;
+    gap: var(--space-4);
     align-items: center;
   }
   
   .item {
     display: flex;
     align-items: center;
-    gap: 12px;
-    background: #f7f7f7;
-    padding: 12px;
+    gap: var(--space-3);
+    background: var(--color-bg-subtle);
+    padding: var(--space-3);
     border-radius: 10px;
   }
   
   .image {
     width: 60px;
     height: 60px;
-    background: #ddd;
+    background: var(--color-border);
     border-radius: 8px;
   }
   
@@ -26,18 +26,18 @@
   }
   
   .price {
-    font-size: 14px;
+    font-size: var(--text-meta-size);
     font-weight: 500;
   }
   
   .quantity {
-    font-size: 12px;
-    color: #777;
+    font-size: var(--text-meta-size);
+    color: var(--color-text-meta);
   }
   
   .more {
-    font-size: 14px;
-    color: #777;
+    font-size: var(--text-meta-size);
+    color: var(--color-text-meta);
   }
   
   .imageTag {
@@ -49,19 +49,19 @@
 
   .name {
     font-weight: 600;
-    font-size: 14px;
+    font-size: var(--text-meta-size);
     margin-bottom: 2px;
   }
   
   .variant {
-    font-size: 12px;
-    color: #777;
-    margin-bottom: 6px;
+    font-size: var(--text-meta-size);
+    color: var(--color-text-meta);
+    margin-bottom: var(--space-2);
   }
   
   .priceRow {
     display: flex;
-    gap: 8px;
+    gap: var(--space-2);
     align-items: center;
   }
   
@@ -70,6 +70,6 @@
   }
   
   .quantity {
-    font-size: 13px;
-    color: #555;
+    font-size: var(--text-meta-size);
+    color: var(--color-text-meta);
   }

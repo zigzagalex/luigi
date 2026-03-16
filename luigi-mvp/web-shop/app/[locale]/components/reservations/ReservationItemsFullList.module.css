@@ -1,18 +1,18 @@
 .list {
     display: flex;
     flex-direction: column;
-    gap: 10px;
+    gap: var(--space-3);
   }
   
   .empty {
     color: rgba(0,0,0,0.62);
-    font-size: 14px;
+    font-size: var(--text-meta-size);
   }
   
   .row {
     display: flex;
-    gap: 12px;
-    padding: 10px;
+    gap: var(--space-3);
+    padding: var(--space-3);
     border: 1px solid rgba(0,0,0,0.08);
     border-radius: 14px;
   }
@@ -53,7 +53,7 @@
     display: flex;
     align-items: baseline;
     justify-content: space-between;
-    gap: 10px;
+    gap: var(--space-3);
   }
   
   .name {
@@ -72,7 +72,7 @@
   
   .variant {
     margin-top: 2px;
-    font-size: 13px;
+    font-size: var(--text-meta-size);
     color: rgba(0,0,0,0.62);
     overflow: hidden;
     text-overflow: ellipsis;
@@ -80,11 +80,11 @@
   }
   
   .meta {
-    margin-top: 6px;
+    margin-top: var(--space-2);
     display: flex;
     align-items: center;
-    gap: 8px;
-    font-size: 13px;
+    gap: var(--space-2);
+    font-size: var(--text-meta-size);
     color: rgba(0,0,0,0.62);
   }
   

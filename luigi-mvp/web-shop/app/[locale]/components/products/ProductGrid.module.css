@@ -1,13 +1,13 @@
 .grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(220px, 1fr));
-  gap: 24px;
+  gap: var(--space-6);
 }
 
 /* Search page grid: 1 col mobile, 2 cols tablet, 3 cols desktop */
 .searchGrid {
   display: grid;
-  gap: 24px;
+  gap: var(--space-6);
   grid-template-columns: 1fr;
 }
 

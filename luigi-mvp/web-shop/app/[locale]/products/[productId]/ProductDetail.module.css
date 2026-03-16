@@ -1,12 +1,12 @@
 .page {
-  padding-top: 32px;
-  padding-bottom: 48px;
+  padding-top: var(--space-8);
+  padding-bottom: var(--space-12);
   padding-inline: 24px;
 }
 
 .inner {
-  padding-top: 48;
-  padding-bottom: 48;
+  padding-top: var(--space-12);
+  padding-bottom: var(--space-12);
   max-width: 1200px;
   margin: 0 auto;
 }
@@ -14,14 +14,14 @@
 .layout {
   display: flex;
   flex-direction: column;
-  gap: 32px;
+  gap: var(--space-8);
 }
 
 @media (min-width: 900px) {
   .layout {
     flex-direction: row;
     align-items: flex-start;
-    gap: 48px;
+    gap: var(--space-12);
   }
 
   .media {
@@ -39,17 +39,17 @@
   width: 100%;
   min-height: 320px;
   border-radius: 16px;
-  background: #f3f4f6;
+  background: var(--color-bg-subtle);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #9ca3af;
+  color: var(--color-text-meta);
 }
 
 .mainImageWrapper {
   position: relative;
   border-radius: 16px;
-  background: #ffffff;
+  background: var(--color-bg-surface);
   box-shadow: 0 18px 45px rgba(15, 23, 42, 0.16);
   overflow: hidden;
 }
@@ -60,7 +60,7 @@
   height: auto;
   max-height: 480px;
   object-fit: contain;
-  background: #0f172a;
+  background: var(--color-bg-inverse);
 }
 
 .imageArrow {
@@ -72,7 +72,7 @@
   height: 36px;
   border-radius: 9999px;
   background: rgba(15, 23, 42, 0.6);
-  color: #f9fafb;
+  color: var(--color-bg-subtle);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -92,12 +92,12 @@
 }
 
 .thumbs {
-  margin-top: 12px;
+  margin-top: var(--space-3);
   display: flex;
-  gap: 8px;
+  gap: var(--space-2);
   flex-wrap: nowrap;
   overflow-x: auto;
-  padding-bottom: 4px;
+  padding-bottom: var(--space-1);
 }
 
 .thumb {
@@ -105,14 +105,14 @@
   height: 64px;
   border-radius: 10px;
   object-fit: cover;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--color-border);
   cursor: pointer;
   flex-shrink: 0;
 }
 
 .thumbActive {
-  border-color: #111827;
-  box-shadow: 0 0 0 2px #11182711;
+  border-color: var(--color-text-strong);
+  box-shadow: 0 0 0 2px var(--color-overlay-subtle);
 }
 
 /* RIGHT: info */
@@ -120,77 +120,77 @@
 .sidebar {
   display: flex;
   flex-direction: column;
-  gap: 20px;
+  gap: var(--space-5);
 }
 
 .header {
   display: flex;
   flex-direction: column;
-  gap: 4px;
+  gap: var(--space-1);
 }
 
 .title {
   composes: fontHeading from "../../components/ui/typography.module.css";
   margin: 0;
-  font-size: 26px;
+  font-size: var(--text-h2-size);
   line-height: 1.2;
 }
 
 .subtitle {
   composes: fontLabel from "../../components/ui/typography.module.css";
-  font-size: 13px;
-  color: #6b7280;
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
 }
 .priceBlock {
-  margin-top: 8px;
-  margin-bottom: 12px;
+  margin-top: var(--space-2);
+  margin-bottom: var(--space-3);
 }
 
 .priceBig {
   composes: fontHeading from "../../components/ui/typography.module.css";
-  font-size: 26px;
+  font-size: var(--text-h2-size);
   font-weight: 700;
   line-height: 1.1;
 }
 
 .priceLoading {
   composes: fontBody from "../../components/ui/typography.module.css";
-  font-size: 14px;
+  font-size: var(--text-meta-size);
   opacity: 0.7;
 }
 
 .pricePlaceholder {
   composes: fontBody from "../../components/ui/typography.module.css";
-  font-size: 14px;
+  font-size: var(--text-meta-size);
   opacity: 0.55;
 }
 
 .priceHint {
   composes: fontLabel from "../../components/ui/typography.module.css";
-  margin-top: 4px;
-  font-size: 12px;
+  margin-top: var(--space-1);
+  font-size: var(--text-meta-size);
   opacity: 0.6;
 }
 
 .priceError {
   composes: fontLabel from "../../components/ui/typography.module.css";
-  margin-top: 6px;
-  font-size: 12px;
-  color: #c03434;
+  margin-top: var(--space-2);
+  font-size: var(--text-meta-size);
+  color: var(--color-accent-danger);
 }
 
 
 /* Blocks */
 
 .block {
-  padding-top: 8px;
-  border-top: 1px solid #e5e7eb;
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--color-border);
 }
 
 .blockTitle {
   composes: fontBody from "../../components/ui/typography.module.css";
-  margin: 0 0 8px;
-  font-size: 14px;
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-meta-size);
   font-weight: 600;
 }
 
@@ -199,35 +199,31 @@
 .chipRow {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .chip {
-  composes: fontBody from "../../components/ui/typography.module.css";
-  border-radius: 9999px;
-  border: 1px solid #d1d5db;
-  background: #ffffff;
-  padding: 6px 12px;
-  font-size: 13px;
-  cursor: pointer;
+  composes: selectionPill from "../../components/ui/primitives.module.css";
   transition: background 0.15s ease, border-color 0.15s ease,
     color 0.15s ease, opacity 0.15s ease;
 }
 
 .chip:hover:not(.chipDisabled):not(:disabled) {
-  background: #f3f4f6;
+  background: var(--pill-hover-bg);
 }
 
 .chipDisabled,
 .chip:disabled {
-  cursor: default;
-  opacity: 0.45;
+  opacity: var(--pill-disabled-opacity);
+  cursor: not-allowed;
+}
+
+.chipDisabled {
+  composes: selectionPillDisabled from "../../components/ui/primitives.module.css";
 }
 
 .chipSelected {
-  background: #111827;
-  border-color: #111827;
-  color: #f9fafb;
+  composes: selectionPillSelected from "../../components/ui/primitives.module.css";
 }
 
 /* Dates */
@@ -235,7 +231,7 @@
 .dateRow {
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: var(--space-3);
 }
 
 @media (min-width: 600px) {
@@ -247,17 +243,17 @@
 .dateField label {
   font-family: var(--font-sans);
   display: block;
-  font-size: 12px;
-  color: #6b7280;
-  margin-bottom: 4px;
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
+  margin-bottom: var(--space-1);
 }
 
 .dateField input[type="date"] {
   width: 100%;
   border-radius: 10px;
-  border: 1px solid #d1d5db;
-  padding: 7px 10px;
-  font-size: 13px;
+  border: 1px solid var(--color-border);
+  padding: var(--space-2) var(--space-3);
+  font-size: var(--text-meta-size);
 }
 
 /* Quantity */
@@ -265,10 +261,10 @@
 .quantity {
   display: inline-flex;
   align-items: center;
-  gap: 12px;
+  gap: var(--space-3);
   border-radius: 9999px;
-  border: 1px solid #d1d5db;
-  padding: 4px 10px;
+  border: 1px solid var(--color-border);
+  padding: var(--space-1) var(--space-3);
 }
 
 .quantity button {
@@ -278,21 +274,25 @@
   height: 24px;
   border-radius: 9999px;
   cursor: pointer;
-  font-size: 16px;
+  font-size: var(--text-body-size);
 }
 
 .quantity button:hover {
-  background: #f3f4f6;
+  background: var(--color-bg-subtle);
 }
 
 /* Add to cart */
 
 .addToCart {
   composes: darkPrimaryCta from "../../components/ui/primitives.module.css";
+  min-height: 52px;
+  padding: 0 var(--space-6);
+  font-size: var(--text-body-size);
+  font-weight: 700;
 }
 
 .addToCart:hover {
-  background: #020617;
+  background: var(--color-bg-inverse-strong);
 }
 
 
@@ -303,7 +303,7 @@
 
   border: 1px solid rgba(15, 23, 42, 0.15);
   border-radius: 12px;
-  background: #fff;
+  background: var(--color-bg-surface);
   overflow: hidden;
 }
 
@@ -316,7 +316,7 @@
   appearance: none;
   border: 0;
   background: transparent;
-  padding: 14px 16px;
+  padding: var(--space-4) var(--space-4);
   text-align: left;
   cursor: pointer;
 }
@@ -338,7 +338,7 @@
 .dateLabel {
   composes: fontLabel from "../../components/ui/typography.module.css";
   display: block;
-  font-size: 12px;
+  font-size: var(--text-meta-size);
   font-weight: 700;
   letter-spacing: 0.04em;
   opacity: 0.85;
@@ -347,8 +347,8 @@
 .dateValue {
   composes: fontBody from "../../components/ui/typography.module.css";
   display: block;
-  margin-top: 6px;
-  font-size: 18px;
+  margin-top: var(--space-2);
+  font-size: var(--text-h3-size);
   font-weight: 600;
 }
 
@@ -360,11 +360,11 @@
 
 /* Popover anchored under the pill */
 .calendarPopover {
-  margin-top: 10px;
+  margin-top: var(--space-3);
   width: 100%;
-  padding: 14px;
+  padding: var(--space-4);
   border-radius: 16px;
-  background: #fff;
+  background: var(--color-bg-surface);
   box-shadow: 0 18px 60px rgba(15, 23, 42, 0.16);
   border: 1px solid rgba(15, 23, 42, 0.12);
 }
@@ -378,17 +378,17 @@
 }
 
 .calendarInline {
-  margin-top: 12px;
+  margin-top: var(--space-3);
 }
 
 .dateSummary {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 12px;
-  padding: 10px 12px;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-3);
   border: 1px solid rgba(15, 23, 42, 0.12);
   border-radius: 14px;
-  background: #fff;
+  background: var(--color-bg-surface);
 }
 
 .dateSummaryLabel {

@@ -1,29 +1,29 @@
 .page {
   max-width: 900px;
   margin: 0 auto;
-  padding: 48px 24px;
+  padding: var(--space-12) var(--space-6);
 }
 
 .header {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-8);
 }
 
 .header h1 {
-  font-size: 32px;
+  font-size: var(--text-h1-size);
   font-weight: 700;
 }
 
 .continue {
-  color: #444;
+  color: var(--color-text-body);
   text-decoration: underline;
 }
 
 .items {
   display: grid;
-  gap: 16px;
+  gap: var(--space-4);
 }
 
 /* --- Cart row --- */
@@ -31,10 +31,10 @@
 .itemRow {
   display: grid;
   grid-template-columns: 96px 1fr auto;
-  gap: 20px;
-  padding: 20px;
+  gap: var(--space-5);
+  padding: var(--space-5);
   border-radius: 16px;
-  border: 1px solid #eee;
+  border: 1px solid var(--color-border);
   align-items: center;
 }
 
@@ -43,7 +43,7 @@
   height: 96px;
   border-radius: 12px;
   overflow: hidden;
-  background: #f5f5f5;
+  background: var(--color-bg-page);
 }
 
 .imageWrap img {
@@ -55,7 +55,7 @@
 .itemInfo {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .title {
@@ -63,63 +63,63 @@
 }
 
 .meta {
-  font-size: 14px;
-  color: #666;
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
 }
 
 .itemActions {
   display: flex;
   flex-direction: column;
   align-items: flex-end;
-  gap: 8px;
+  gap: var(--space-2);
 }
 
 .price {
   font-weight: 700;
-  font-size: 18px;
+  font-size: var(--text-h3-size);
 }
 
 .remove {
   background: none;
   border: none;
-  color: #666;
+  color: var(--color-text-meta);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: var(--space-2);
 }
 
 .remove:hover {
-  color: #000;
+  color: var(--color-text-strong);
 }
 
 /* --- Footer --- */
 
 .footer {
-  margin-top: 40px;
-  border-top: 1px solid #eee;
-  padding-top: 24px;
+  margin-top: var(--space-10);
+  border-top: 1px solid var(--color-border);
+  padding-top: var(--space-6);
   display: grid;
-  gap: 20px;
+  gap: var(--space-5);
 }
 
 .subtotal {
   display: flex;
   justify-content: space-between;
-  font-size: 20px;
+  font-size: var(--text-h3-size);
 }
 
 .checkout {
   align-self: flex-end;
   min-width: 280px;
-  padding: 14px 24px;
-  font-size: 18px;
+  padding: var(--space-4) var(--space-6);
+  font-size: var(--text-h3-size);
   font-weight: 600;
 
   border-radius: 999px;
   border: none;
 
-  background: #111;
+  background: var(--color-text-strong);
   color: white;
 
   cursor: pointer;
@@ -134,7 +134,7 @@
 }
 
 .checkout:hover {
-  background: #000;
+  background: var(--color-text-strong);
 }
 
 /* only applies to <button disabled> */
@@ -152,70 +152,70 @@
 
   
 .warning {
-  margin: 0 0 16px 0;
-  padding: 12px 16px;
+  margin: 0 0 var(--space-4) 0;
+  padding: var(--space-3) var(--space-4);
   border-radius: 12px;
-  border: 1px solid #eee;
-  background: #fafafa;
-  color: #444;
-  font-size: 14px;
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-body);
+  font-size: var(--text-meta-size);
 }
 
 .blocked {
-  font-size: 14px;
-  color: #444;
+  font-size: var(--text-meta-size);
+  color: var(--color-text-body);
 }
 
 .itemRowBlocked {
-  border-color: #e9e9e9;
-  background: #fcfcfc;
+  border-color: var(--color-border-soft);
+  background: var(--color-bg-subtle);
 }
 
 .adjustDates {
   background: none;
   border: none;
-  color: #444;
+  color: var(--color-text-body);
   cursor: pointer;
   text-decoration: underline;
-  font-size: 14px;
+  font-size: var(--text-meta-size);
   padding: 0;
 }
 
 .adjustDates:hover {
-  color: #000;
+  color: var(--color-text-strong);
 }
 
 .checkoutHint {
   align-self: flex-end;
-  font-size: 14px;
-  color: #666;
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
 }
 
 .storeCard {
   margin-bottom: 28px;
-  padding: 18px 20px;
-  border: 1px solid #e5e2dc;
+  padding: var(--space-5) var(--space-5);
+  border: 1px solid var(--color-border);
   border-radius: 8px;
-  background: #faf8f4;
+  background: var(--color-bg-subtle);
 }
 
 .storeLabel {
   font-size: 11px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #8a857d;
-  margin-bottom: 6px;
+  color: var(--color-text-meta);
+  margin-bottom: var(--space-2);
 }
 
 .storeName {
-  font-size: 16px;
+  font-size: var(--text-body-size);
   font-weight: 600;
-  color: #2b2a28;
-  margin-bottom: 4px;
+  color: var(--color-text-body);
+  margin-bottom: var(--space-1);
 }
 
 .storeAddress {
-  font-size: 14px;
-  color: #6f6a63;
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
   line-height: 1.4;
 }

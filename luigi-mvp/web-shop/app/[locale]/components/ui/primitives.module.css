@@ -1,26 +1,31 @@
 .surfaceControl {
   font-family: var(--font-sans);
-  border: 1px solid #e6e6e6;
-  border-radius: 12px;
-  background: white;
+  border: 1px solid var(--color-border);
+  border-radius: var(--control-radius-md);
+  background: var(--color-bg-surface);
+  color: var(--color-text-strong);
 }
 
 .surfaceButton {
   composes: surfaceControl;
   cursor: pointer;
+  min-height: var(--control-min-height);
+  font-weight: 600;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    transform 0.05s ease, box-shadow 0.15s ease;
 }
 
 .surfaceButtonSm {
   composes: surfaceButton;
-  height: 36px;
-  padding: 0 12px;
+  min-height: var(--control-min-height);
+  padding: 0 var(--space-3);
   font-weight: 800;
 }
 
 .surfaceButtonMd {
   composes: surfaceButton;
-  height: 40px;
-  padding: 0 14px;
+  min-height: var(--control-min-height);
+  padding: 0 var(--space-4);
 }
 
 .surfaceButtonMdStrong {
@@ -35,8 +40,9 @@
 
 .surfaceButtonLgStrong {
   composes: surfaceButton;
-  height: 44px;
+  min-height: var(--control-min-height);
   font-weight: 900;
+  padding: 0 var(--space-4);
 }
 
 .surfaceLinkButton {
@@ -45,61 +51,65 @@
   align-items: center;
   justify-content: center;
   text-decoration: none;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-surface);
+}
+
+.surfaceLinkButton:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
 }
 
 .surfaceLinkButtonMuted {
   composes: surfaceLinkButton;
-  font-weight: 800;
-  color: #444;
+  background: var(--color-bg-surface);
+  border-color: var(--color-border);
+  color: var(--color-secondary);
+}
+
+.surfaceLinkButtonMuted:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-secondary-hover);
 }
 
 .surfaceInput {
   composes: surfaceControl;
-  height: 42px;
-  padding: 0 12px;
+  min-height: var(--control-min-height);
+  padding: 0 var(--space-3);
   outline: none;
+  color: var(--color-text-body);
+}
+
+.surfaceInput::placeholder {
+  color: var(--color-text-meta);
 }
 
 .headerPillButton {
   font-family: var(--font-sans);
   background: transparent;
   border: 1px solid rgba(255, 255, 255, 0.35);
-  color: #fff;
+  color: var(--color-bg-surface);
   border-radius: 999px;
   padding: 0.6rem 0.95rem;
   font-weight: 700;
   letter-spacing: 0.01em;
+  min-height: var(--control-min-height);
 }
 
 .modalGhostButton {
-  font-family: var(--font-sans);
-  background: transparent;
-  border: 1px solid #ddd;
-  color: #333;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: all 0.15s ease;
+  composes: buttonSecondary;
 }
 
 .modalPrimaryButton {
-  font-family: var(--font-sans);
-  background: #111;
-  color: #fff;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
-  transition: background 0.15s ease, transform 0.05s ease;
+  composes: buttonPrimary;
 }
 
 .cartIconButton {
   font-family: var(--font-sans);
   position: relative;
-  width: 44px;
-  height: 44px;
+  width: var(--control-min-height);
+  height: var(--control-min-height);
   border-radius: 999px;
   border: 1px solid rgba(255, 255, 255, 0.15);
   background: rgba(255, 255, 255, 0.06);
@@ -116,25 +126,123 @@
   right: 6px;
   min-width: 18px;
   height: 18px;
-  padding: 0 6px;
+  padding: 0 var(--space-2);
   border-radius: 999px;
   background: white;
   color: black;
-  font-size: 12px;
+  font-size: var(--text-meta-size);
   display: grid;
   place-items: center;
 }
 
 .darkPrimaryCta {
-  font-family: var(--font-sans);
+  composes: buttonPrimary;
   width: 100%;
-  border: none;
-  border-radius: 9999px;
-  padding: 12px 18px;
-  font-size: 15px;
+  border-radius: var(--control-radius-pill);
+  box-shadow: 0 8px 20px rgba(29, 78, 216, 0.25);
+}
+
+.buttonBase {
+  font-family: var(--font-sans);
+  min-height: var(--control-min-height);
+  border-radius: var(--control-radius-md);
+  border: 1px solid transparent;
+  padding: 0 var(--space-4);
+  font-size: var(--text-meta-size);
   font-weight: 600;
-  background: #0f172a;
-  color: #f9fafb;
   cursor: pointer;
-  box-shadow: 0 10px 24px rgba(15, 23, 42, 0.3);
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    box-shadow 0.15s ease, transform 0.05s ease;
+}
+
+.buttonPrimary {
+  composes: buttonBase;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: var(--color-bg-surface);
+}
+
+.buttonPrimary:hover {
+  background: var(--color-primary-hover);
+  border-color: var(--color-primary-hover);
+}
+
+.buttonSecondary {
+  composes: buttonBase;
+  background: var(--color-bg-surface);
+  border-color: var(--color-border);
+  color: var(--color-secondary);
+}
+
+.buttonSecondary:hover {
+  background: var(--color-bg-subtle);
+  color: var(--color-secondary-hover);
+}
+
+.buttonTertiary {
+  composes: buttonBase;
+  background: transparent;
+  color: var(--color-secondary);
+  border-color: transparent;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.buttonTertiary:hover {
+  color: var(--color-secondary-hover);
+  background: rgba(55, 65, 81, 0.08);
+}
+
+.buttonPrimary:focus-visible,
+.buttonSecondary:focus-visible,
+.buttonTertiary:focus-visible,
+.surfaceButton:focus-visible,
+.surfaceInput:focus-visible,
+.surfaceLinkButton:focus-visible,
+.surfaceLinkButtonMuted:focus-visible,
+.headerPillButton:focus-visible,
+.cartIconButton:focus-visible {
+  outline: 3px solid var(--color-focus-ring);
+  outline-offset: 2px;
+}
+
+.buttonPrimary:disabled,
+.buttonSecondary:disabled,
+.buttonTertiary:disabled,
+.surfaceButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.selectionPill {
+  font-family: var(--font-sans);
+  min-height: var(--control-min-height);
+  border-radius: var(--pill-radius);
+  border: 1px solid var(--pill-border);
+  background: var(--pill-bg);
+  color: var(--pill-text);
+  padding: 0 var(--space-4);
+  font-size: var(--text-meta-size);
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease,
+    opacity 0.15s ease;
+}
+
+.selectionPill:hover:not(.selectionPillDisabled):not(:disabled) {
+  background: var(--pill-hover-bg);
+  border-color: var(--pill-hover-border);
+}
+
+.selectionPillSelected {
+  background: var(--pill-selected-bg);
+  border-color: var(--pill-selected-border);
+  color: var(--pill-selected-text);
+}
+
+.selectionPillDisabled,
+.selectionPill:disabled {
+  opacity: var(--pill-disabled-opacity);
+  cursor: not-allowed;
 }
