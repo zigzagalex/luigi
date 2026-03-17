@@ -154,6 +154,7 @@ export default function CheckoutPage() {
   const {
     cart,
     loading: cartLoading,
+    refresh,
     canCheckout,
     blockedItems,
     imageUrlForCartItem,
@@ -313,7 +314,9 @@ export default function CheckoutPage() {
           alert(t("checkoutFailed"));
           return;
         }
-    
+
+        await refresh();
+
         router.push(`/checkout/confirmation?success=1`);
       } catch (err) {
         console.error(err);
