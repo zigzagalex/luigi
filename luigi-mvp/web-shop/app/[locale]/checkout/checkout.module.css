@@ -61,15 +61,15 @@
   }
   
   .btn {
-    composes: surfaceButtonSm from "../components/ui/primitives.module.css";
+    composes: buttonSecondary from "../components/ui/primitives.module.css";
   }
   
   .btnGhost {
-    composes: surfaceButtonMdMuted from "../components/ui/primitives.module.css";
+    composes: buttonSecondary from "../components/ui/primitives.module.css";
   }
   
   .btnPrimary {
-    composes: surfaceButtonMdStrong from "../components/ui/primitives.module.css";
+    composes: buttonPrimary from "../components/ui/primitives.module.css";
   }
   
   .btnPrimary:disabled,
@@ -272,7 +272,9 @@
   }
   
   .buyBtn {
-    composes: surfaceButtonLgStrong from "../components/ui/primitives.module.css";
+    composes: buttonPrimary from "../components/ui/primitives.module.css";
+    width: 100%;
+    font-weight: 900;
   }
   
   .buyBtn:disabled {

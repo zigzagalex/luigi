@@ -46,15 +46,9 @@
   
   .primary {
     composes: surfaceLinkButton from "../../components/ui/primitives.module.css";
-    color: black;
   }
   
   .secondary {
     composes: surfaceLinkButtonMuted from "../../components/ui/primitives.module.css";
-  }
-  
-  .primary:hover,
-  .secondary:hover {
-    background: var(--color-bg-subtle);
   }
   

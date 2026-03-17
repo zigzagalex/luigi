@@ -59,6 +59,7 @@
     "countryPlaceholder": "CH",
     "cancel": "Abbrechen",
     "continue": "Weiter",
+    "save": "Speichern",
     "saving": "Speichert…",
     "missingTitle": "Fehlend: {fields}",
     "pickupLocation": "Abholort",
