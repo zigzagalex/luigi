@@ -213,11 +213,11 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
           <button type="button" className={styles.submit} onClick={handleSearch} aria-label={t("searchAria")}>
             <span className={styles.submitIcon} aria-hidden="true">
               <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
-                <circle cx="11" cy="11" r="6.25" stroke="currentColor" strokeWidth="1.8" />
+                <circle cx="10.5" cy="10.5" r="6.75" stroke="currentColor" strokeWidth="2.1" />
                 <path
-                  d="m16 16 3.5 3.5"
+                  d="m15.75 15.75 4 4"
                   stroke="currentColor"
-                  strokeWidth="1.8"
+                  strokeWidth="2.1"
                   strokeLinecap="round"
                   strokeLinejoin="round"
                 />
