@@ -45,27 +45,22 @@ export default function AppHeader({ categories, stores }: Props) {
           </Link>
 
           <div className={styles.rightActions}>
-            <UserMenu onOpenAuth={() => setAuthOpen(true)} compact />
+            <div className={styles.utilityZone}>
+              <div className={styles.utilityGroup}>
+                <UserMenu onOpenAuth={() => setAuthOpen(true)} />
+                <LocaleSwitcher />
+              </div>
 
-            <LocaleSwitcher />
-
-            <div className={styles.cartWrap}>
-              <CartButton
-                count={itemCount}
-                onClick={() => setCartOpen((v) => !v)}
-              />
-              {cartOpen && <CartPopover onClose={() => setCartOpen(false)} />}
+              <div className={styles.utilityGroup}>
+                <div className={styles.cartWrap}>
+                  <CartButton
+                    count={itemCount}
+                    onClick={() => setCartOpen((v) => !v)}
+                  />
+                  {cartOpen && <CartPopover onClose={() => setCartOpen(false)} />}
+                </div>
+              </div>
             </div>
-
-            <button
-              type="button"
-              className={styles.menuButton}
-              aria-label={tHeader("openNavMenu")}
-            >
-              <span />
-              <span />
-              <span />
-            </button>
           </div>
         </div>
 

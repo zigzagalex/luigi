@@ -44,31 +44,27 @@
 .rightActions {
   display: flex;
   align-items: center;
-  gap: var(--space-2);
   margin-left: auto; /* extra safety: keeps it pushed right */
+}
+
+.utilityZone {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.utilityGroup {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.16rem;
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .cartWrap {
   position: relative;
-}
-
-/* Burger */
-.menuButton {
-  border: none;
-  background: transparent;
-  display: inline-flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 0.22rem;
-  padding: 0.4rem;
-  cursor: pointer;
-}
-
-.menuButton span {
-  width: 18px;
-  height: 2px;
-  border-radius: 999px;
-  background: var(--color-bg-surface);
 }
 
 /* Row 2: search pill */
@@ -154,6 +150,15 @@
 
   .topRow {
     gap: 0.75rem;
+  }
+
+  .utilityZone {
+    gap: 0.35rem;
+  }
+
+  .utilityGroup {
+    gap: 0.28rem;
+    padding: 0.14rem;
   }
 
   .logoTitle {
