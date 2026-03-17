@@ -7,25 +7,24 @@
 .wrap::after {
   content: "";
   position: absolute;
-  right: 0.72rem;
+  right: 0;
   top: 50%;
-  width: 0.46rem;
-  height: 0.46rem;
-  border-right: 1.5px solid rgba(255, 255, 255, 0.82);
-  border-bottom: 1.5px solid rgba(255, 255, 255, 0.82);
-  transform: translateY(-58%) rotate(45deg);
+  width: 0.38rem;
+  height: 0.38rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.82);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.82);
+  transform: translateY(-62%) rotate(45deg);
   pointer-events: none;
 }
   
 .select {
-  height: 34px;
-  min-height: 34px;
-  padding: 0 1.65rem 0 0.95rem;
-  border-radius: 9999px;
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  background: rgba(255, 255, 255, 0.06);
+  height: 32px;
+  min-height: 32px;
+  padding: 0 1rem 0 0;
+  border: none;
+  background: transparent;
   color: var(--color-bg-surface);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
   font-weight: 600;
   cursor: pointer;
   appearance: none;
@@ -33,6 +32,7 @@
   -moz-appearance: none;
   text-align: center;
   text-align-last: center;
+  line-height: 1;
 }
   
 .select:focus-visible {

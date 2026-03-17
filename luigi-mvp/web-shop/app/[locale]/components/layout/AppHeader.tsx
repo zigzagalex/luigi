@@ -45,21 +45,14 @@ export default function AppHeader({ categories, stores }: Props) {
           </Link>
 
           <div className={styles.rightActions}>
-            <div className={styles.utilityZone}>
-              <div className={styles.utilityGroup}>
-                <UserMenu onOpenAuth={() => setAuthOpen(true)} />
-                <LocaleSwitcher />
-              </div>
-
-              <div className={styles.utilityGroup}>
-                <div className={styles.cartWrap}>
-                  <CartButton
-                    count={itemCount}
-                    onClick={() => setCartOpen((v) => !v)}
-                  />
-                  {cartOpen && <CartPopover onClose={() => setCartOpen(false)} />}
-                </div>
-              </div>
+            <UserMenu onOpenAuth={() => setAuthOpen(true)} />
+            <LocaleSwitcher />
+            <div className={styles.cartWrap}>
+              <CartButton
+                count={itemCount}
+                onClick={() => setCartOpen((v) => !v)}
+              />
+              {cartOpen && <CartPopover onClose={() => setCartOpen(false)} />}
             </div>
           </div>
         </div>

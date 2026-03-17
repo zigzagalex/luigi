@@ -22,6 +22,7 @@
 .logo {
   display: flex;
   align-items: center;
+  min-height: 32px;
   text-decoration: none;
   color: inherit;
   min-width: 0;
@@ -29,9 +30,14 @@
 
 .logoTitle {
   composes: fontSectionTitle from "../ui/typography.module.css";
+  display: inline-flex;
+  align-items: center;
   font-weight: 650;
   font-size: 1rem;
+  line-height: 1;
   letter-spacing: 0.02em;
+  position: relative;
+  top: 1px;
 }
 
 .logoSubtitle {
@@ -44,23 +50,9 @@
 .rightActions {
   display: flex;
   align-items: center;
+  gap: 24px;
+  min-height: 32px;
   margin-left: auto; /* extra safety: keeps it pushed right */
-}
-
-.utilityZone {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.45rem;
-}
-
-.utilityGroup {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  padding: 0.16rem;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  background: rgba(255, 255, 255, 0.05);
 }
 
 .cartWrap {
@@ -152,13 +144,8 @@
     gap: 0.75rem;
   }
 
-  .utilityZone {
-    gap: 0.35rem;
-  }
-
-  .utilityGroup {
-    gap: 0.28rem;
-    padding: 0.14rem;
+  .rightActions {
+    gap: 16px;
   }
 
   .logoTitle {
