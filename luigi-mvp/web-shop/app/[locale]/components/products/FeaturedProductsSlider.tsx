@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { Product } from "@/../utils/products";
 import ProductCard from "./ProductCard";
@@ -11,79 +11,56 @@ type Props = {
   title?: string;
 };
 
-const DESKTOP_VISIBLE_COUNT = 2;
-const INTERVAL_MS = 5000;
-
 export default function FeaturedProductsSlider({ products, title }: Props) {
-  const t = useTranslations("featuredProducts");
-  const items = useMemo(() => products.slice(0, 12), [products]);
-  const total = items.length;
+  const featuredT = useTranslations("featuredProducts");
+  const rowT = useTranslations("categoryRow");
+  const scrollRef = useRef<HTMLDivElement | null>(null);
+  const items = products.slice(0, 12);
 
-  const [visibleCount, setVisibleCount] = useState(DESKTOP_VISIBLE_COUNT);
-  const [index, setIndex] = useState(0);
+  if (!items.length) return null;
 
-  // Responsive: 1 on mobile, 2 on desktop
-  useEffect(() => {
-    if (typeof window === "undefined") return;
-
-    const mql = window.matchMedia("(max-width: 640px)");
-
-    const update = () => {
-      setVisibleCount(mql.matches ? 1 : DESKTOP_VISIBLE_COUNT);
-    };
-
-    update();
-
-    const handler = () => update();
-    mql.addEventListener("change", handler);
-    return () => mql.removeEventListener("change", handler);
-  }, []);
-
-  // Auto-slide by 1 product
-  useEffect(() => {
-    if (total === 0) return;
-
-    const effectiveVisible = Math.max(1, Math.min(visibleCount, total));
-    if (total <= effectiveVisible) return;
-
-    const id = setInterval(() => {
-      setIndex((prev) => (prev + 1) % total);
-    }, INTERVAL_MS);
-
-    return () => clearInterval(id);
-  }, [total, visibleCount]);
-
-  if (total === 0) return null;
-
-  const effectiveVisible = Math.max(1, Math.min(visibleCount, total));
-
-  // If visible=2, one "step" is 50% of viewport width
-  const stepPercent = 100 / effectiveVisible;
-  const translatePercent = index * stepPercent;
+  const scroll = (direction: "left" | "right") => {
+    const container = scrollRef.current;
+    if (!container) return;
+    const amount = container.clientWidth * 0.8;
+    container.scrollBy({
+      left: direction === "left" ? -amount : amount,
+      behavior: "smooth",
+    });
+  };
 
   return (
-    <section className={styles.slider}>
+    <section className={styles.row}>
       <div className={styles.header}>
-        <h2>{title ?? t("title")}</h2>
+        <h2 className={styles.title}>{title ?? featuredT("title")}</h2>
       </div>
 
-      <div className={styles.viewport}>
-        <div
-          className={styles.track}
-          style={{ transform: `translateX(-${translatePercent}%)` }}
+      <div className={styles.body}>
+        <button
+          type="button"
+          className={`${styles.arrow} ${styles.arrowLeft}`}
+          onClick={() => scroll("left")}
+          aria-label={rowT("scrollLeft")}
         >
+          ‹
+        </button>
+
+        <div ref={scrollRef} className={styles.scroll}>
           {items.map((product) => (
-            <div
-              key={product.id}
-              className={styles.item}
-              style={{ flex: `0 0 ${stepPercent}%` }}
-            >
-              <div className={styles.cardWrap}>
-                <ProductCard product={product} />
-              </div>
+            <div key={product.id} className={styles.item}>
+              <ProductCard product={product} />
             </div>
           ))}
         </div>
+
+        <button
+          type="button"
+          className={`${styles.arrow} ${styles.arrowRight}`}
+          onClick={() => scroll("right")}
+          aria-label={rowT("scrollRight")}
+        >
+          ›
+        </button>
       </div>
     </section>
   );
