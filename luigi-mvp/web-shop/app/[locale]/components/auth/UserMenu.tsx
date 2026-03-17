@@ -53,8 +53,24 @@ export default function UserMenu({ onOpenAuth }: Props) {
 
   if (!me) {
     return (
-      <button className={styles.button} type="button" onClick={onOpenAuth}>
-        {t("loginSignup")}
+      <button
+        className={styles.button}
+        type="button"
+        onClick={onOpenAuth}
+        aria-label={t("loginSignup")}
+      >
+        <span className={styles.desktopLabel}>{t("loginSignup")}</span>
+        <span className={styles.mobileIcon} aria-hidden="true">
+          <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+            <path
+              d="M12 12.2a4.1 4.1 0 1 0 0-8.2 4.1 4.1 0 0 0 0 8.2ZM5 20a7 7 0 0 1 14 0"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
       </button>
     );
   }
