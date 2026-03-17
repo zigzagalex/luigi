@@ -286,7 +286,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   };
 
   /** ---------- Add to cart ---------- */
-  const { addItems, openAddPopover } = useCart(); 
+  const { cart, addItems, removeItem, openAddPopover } = useCart();
   const [addError, setAddError] = useState<string | null>(null);
   const [adding, setAdding] = useState(false);
 
@@ -299,61 +299,67 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     quantity >= 1 &&
     quantity <= availableQuantity;
 
-    const handleAddToCart = useCallback(async () => {
-      if (!canAddToCart || !selectedVariant || !selectedStoreId || !range.from || !range.to) return;
-    
-      setAddError(null);
-      setAdding(true);
-      try {
-        await addItems({
-          shop_id: product.shop_id,          // or product.shop_id / DEFAULT_SHOP_ID
-          store_id: selectedStoreId,
-          product_id: product.id,
-          variant_id: selectedVariant.id,
-          start_date: formatDateForApiLocal(range.from),
-          end_date: formatDateForApiLocal(range.to),
-          quantity,
-        });
-    
-        // Popover after adding item
-        openAddPopover({
-          title,
-          imageUrl: images[0]?.url,
-          storeName: stores.find((s) => s.id === selectedStoreId)?.name,
-          from: formatDateForApiLocal(range.from),
-          to: formatDateForApiLocal(range.to),
-          quantity,
-          priceLabel: quote
-            ? `${quote.currency} ${(quote.totalPriceCents / 100).toFixed(2)}`
-            : undefined,
-        });
-        
-
-      } catch (e: any) {
-        if (e?.code === "different_store") {
-          setShowStoreConflict(true);
-          return;
-        }
-        setAddError(e?.message ?? t("failedToAddToCart"));
-      } finally {
-        setAdding(false);
-      }
-    }, [
-      addItems,
-      canAddToCart,
-      product.shop_id,
-      product.id,
-      selectedVariant,
-      selectedStoreId,
-      range.from,
-      range.to,
-      quantity,
-    ]);
-    
-
   /** ---------- UI labels ---------- */
   const title = product.name || t("bikeFallback", { id: String(product.id) });
   const priceLabel = product.price_category || t("standard");
+
+  const addCurrentSelection = useCallback(async () => {
+    if (!canAddToCart || !selectedVariant || !selectedStoreId || !range.from || !range.to) return;
+
+    await addItems({
+      shop_id: product.shop_id,
+      store_id: selectedStoreId,
+      product_id: product.id,
+      variant_id: selectedVariant.id,
+      start_date: formatDateForApiLocal(range.from),
+      end_date: formatDateForApiLocal(range.to),
+      quantity,
+    });
+
+    openAddPopover({
+      title,
+      imageUrl: images[0]?.url,
+      storeName: stores.find((s) => s.id === selectedStoreId)?.name,
+      from: formatDateForApiLocal(range.from),
+      to: formatDateForApiLocal(range.to),
+      quantity,
+      priceLabel: quote
+        ? `${quote.currency} ${(quote.totalPriceCents / 100).toFixed(2)}`
+        : undefined,
+    });
+  }, [
+    canAddToCart,
+    selectedVariant,
+    selectedStoreId,
+    range.from,
+    range.to,
+    addItems,
+    product.shop_id,
+    product.id,
+    quantity,
+    openAddPopover,
+    title,
+    images,
+    stores,
+    quote,
+  ]);
+
+  const handleAddToCart = useCallback(async () => {
+    setAddError(null);
+    setAdding(true);
+    try {
+      await addCurrentSelection();
+    } catch (e: any) {
+      if (e?.code === "different_store") {
+        setShowStoreConflict(true);
+        return;
+      }
+      setAddError(e?.message ?? t("failedToAddToCart"));
+    } finally {
+      setAdding(false);
+    }
+  }, [addCurrentSelection, t]);
+    
 
   // We only want to let users pick dates if store + variant are selected
   const canPickDates = selectedVariant?.id != null && selectedStoreId != null;
@@ -656,8 +662,21 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
         open={showStoreConflict}
         onClose={() => setShowStoreConflict(false)}
         onClearCart={async () => {
-          setShowStoreConflict(false);
-          console.log("TODO: clear cart");
+          setAddError(null);
+          setAdding(true);
+          try {
+            const itemIds = (cart?.items ?? []).map((item) => item.id);
+            for (const itemId of itemIds) {
+              await removeItem(itemId);
+            }
+
+            await addCurrentSelection();
+            setShowStoreConflict(false);
+          } catch (e: any) {
+            setAddError(e?.message ?? t("failedToAddToCart"));
+          } finally {
+            setAdding(false);
+          }
         }}
       />
     </div>
