@@ -9,7 +9,12 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  min-height: var(--control-min-height);
+  min-height: 34px;
+  height: 34px;
+  padding: 0 0.78rem;
+  font-size: 0.88rem;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
 }
 
 .button:hover {
@@ -17,7 +22,7 @@
 }
 
 .compactButton {
-  width: var(--control-min-height);
+  width: 34px;
   padding: 0;
 }
 

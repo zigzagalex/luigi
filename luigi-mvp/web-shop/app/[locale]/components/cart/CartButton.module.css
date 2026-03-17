@@ -1,10 +1,17 @@
 .btn {
-    composes: cartIconButton from "../ui/primitives.module.css";
-  }
+  composes: cartIconButton from "../ui/primitives.module.css";
+  width: 34px;
+  height: 34px;
+  border-color: rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.06);
+}
   
   .btn:hover { background: rgba(255,255,255,0.10); }
   
-  .icon { font-size: 1.05rem; line-height: 1; }
+.icon {
+  font-size: 0.92rem;
+  line-height: 1;
+}
   
   .badge {
     composes: cartIconBadge from "../ui/primitives.module.css";
