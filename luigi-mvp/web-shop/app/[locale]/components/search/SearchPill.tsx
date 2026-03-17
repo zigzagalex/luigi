@@ -13,7 +13,7 @@ type ActivePanel = "what" | "when" | "where" | null;
 type SearchPillProps = {
   categories: CategoryOption[];
   stores: StoreOption[];
-  selectedStore: StoreOption;
+  selectedStore: StoreOption | null;
   onStoreChange?: (store: StoreOption) => void;
 };
 
@@ -43,10 +43,9 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
   const [categoryOptions] = useState<CategoryOption[]>(() =>
     categories && categories.length > 0 ? categories : [{ id: null, label: t("anyBike") }]
   );
-
-  const [selectedCategory, setSelectedCategory] = useState<CategoryOption>(
-    () => categoryOptions[0] ?? { id: null, label: t("anyBike") }
-  );
+  const [selectedCategory, setSelectedCategory] = useState<CategoryOption | null>(null);
+  const whatLabel = selectedCategory?.label ?? t("chooseBikeType");
+  const isWhatEmpty = !selectedCategory;
 
   // ---------- WHEN ----------
   const [range, setRange] = useState<DateRange | undefined>(undefined);
@@ -66,10 +65,16 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
     }
     return `${fromStr}–${toStr}`;
   })();
+  const isWhenEmpty = !range?.from;
 
   // ---------- WHERE ----------
-  const [store, setStore] = useState<StoreOption | null>(selectedStore ?? null);
-  useEffect(() => setStore(selectedStore ?? null), [selectedStore]);
+  const [store, setStore] = useState<StoreOption | null>(null);
+  useEffect(() => {
+    if (!selectedStore?.id) return;
+    setStore((prev) => prev ?? selectedStore);
+  }, [selectedStore]);
+  const whereLabel = storeDisplayName(store, t("chooseLocation"));
+  const isWhereEmpty = !store?.id;
 
   // refs for anchoring the popover
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -147,7 +152,7 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
     params.set("shop_id", String(DEFAULT_SHOP_ID));
     params.set("store_id", String(store.id));
 
-    if (selectedCategory.id) params.set("category_id", String(selectedCategory.id));
+    if (selectedCategory?.id) params.set("category_id", String(selectedCategory.id));
 
     if (range?.from) {
       params.set("from", formatDateForApiLocal(range.from));
@@ -176,7 +181,7 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
             onClick={() => setActive(active === "what" ? null : "what")}
           >
             <span className={styles.label}>{t("what")}</span>
-            <span className={styles.value}>{selectedCategory.label}</span>
+            <span className={`${styles.value} ${isWhatEmpty ? styles.valueEmpty : ""}`}>{whatLabel}</span>
           </button>
 
           <div className={styles.divider} />
@@ -189,7 +194,7 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
             onClick={() => setActive(active === "when" ? null : "when")}
           >
             <span className={styles.label}>{t("when")}</span>
-            <span className={styles.value}>{whenLabel}</span>
+            <span className={`${styles.value} ${isWhenEmpty ? styles.valueEmpty : ""}`}>{whenLabel}</span>
           </button>
 
           <div className={styles.divider} />
@@ -202,11 +207,22 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
             onClick={() => setActive(active === "where" ? null : "where")}
           >
             <span className={styles.label}>{t("where")}</span>
-            <span className={styles.value}>{storeDisplayName(store, t("chooseLocation"))}</span>
+            <span className={`${styles.value} ${isWhereEmpty ? styles.valueEmpty : ""}`}>{whereLabel}</span>
           </button>
 
           <button type="button" className={styles.submit} onClick={handleSearch} aria-label={t("searchAria")}>
-            <span className={styles.submitIcon}>🔍</span>
+            <span className={styles.submitIcon} aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
+                <circle cx="11" cy="11" r="6.25" stroke="currentColor" strokeWidth="1.8" />
+                <path
+                  d="m16 16 3.5 3.5"
+                  stroke="currentColor"
+                  strokeWidth="1.8"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                />
+              </svg>
+            </span>
           </button>
 
           {/* POPOVER */}
@@ -216,7 +232,7 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
                 <div className={`${styles.panel} ${styles.whatPanel}`}>
                   <div className={styles.categoryGrid}>
                     {categoryOptions.map((opt) => {
-                      const isSelected = opt.id === selectedCategory.id;
+                      const isSelected = opt.id === selectedCategory?.id;
                       return (
                         <button
                           key={opt.id ?? "any"}

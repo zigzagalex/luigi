@@ -67,7 +67,7 @@ export default function AppHeader({ categories, stores }: Props) {
             <SearchPill
               categories={categories ?? []}
               stores={stores ?? []}
-              selectedStore={defaultStore}
+              selectedStore={null}
             />
           ) : (
             <div className={styles.disabled}>
