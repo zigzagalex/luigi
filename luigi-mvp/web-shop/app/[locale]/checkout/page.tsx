@@ -186,6 +186,13 @@ export default function CheckoutPage() {
     email: "",
     phone: "",
   });
+  const [pickupDraft, setPickupDraft] = React.useState<PickupPerson>({
+    enabled: false,
+    first_name: "",
+    last_name: "",
+    email: "",
+    phone: "",
+  });
 
   const [payment, setPayment] = React.useState<PaymentMethod>("pay_at_pickup");
   const [agreed, setAgreed] = React.useState(false);
@@ -219,6 +226,15 @@ export default function CheckoutPage() {
 
   const missing = missingRequired(customer);
   const missingDraft = missingRequired(profileDraft);
+  const pickupMissingFields = React.useMemo(() => {
+    if (!pickupDraft.enabled) return [] as string[];
+    const missingFields: string[] = [];
+    if (!pickupDraft.first_name.trim()) missingFields.push(t("firstName"));
+    if (!pickupDraft.last_name.trim()) missingFields.push(t("lastName"));
+    if (!pickupDraft.email.trim()) missingFields.push(t("email"));
+    if (!pickupDraft.phone.trim()) missingFields.push(t("phone"));
+    return missingFields;
+  }, [pickupDraft, t]);
   const profileComplete = missing.length === 0;
 
   async function onContinueProfile() {
@@ -240,6 +256,11 @@ export default function CheckoutPage() {
     } finally {
       setProfileSaving(false);
     }
+  }
+
+  function onSavePickup() {
+    setPickup(pickupDraft);
+    setPickupExpanded(false);
   }
 
   const canBuy =
@@ -405,7 +426,7 @@ export default function CheckoutPage() {
                 disabled={profileSaving || missingDraft.length > 0}
                 title={missingDraft.length > 0 ? t("missingTitle", { fields: missingDraft.map(labelFor).join(", ") }) : ""}
               >
-                {profileSaving ? t("saving") : t("continue")}
+                {profileSaving ? t("saving") : t("save")}
               </button>
             </div>
           </div>
@@ -524,9 +545,17 @@ export default function CheckoutPage() {
             <div className={styles.cardSubtitle}>{t("pickupPersonSubtitle")}</div>
           </div>
 
-          <button className={styles.btn} onClick={() => setPickupExpanded((v) => !v)}>
-            {pickupExpanded ? t("collapse") : t("edit")}
-          </button>
+          {!pickupExpanded ? (
+            <button
+              className={styles.btn}
+              onClick={() => {
+                setPickupDraft(pickup);
+                setPickupExpanded(true);
+              }}
+            >
+              {t("edit")}
+            </button>
+          ) : null}
         </div>
 
         {!pickupExpanded ? (
@@ -549,22 +578,43 @@ export default function CheckoutPage() {
             <label className={styles.checkboxRow}>
               <input
                 type="checkbox"
-                checked={pickup.enabled}
-                onChange={(e) => setPickup((p) => ({ ...p, enabled: e.target.checked }))}
+                checked={pickupDraft.enabled}
+                onChange={(e) => setPickupDraft((p) => ({ ...p, enabled: e.target.checked }))}
               />
               <span>{t("differentPickupPerson")}</span>
             </label>
 
-            {pickup.enabled ? (
+            {pickupDraft.enabled ? (
               <div className={styles.expandGrid}>
-                <Field label={t("firstName")} value={pickup.first_name} onChange={(v) => setPickup((p) => ({ ...p, first_name: v }))} />
-                <Field label={t("lastName")} value={pickup.last_name} onChange={(v) => setPickup((p) => ({ ...p, last_name: v }))} />
-                <Field label={t("email")} type="email" value={pickup.email} onChange={(v) => setPickup((p) => ({ ...p, email: v }))} />
-                <Field label={t("phone")} value={pickup.phone} onChange={(v) => setPickup((p) => ({ ...p, phone: v }))} />
+                <Field label={t("firstName")} value={pickupDraft.first_name} onChange={(v) => setPickupDraft((p) => ({ ...p, first_name: v }))} />
+                <Field label={t("lastName")} value={pickupDraft.last_name} onChange={(v) => setPickupDraft((p) => ({ ...p, last_name: v }))} />
+                <Field label={t("email")} type="email" value={pickupDraft.email} onChange={(v) => setPickupDraft((p) => ({ ...p, email: v }))} />
+                <Field label={t("phone")} value={pickupDraft.phone} onChange={(v) => setPickupDraft((p) => ({ ...p, phone: v }))} />
               </div>
             ) : (
               <div className={styles.muted}>{t("pickupWillBeCustomer")}</div>
             )}
+
+            <div className={styles.expandActions}>
+              <button
+                className={styles.btnGhost}
+                onClick={() => {
+                  setPickupDraft(pickup);
+                  setPickupExpanded(false);
+                }}
+              >
+                {t("cancel")}
+              </button>
+
+              <button
+                className={styles.btnPrimary}
+                onClick={onSavePickup}
+                disabled={pickupMissingFields.length > 0}
+                title={pickupMissingFields.length > 0 ? t("missingTitle", { fields: pickupMissingFields.join(", ") }) : ""}
+              >
+                {t("save")}
+              </button>
+            </div>
           </div>
         )}
       </div>

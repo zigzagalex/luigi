@@ -59,6 +59,7 @@
     "countryPlaceholder": "CH",
     "cancel": "Annuler",
     "continue": "Continuer",
+    "save": "Enregistrer",
     "saving": "Enregistrement…",
     "missingTitle": "Manquant : {fields}",
     "pickupLocation": "Lieu de retrait",
