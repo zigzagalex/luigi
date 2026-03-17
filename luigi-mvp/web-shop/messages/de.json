@@ -11,6 +11,8 @@
   "header": {
     "title": "Luigi's Bike Rentals",
     "subtitle": "Bern, Zürich, Genf",
+    "heroCta": "Keine Ausreden. Nur Kilometer.",
+    "heroSubtext": "Ausrüstung wählen und loslegen.",
     "openNavMenu": "Navigationsmenü öffnen",
     "noStoresConfigured": "Noch keine Standorte konfiguriert."
   },

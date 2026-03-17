@@ -11,6 +11,8 @@
   "header": {
     "title": "Luigi's Bike Rentals",
     "subtitle": "Berna, Zurigo, Ginevra",
+    "heroCta": "Domina ogni strada.",
+    "heroSubtext": "Trova la tua bici e parti.",
     "openNavMenu": "Apri il menu di navigazione",
     "noStoresConfigured": "Nessun negozio ancora configurato."
   },
