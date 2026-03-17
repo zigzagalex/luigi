@@ -302,6 +302,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   /** ---------- UI labels ---------- */
   const title = product.name || t("bikeFallback", { id: String(product.id) });
   const priceLabel = product.price_category || t("standard");
+  const description = product.description?.trim() ?? "";
 
   const addCurrentSelection = useCallback(async () => {
     if (!canAddToCart || !selectedVariant || !selectedStoreId || !range.from || !range.to) return;
@@ -492,9 +493,9 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
         <section className={styles.sidebar}>
           <header className={styles.header}>
             <h1 className={styles.title}>{title}</h1>
-            <div className={styles.subtitle}>
-              <span>{t("shop", { id: String(product.shop_id) })}</span>
-            </div>
+            {description.length > 0 && (
+              <p className={styles.headerDescription}>{description}</p>
+            )}
           </header>
 
           {/* Store selector */}

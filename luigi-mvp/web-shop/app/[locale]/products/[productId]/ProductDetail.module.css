@@ -141,6 +141,14 @@
   font-size: var(--text-meta-size);
   color: var(--color-text-meta);
 }
+
+.headerDescription {
+  composes: fontBody from "../../components/ui/typography.module.css";
+  margin: var(--space-2) 0 0;
+  color: var(--color-text);
+  white-space: pre-line;
+  line-height: 1.6;
+}
 .priceBlock {
   margin-top: var(--space-2);
   margin-bottom: var(--space-3);
