@@ -11,6 +11,8 @@
   "header": {
     "title": "Luigi's Bike Rentals",
     "subtitle": "Bern, Zurich, Geneva",
+    "heroCta": "Switzerland won’t ride itself.",
+    "heroSubtext": "Pick your gear and get out there.",
     "openNavMenu": "Open navigation menu",
     "noStoresConfigured": "No stores configured yet."
   },

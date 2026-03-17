@@ -42,11 +42,10 @@ export default function AppHeader({ categories, stores }: Props) {
         <div className={styles.topRow}>
           <Link href={`/${locale}`} className={styles.logo}>
             <span className={styles.logoTitle}>{tHeader("title")}</span>
-            <span className={styles.logoSubtitle}>{tHeader("subtitle")}</span>
           </Link>
 
           <div className={styles.rightActions}>
-            <UserMenu onOpenAuth={() => setAuthOpen(true)} />
+            <UserMenu onOpenAuth={() => setAuthOpen(true)} compact />
 
             <LocaleSwitcher />
 
@@ -68,6 +67,11 @@ export default function AppHeader({ categories, stores }: Props) {
               <span />
             </button>
           </div>
+        </div>
+
+        <div className={styles.heroZone}>
+          <h1 className={styles.heroTitle}>{tHeader("heroCta")}</h1>
+          <p className={styles.heroSubtitle}>{tHeader("heroSubtext")}</p>
         </div>
 
         <div className={styles.searchRow}>

@@ -11,6 +11,8 @@
   "header": {
     "title": "Luigi's Bike Rentals",
     "subtitle": "Berne, Zurich, Genève",
+    "heroCta": "Dévorez le terrain.",
+    "heroSubtext": "Louez votre matériel et partez à l'aventure.",
     "openNavMenu": "Ouvrir le menu de navigation",
     "noStoresConfigured": "Aucun magasin configuré pour le moment."
   },

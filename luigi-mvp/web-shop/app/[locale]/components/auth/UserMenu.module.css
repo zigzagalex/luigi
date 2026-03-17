@@ -6,10 +6,24 @@
 /* Keep the pill matching the header (dark background) */
 .button {
   composes: headerPillButton from "../ui/primitives.module.css";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-min-height);
 }
 
 .button:hover {
   border-color: rgba(255, 255, 255, 0.6);
+}
+
+.compactButton {
+  width: var(--control-min-height);
+  padding: 0;
+}
+
+.icon {
+  font-size: 1.05rem;
+  line-height: 1;
 }
 
 .button:focus-visible {

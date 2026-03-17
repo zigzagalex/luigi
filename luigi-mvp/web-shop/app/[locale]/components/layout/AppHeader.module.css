@@ -1,7 +1,7 @@
 .header {
   background: var(--color-bg-inverse);
   color: var(--color-bg-surface);
-  padding: 1rem 2rem 2.5rem;
+  padding: 0.65rem 2rem 2.25rem;
 }
 
 .inner {
@@ -14,13 +14,14 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
+  gap: 1rem;
+  min-height: 44px;
 }
 
 /* Logo block */
 .logo {
   display: flex;
-  flex-direction: column;
+  align-items: center;
   text-decoration: none;
   color: inherit;
   min-width: 0;
@@ -28,8 +29,9 @@
 
 .logoTitle {
   composes: fontSectionTitle from "../ui/typography.module.css";
-  font-weight: 700;
-  font-size: 1.1rem;
+  font-weight: 650;
+  font-size: 1rem;
+  letter-spacing: 0.02em;
 }
 
 .logoSubtitle {
@@ -42,7 +44,7 @@
 .rightActions {
   display: flex;
   align-items: center;
-  gap: var(--space-3);
+  gap: var(--space-2);
   margin-left: auto; /* extra safety: keeps it pushed right */
 }
 
@@ -71,7 +73,7 @@
 
 /* Row 2: search pill */
 .searchRow {
-  margin-top: 1.5rem;
+  margin-top: var(--space-5);
 }
 
 /* Centered & constrained on desktop */
@@ -88,6 +90,26 @@
   border-radius: 14px;
   padding: var(--space-3) var(--space-4);
   font-size: var(--text-meta-size);
+}
+
+.heroZone {
+  margin-top: clamp(1.5rem, 2.5vw, 2.2rem);
+  text-align: center;
+}
+
+.heroTitle {
+  margin: 0;
+  font-size: clamp(1.75rem, 4vw, 2.7rem);
+  line-height: 1.08;
+  font-weight: 800;
+  letter-spacing: -0.015em;
+}
+
+.heroSubtitle {
+  margin: 0.7rem 0 0;
+  font-size: clamp(0.95rem, 2.2vw, 1.1rem);
+  font-weight: 520;
+  color: rgba(255, 255, 255, 0.88);
 }
 
 /* Auth button (if still used somewhere) */
@@ -127,7 +149,7 @@
 /* Mobile tweaks */
 @media (max-width: 768px) {
   .header {
-    padding: 0.75rem 1rem 1.75rem;
+    padding: 0.65rem 1rem 1.5rem;
   }
 
   .topRow {
@@ -135,16 +157,25 @@
   }
 
   .logoTitle {
-    font-size: 1rem;
-  }
-
-  .logoSubtitle {
-    font-size: 0.8rem;
+    font-size: 0.92rem;
   }
 
   /* Search pill full width on mobile */
   .searchRow > * {
     max-width: 100%;
+  }
+
+  .heroZone {
+    margin-top: 1.2rem;
+  }
+
+  .heroTitle {
+    font-size: clamp(1.4rem, 8vw, 2rem);
+  }
+
+  .heroSubtitle {
+    margin-top: 0.55rem;
+    font-size: 0.95rem;
   }
 }
 
