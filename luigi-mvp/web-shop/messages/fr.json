@@ -307,7 +307,9 @@
   },
   "productCard": {
     "fromPrice": "Dès CHF {price}",
-    "availableBikes": "{count} vélo{suffix} disponible(s)"
+    "fromPricePerDay": "Dès CHF {price}/jour",
+    "availableBikes": "{count} vélo{suffix} disponible(s)",
+    "viewDetails": "voir les détails"
   },
   "categoryRow": {
     "scrollLeft": "Faire défiler vers la gauche",

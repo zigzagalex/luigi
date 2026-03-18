@@ -307,7 +307,9 @@
   },
   "productCard": {
     "fromPrice": "Ab CHF {price}",
-    "availableBikes": "{count} Bike{suffix} verfügbar"
+    "fromPricePerDay": "Ab CHF {price}/Tag",
+    "availableBikes": "{count} Bike{suffix} verfügbar",
+    "viewDetails": "details ansehen"
   },
   "categoryRow": {
     "scrollLeft": "Nach links scrollen",

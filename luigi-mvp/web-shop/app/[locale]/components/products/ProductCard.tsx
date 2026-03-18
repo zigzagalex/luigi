@@ -9,6 +9,8 @@ type Props = {
   product: Product;
   /** Optional: minimum price from availability search (in cents) */
   minPriceCents?: number;
+  /** Optional: minimum "from" price per day from price points (in cents) */
+  fromPricePerDayCents?: number;
   /** Optional: total available quantity for this product */
   availableQuantity?: number;
   /** Optional: search parameters from search pill */
@@ -43,12 +45,20 @@ function buildProductHref(
 export default function ProductCard({
   product,
   minPriceCents,
+  fromPricePerDayCents,
   availableQuantity,
   linkSearchParams,
 }: Props) {
   const t = useTranslations("productCard");
   const imageUrl = product.primary_image_url ?? FALLBACK_IMAGE;
   const href = buildProductHref(product.id, linkSearchParams);
+  const displayFromPriceCents = minPriceCents ?? fromPricePerDayCents;
+  const fromPriceLabel =
+    displayFromPriceCents == null
+      ? null
+      : minPriceCents != null
+        ? t("fromPrice", { price: (displayFromPriceCents / 100).toFixed(2) })
+        : t("fromPricePerDay", { price: (displayFromPriceCents / 100).toFixed(2) });
 
   return (
     <Link href={href} className={styles.card}>
@@ -71,13 +81,33 @@ export default function ProductCard({
           )}
         </div>
 
-        {minPriceCents != null && (
+        {fromPriceLabel && (
           <p className={styles.price}>
-            {t("fromPrice", { price: (minPriceCents / 100).toFixed(2) })}
+            {fromPriceLabel}
             {typeof availableQuantity === "number" &&
               ` · ${t("availableBikes", { count: String(availableQuantity), suffix: availableQuantity === 1 ? "" : "s" })}`}
           </p>
         )}
+
+        <span className={styles.cta}>
+          <span>{t("viewDetails")}</span>
+          <svg
+            className={styles.ctaIcon}
+            viewBox="0 0 20 20"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+            aria-hidden="true"
+            focusable="false"
+          >
+            <path
+              d="M4.16666 10H15.8333M15.8333 10L10.8333 5M15.8333 10L10.8333 15"
+              stroke="currentColor"
+              strokeWidth="1.8"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </span>
       </div>
     </Link>
   );
