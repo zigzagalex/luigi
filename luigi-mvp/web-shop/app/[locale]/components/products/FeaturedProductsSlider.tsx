@@ -9,9 +9,18 @@ import styles from "./FeaturedProductsSlider.module.css";
 type Props = {
   products: Product[];
   title?: string;
+  fromDailyPriceByCategory?: Record<string, number>;
 };
 
-export default function FeaturedProductsSlider({ products, title }: Props) {
+function normalizeCategoryKey(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+export default function FeaturedProductsSlider({
+  products,
+  title,
+  fromDailyPriceByCategory,
+}: Props) {
   const featuredT = useTranslations("featuredProducts");
   const rowT = useTranslations("categoryRow");
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -48,7 +57,14 @@ export default function FeaturedProductsSlider({ products, title }: Props) {
         <div ref={scrollRef} className={styles.scroll}>
           {items.map((product) => (
             <div key={product.id} className={styles.item}>
-              <ProductCard product={product} />
+              <ProductCard
+                product={product}
+                fromPricePerDayCents={
+                  fromDailyPriceByCategory?.[
+                    normalizeCategoryKey(product.price_category)
+                  ]
+                }
+              />
             </div>
           ))}
         </div>

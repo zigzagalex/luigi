@@ -9,9 +9,18 @@ import styles from "./CategoryRow.module.css";
 type Props = {
   title: string;
   products: Product[];
+  fromDailyPriceByCategory?: Record<string, number>;
 };
 
-export default function CategoryRow({ title, products }: Props) {
+function normalizeCategoryKey(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+export default function CategoryRow({
+  title,
+  products,
+  fromDailyPriceByCategory,
+}: Props) {
   const t = useTranslations("categoryRow");
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
@@ -47,7 +56,12 @@ export default function CategoryRow({ title, products }: Props) {
         <div ref={scrollRef} className={styles.scroll}>
           {products.map((p) => (
             <div key={p.id} className={styles.item}>
-              <ProductCard product={p} />
+              <ProductCard
+                product={p}
+                fromPricePerDayCents={
+                  fromDailyPriceByCategory?.[normalizeCategoryKey(p.price_category)]
+                }
+              />
             </div>
           ))}
         </div>
