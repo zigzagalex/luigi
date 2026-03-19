@@ -309,7 +309,8 @@
     "fromPrice": "From CHF {price}",
     "fromPricePerDay": "From CHF {price}/day",
     "availableBikes": "{count} bike{suffix} available",
-    "viewDetails": "view details"
+    "viewDetails": "view details",
+    "rentNow": "rent now"
   },
   "categoryRow": {
     "scrollLeft": "Scroll left",

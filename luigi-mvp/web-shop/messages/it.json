@@ -309,7 +309,8 @@
     "fromPrice": "Da CHF {price}",
     "fromPricePerDay": "Da CHF {price}/giorno",
     "availableBikes": "{count} bici disponibil{suffix}",
-    "viewDetails": "vedi dettagli"
+    "viewDetails": "vedi dettagli",
+    "rentNow": "noleggia ora"
   },
   "categoryRow": {
     "scrollLeft": "Scorri a sinistra",
