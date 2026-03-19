@@ -309,7 +309,8 @@
     "fromPrice": "Dès CHF {price}",
     "fromPricePerDay": "Dès CHF {price}/jour",
     "availableBikes": "{count} vélo{suffix} disponible(s)",
-    "viewDetails": "voir les détails"
+    "viewDetails": "voir les détails",
+    "rentNow": "louer maintenant"
   },
   "categoryRow": {
     "scrollLeft": "Faire défiler vers la gauche",

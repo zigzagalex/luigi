@@ -73,13 +73,7 @@ export default function ProductCard({
       </div>
 
       <div className={styles.content}>
-        <div className={styles.titleRow}>
-          <h3 className={styles.title}>{product.name}</h3>
-
-          {product.price_category && (
-            <span className={styles.pill}>{product.price_category}</span>
-          )}
-        </div>
+        <h3 className={styles.title}>{product.name}</h3>
 
         {fromPriceLabel && (
           <p className={styles.price}>
@@ -90,7 +84,7 @@ export default function ProductCard({
         )}
 
         <span className={styles.cta}>
-          <span>{t("viewDetails")}</span>
+          <span>{t("rentNow")}</span>
           <svg
             className={styles.ctaIcon}
             viewBox="0 0 20 20"
