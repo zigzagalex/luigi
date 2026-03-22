@@ -258,6 +258,9 @@
     "closeAria": "Chiudi carrello",
     "empty": "Il tuo carrello è vuoto",
     "removeItemAria": "Rimuovi articolo",
+    "pickup": "Ritiro: {location}",
+    "productLinkAria": "Vedi prodotto: {product}",
+    "quantityAria": "Quantità: {count}",
     "subtotal": "Subtotale",
     "viewCart": "Visualizza carrello"
   },

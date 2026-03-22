@@ -258,6 +258,9 @@
     "closeAria": "Close cart",
     "empty": "Your cart is empty",
     "removeItemAria": "Remove item",
+    "pickup": "Pick-up: {location}",
+    "productLinkAria": "View product: {product}",
+    "quantityAria": "Quantity: {count}",
     "subtotal": "Subtotal",
     "viewCart": "View cart"
   },

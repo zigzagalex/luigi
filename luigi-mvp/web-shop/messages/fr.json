@@ -258,6 +258,9 @@
     "closeAria": "Fermer le panier",
     "empty": "Ton panier est vide",
     "removeItemAria": "Supprimer l'article",
+    "pickup": "Retrait : {location}",
+    "productLinkAria": "Voir le produit : {product}",
+    "quantityAria": "Quantité : {count}",
     "subtotal": "Sous-total",
     "viewCart": "Voir le panier"
   },

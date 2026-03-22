@@ -258,6 +258,9 @@
     "closeAria": "Warenkorb schliessen",
     "empty": "Dein Warenkorb ist leer",
     "removeItemAria": "Artikel entfernen",
+    "pickup": "Abholung: {location}",
+    "productLinkAria": "Produkt ansehen: {product}",
+    "quantityAria": "Menge: {count}",
     "subtotal": "Zwischensumme",
     "viewCart": "Warenkorb ansehen"
   },
