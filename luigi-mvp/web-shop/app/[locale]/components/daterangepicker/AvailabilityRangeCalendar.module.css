@@ -1,5 +1,52 @@
 .wrapper {
   position: relative;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-2) var(--space-3);
+  margin-bottom: var(--space-4);
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
+  line-height: 1.3;
+}
+
+.legendItem {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.legendSep {
+  color: var(--color-border);
+  user-select: none;
+}
+
+.legendSwatch {
+  width: 14px;
+  height: 14px;
+  border-radius: 5px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.legendSwatchAvailable {
+  background: rgba(34, 197, 94, 0.22);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+}
+
+.legendSwatchSelected {
+  background: rgba(59, 130, 246, 0.28);
+  box-shadow: inset 0 0 0 2px var(--color-primary);
+}
+
+.legendSwatchToday {
+  background: var(--color-bg-surface);
+  box-shadow: inset 0 0 0 2px rgba(15, 23, 42, 0.35);
 }
 
 /* ---- Layout / sizing ---- */
@@ -19,6 +66,18 @@
 /* Hover on the actual button */
 .wrapper :global(.rdp-day_button:hover) {
   background: rgba(59, 130, 246, 0.14);
+  border-radius: 9999px;
+}
+
+/* Today when not part of selection: matches legend “Today” swatch */
+.wrapper
+  :global(
+    .rdp-today:not(.rdp-outside):not(.rdp-disabled):not(.rdp-selected):not(.rdp-range_start):not(
+        .rdp-range_end
+      ):not(.rdp-range_middle)
+  )
+  :global(.rdp-day_button) {
+  box-shadow: inset 0 0 0 2px rgba(15, 23, 42, 0.35);
   border-radius: 9999px;
 }
 

@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { DayPicker, type DateRange, type OnSelectHandler } from "react-day-picker";
-import { de } from "date-fns/locale";
+import "react-day-picker/dist/style.css";
+import { de, enUS, fr, it } from "date-fns/locale";
 import {
   addDays,
-  addMonths,
   endOfMonth,
   format,
   isSameDay,
@@ -13,7 +13,21 @@ import {
   startOfMonth,
   startOfToday,
 } from "date-fns";
+import { useLocale, useTranslations } from "next-intl";
 import styles from "./AvailabilityRangeCalendar.module.css";
+
+function dateFnsLocaleForAppLocale(appLocale: string): typeof de {
+  switch (appLocale) {
+    case "de":
+      return de;
+    case "fr":
+      return fr;
+    case "it":
+      return it;
+    default:
+      return enUS;
+  }
+}
 
 export type RangeValue = { from?: Date; to?: Date };
 type CalendarDay = { date: string; available_quantity: number };
@@ -42,6 +56,11 @@ export function AvailabilityRangeCalendar({
   onChange,
   className,
 }: Props) {
+  const appLocale = useLocale();
+  const t = useTranslations("productDetail");
+  const dateFnsLocale = useMemo(() => dateFnsLocaleForAppLocale(appLocale), [appLocale]);
+  const weekStartsOn = dateFnsLocale.options?.weekStartsOn ?? 1;
+
   const today = startOfToday();
   const [month, setMonth] = useState<Date>(value.from ?? today);
   const [days, setDays] = useState<CalendarDay[]>([]);
@@ -54,7 +73,7 @@ export function AvailabilityRangeCalendar({
     value.from || value.to ? { from: value.from, to: value.to } : undefined;
 
   const fromFetch = useMemo(() => startOfMonth(month), [month]);
-  const toFetchInclusive = useMemo(() => endOfMonth(addMonths(month, 1)), [month]);
+  const toFetchInclusive = useMemo(() => endOfMonth(month), [month]);
   const toFetchExclusive = useMemo(() => addDays(toFetchInclusive, 1), [toFetchInclusive]);
 
   useEffect(() => {
@@ -139,23 +158,43 @@ export function AvailabilityRangeCalendar({
 
   return (
     <div className={`${styles.wrapper} ${className ?? ""}`}>
+      <div className={styles.legend} role="list" aria-label={t("calendarLegendAria")}>
+        <span className={styles.legendItem} role="listitem">
+          <span className={`${styles.legendSwatch} ${styles.legendSwatchAvailable}`} aria-hidden />
+          <span>{t("calendarLegendAvailable")}</span>
+        </span>
+        <span className={styles.legendSep} aria-hidden>
+          ·
+        </span>
+        <span className={styles.legendItem} role="listitem">
+          <span className={`${styles.legendSwatch} ${styles.legendSwatchSelected}`} aria-hidden />
+          <span>{t("calendarLegendSelected")}</span>
+        </span>
+        <span className={styles.legendSep} aria-hidden>
+          ·
+        </span>
+        <span className={styles.legendItem} role="listitem">
+          <span className={`${styles.legendSwatch} ${styles.legendSwatchToday}`} aria-hidden />
+          <span>{t("calendarLegendToday")}</span>
+        </span>
+      </div>
       <DayPicker
         mode="range"
-        numberOfMonths={2}
-        locale={de}
+        numberOfMonths={1}
+        locale={dateFnsLocale}
         selected={selected}
         onSelect={handleSelect}
         month={month}
         onMonthChange={setMonth}
         pagedNavigation
-        weekStartsOn={1}
+        weekStartsOn={weekStartsOn}
         fromMonth={today}
         showOutsideDays
         disabled={disabled}
         excludeDisabled
         modifiers={{ available: availableDates, unavailable: unavailableDates }}
         modifiersClassNames={{ available: styles.availableDay, unavailable: styles.unavailableDay }}
-        max={MAX_DAYS} /* max dates in range in range mode */ 
+        max={MAX_DAYS} /* max dates in range in range mode */
       />
     </div>
   );
