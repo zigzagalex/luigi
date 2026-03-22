@@ -155,7 +155,8 @@
     "startsToday": "Inizia oggi",
     "startsTomorrow": "Inizia domani",
     "startsInDays": "Inizia tra {days} giorni",
-    "heroMoreItems": "+{count, plural, one {1 altro articolo} other {# altri articoli}}"
+    "heroMoreItems": "+{count, plural, one {1 altro articolo} other {# altri articoli}}",
+    "totalLabel": "Totale"
   },
   "reservationStatus": {
     "confirmed": "Confermata",

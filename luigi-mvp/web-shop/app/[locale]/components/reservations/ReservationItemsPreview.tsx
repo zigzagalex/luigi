@@ -2,13 +2,12 @@
 
 import Link from "next/link";
 import { ReservationItemView } from "@/lib/reservationClient";
-import { formatMoneyCents } from "@/lib/formatMoney";
+import { formatMoneyCentsCodeFirst } from "@/lib/formatMoney";
 import { useTranslations } from "next-intl";
 import styles from "./ReservationItemsPreview.module.css";
 
 type Props = {
   items: ReservationItemView[];
-  locale: string;
   defaultCurrency: string;
   /** Omit product title on this row (e.g. row 0 when title is shown as card hero). */
   hideNameAtIndex?: number;
@@ -16,7 +15,6 @@ type Props = {
 
 export default function ReservationItemsPreview({
   items,
-  locale,
   defaultCurrency,
   hideNameAtIndex = -1,
 }: Props) {
@@ -28,9 +26,8 @@ export default function ReservationItemsPreview({
       {preview.map((item, index) => {
         const cur =
           item.reservation_item.currency || defaultCurrency || "CHF";
-        const line = formatMoneyCents(
+        const line = formatMoneyCentsCodeFirst(
           item.reservation_item.unit_price_cents,
-          locale,
           cur,
         );
         const productId =

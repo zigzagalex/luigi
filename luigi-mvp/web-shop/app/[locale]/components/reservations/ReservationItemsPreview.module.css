@@ -88,17 +88,21 @@
 .priceRow {
   display: flex;
   gap: var(--space-2);
-  align-items: center;
+  align-items: baseline;
+  flex-wrap: wrap;
 }
 
 .price {
-  font-size: max(0.875rem, 14px);
-  font-weight: 600;
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--color-text-meta);
+  letter-spacing: 0.01em;
 }
 
 .quantity {
-  font-size: max(0.875rem, 14px);
-  color: var(--color-text-meta);
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: color-mix(in srgb, var(--color-text-meta) 78%, transparent);
 }
 
 .more {
