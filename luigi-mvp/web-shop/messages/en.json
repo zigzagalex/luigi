@@ -4,8 +4,8 @@
     "hi": "Hi, {name}",
     "there": "there",
     "accountMenuLabel": "Account",
-    "reservations": "Reservations",
-    "profileSettings": "Profile settings",
+    "reservations": "Your reservations",
+    "profileSettings": "Profile",
     "logout": "Logout"
   },
   "header": {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 import { useAuth } from "./AuthContext";
@@ -10,11 +10,59 @@ type Props = {
   onOpenAuth: () => void;
 };
 
+function IconReservations() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={styles.itemSvg}>
+      <path
+        d="M8 6V4m8 2V4M5 10h14M5 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconProfile() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={styles.itemSvg}>
+      <path
+        d="M12 12.2a4.1 4.1 0 1 0 0-8.2 4.1 4.1 0 0 0 0 8.2ZM5 20a7 7 0 0 1 14 0"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+function IconLogout() {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={styles.itemSvg}>
+      <path
+        d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
 export default function UserMenu({ onOpenAuth }: Props) {
   const t = useTranslations("auth");
   const { me, loading, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const reservationRef = useRef<HTMLAnchorElement | null>(null);
+  const profileRef = useRef<HTMLAnchorElement | null>(null);
+  const logoutRef = useRef<HTMLButtonElement | null>(null);
+  const prevOpen = useRef(false);
+  const menuId = useId();
 
   const firstName = useMemo(() => {
     const dn = me?.display_name?.trim();
@@ -22,15 +70,39 @@ export default function UserMenu({ onOpenAuth }: Props) {
     return dn.split(/\s+/)[0] ?? null;
   }, [me]);
 
+  const menuItems = useMemo(
+    () => [reservationRef, profileRef, logoutRef] as const,
+    [],
+  );
+
+  useEffect(() => {
+    let raf = 0;
+    if (!prevOpen.current && open) {
+      raf = window.requestAnimationFrame(() => {
+        reservationRef.current?.focus();
+      });
+    } else if (prevOpen.current && !open) {
+      triggerRef.current?.focus();
+    }
+    prevOpen.current = open;
+    return () => {
+      if (raf) window.cancelAnimationFrame(raf);
+    };
+  }, [open]);
+
   // close on click outside
   useEffect(() => {
     if (!open) return;
-    const onDown = (e: MouseEvent) => {
+    const onDown = (e: MouseEvent | PointerEvent) => {
       if (!wrapRef.current) return;
       if (!wrapRef.current.contains(e.target as Node)) setOpen(false);
     };
     document.addEventListener("mousedown", onDown);
-    return () => document.removeEventListener("mousedown", onDown);
+    document.addEventListener("pointerdown", onDown);
+    return () => {
+      document.removeEventListener("mousedown", onDown);
+      document.removeEventListener("pointerdown", onDown);
+    };
   }, [open]);
 
   // close on ESC
@@ -42,6 +114,31 @@ export default function UserMenu({ onOpenAuth }: Props) {
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open]);
+
+  function focusMenuIndex(index: number) {
+    const el = menuItems[index]?.current;
+    el?.focus();
+  }
+
+  function onMenuKeyDown(e: React.KeyboardEvent<HTMLDivElement>) {
+    const els = menuItems.map((r) => r.current).filter(Boolean) as HTMLElement[];
+    const i = els.indexOf(document.activeElement as HTMLElement);
+    if (e.key === "ArrowDown") {
+      e.preventDefault();
+      if (i < 0) focusMenuIndex(0);
+      else focusMenuIndex((i + 1) % els.length);
+    } else if (e.key === "ArrowUp") {
+      e.preventDefault();
+      if (i < 0) focusMenuIndex(els.length - 1);
+      else focusMenuIndex((i - 1 + els.length) % els.length);
+    } else if (e.key === "Home") {
+      e.preventDefault();
+      focusMenuIndex(0);
+    } else if (e.key === "End") {
+      e.preventDefault();
+      focusMenuIndex(els.length - 1);
+    }
+  }
 
   if (loading) {
     return (
@@ -78,24 +175,52 @@ export default function UserMenu({ onOpenAuth }: Props) {
   return (
     <div className={styles.wrap} ref={wrapRef}>
       <button
+        ref={triggerRef}
         type="button"
         className={styles.button}
         onClick={() => setOpen((v) => !v)}
         aria-haspopup="menu"
         aria-expanded={open}
+        aria-controls={menuId}
       >
         {t("hi", { name: firstName ?? t("there") })}
       </button>
 
       {open && (
-        <div className={styles.popover} role="menu" aria-label={t("accountMenuLabel")}>
-          <Link className={styles.item} role="menuitem" href="/reservations" onClick={() => setOpen(false)}>
-            {t("reservations")}
+        <div
+          id={menuId}
+          className={styles.popover}
+          role="menu"
+          aria-label={t("accountMenuLabel")}
+          onKeyDown={onMenuKeyDown}
+        >
+          <Link
+            ref={reservationRef}
+            className={styles.item}
+            role="menuitem"
+            href="/reservations"
+            onClick={() => setOpen(false)}
+          >
+            <span className={styles.itemIcon} aria-hidden>
+              <IconReservations />
+            </span>
+            <span className={styles.itemLabel}>{t("reservations")}</span>
           </Link>
-          <Link className={styles.item} role="menuitem" href="/profile" onClick={() => setOpen(false)}>
-            {t("profileSettings")}
+          <Link
+            ref={profileRef}
+            className={styles.item}
+            role="menuitem"
+            href="/profile"
+            onClick={() => setOpen(false)}
+          >
+            <span className={styles.itemIcon} aria-hidden>
+              <IconProfile />
+            </span>
+            <span className={styles.itemLabel}>{t("profileSettings")}</span>
           </Link>
+          <div className={styles.divider} role="separator" aria-hidden="true" />
           <button
+            ref={logoutRef}
             className={`${styles.item} ${styles.danger}`}
             role="menuitem"
             type="button"
@@ -104,7 +229,10 @@ export default function UserMenu({ onOpenAuth }: Props) {
               await logout();
             }}
           >
-            {t("logout")}
+            <span className={`${styles.itemIcon} ${styles.dangerIcon}`} aria-hidden>
+              <IconLogout />
+            </span>
+            <span className={styles.itemLabel}>{t("logout")}</span>
           </button>
         </div>
       )}
