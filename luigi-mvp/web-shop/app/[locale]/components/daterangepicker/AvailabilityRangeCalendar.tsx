@@ -3,7 +3,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { DayPicker, type DateRange, type OnSelectHandler } from "react-day-picker";
 import "react-day-picker/dist/style.css";
-import { de, enUS, fr, it } from "date-fns/locale";
 import {
   addDays,
   endOfMonth,
@@ -15,19 +14,7 @@ import {
 } from "date-fns";
 import { useLocale, useTranslations } from "next-intl";
 import styles from "./AvailabilityRangeCalendar.module.css";
-
-function dateFnsLocaleForAppLocale(appLocale: string): typeof de {
-  switch (appLocale) {
-    case "de":
-      return de;
-    case "fr":
-      return fr;
-    case "it":
-      return it;
-    default:
-      return enUS;
-  }
-}
+import { dateFnsLocaleForAppLocale } from "./dateFnsLocale";
 
 export type RangeValue = { from?: Date; to?: Date };
 type CalendarDay = { date: string; available_quantity: number };
