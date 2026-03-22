@@ -1,0 +1,101 @@
+.list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+.item {
+  margin: 0;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg-surface);
+  overflow: hidden;
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.item:hover {
+  border-color: var(--color-border);
+}
+
+.item[open] {
+  border-color: var(--color-border);
+  box-shadow: 0 1px 3px var(--color-overlay-subtle);
+}
+
+.summary {
+  composes: fontBody from "../../components/ui/typography.module.css";
+  cursor: pointer;
+  list-style: none;
+  font-weight: 600;
+  font-size: var(--text-body-size);
+  color: var(--color-text-strong);
+  padding: var(--space-4) var(--space-5);
+  padding-right: var(--space-10);
+  position: relative;
+  user-select: none;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary::after {
+  content: "";
+  position: absolute;
+  right: var(--space-5);
+  top: 50%;
+  width: 0.55rem;
+  height: 0.55rem;
+  border-right: 2px solid var(--color-text-meta);
+  border-bottom: 2px solid var(--color-text-meta);
+  transform: translateY(-65%) rotate(45deg);
+  transition: transform 0.2s ease;
+}
+
+.item[open] .summary::after {
+  transform: translateY(-35%) rotate(-135deg);
+}
+
+.answer {
+  composes: fontBody from "../../components/ui/typography.module.css";
+  padding: 0 var(--space-5) var(--space-4);
+  margin: calc(var(--space-2) * -1) 0 0;
+  font-size: var(--text-meta-size);
+  line-height: 1.55;
+  color: var(--color-text-body);
+  border-top: 1px solid transparent;
+}
+
+.item[open] .answer {
+  border-top-color: var(--color-border-soft);
+  padding-top: var(--space-3);
+}
+
+.cta {
+  composes: fontBody from "../../components/ui/typography.module.css";
+  margin-top: var(--space-6);
+  padding: var(--space-5);
+  border-radius: 16px;
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg-subtle);
+  font-size: var(--text-meta-size);
+  color: var(--color-text-body);
+  text-align: center;
+}
+
+.ctaLink {
+  color: var(--color-text-strong);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.ctaLink:hover {
+  text-decoration-thickness: 2px;
+}

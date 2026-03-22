@@ -559,6 +559,13 @@
     "noStores": "No stores are available yet.",
     "addressPending": "Address coming soon"
   },
+  "faqPage": {
+    "title": "Frequently asked questions",
+    "subtitle": "Booking, pickup, rental terms, and how to get help.",
+    "sectionAriaLabel": "Questions and answers",
+    "contactPrompt": "Can't find what you need?",
+    "contactLink": "Contact us"
+  },
   "infoPages": {
     "comingSoon": "Coming soon.",
     "about": "About",
