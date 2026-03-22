@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import type { Product } from "@/../utils/products";
 import { useSearchParams } from "next/navigation";
@@ -126,6 +126,8 @@ function formatSummaryDate(d: Date, locale: string) {
 }
 
 const DEFAULT_DISPLAY_CURRENCY = "CHF";
+
+const SWIPE_THRESHOLD_PX = 48;
 
 type PricePointRow = {
   day_count: number;
@@ -256,6 +258,11 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   const [quantity, setQuantity] = useState<number>(initialQuantity);
 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
+  const [lightboxOpen, setLightboxOpen] = useState(false);
+
+  const lightboxCloseRef = useRef<HTMLButtonElement>(null);
+  const heroTouchStartX = useRef<number | null>(null);
+  const lightboxTouchStartX = useRef<number | null>(null);
 
   const [showStoreConflict, setShowStoreConflict] = useState(false);
 
@@ -395,15 +402,83 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   }, [availableQuantity]);
 
   /** ---------- Image navigation ---------- */
-  const handlePrevImage = () => {
+  const handlePrevImage = useCallback(() => {
     if (!images.length) return;
     setCurrentImageIndex((idx) => (idx === 0 ? images.length - 1 : idx - 1));
-  };
+  }, [images.length]);
 
-  const handleNextImage = () => {
+  const handleNextImage = useCallback(() => {
     if (!images.length) return;
     setCurrentImageIndex((idx) => (idx === images.length - 1 ? 0 : idx + 1));
-  };
+  }, [images.length]);
+
+  const openLightbox = useCallback(() => {
+    if (!images.length) return;
+    setLightboxOpen(true);
+  }, [images.length]);
+
+  const closeLightbox = useCallback(() => setLightboxOpen(false), []);
+
+  useEffect(() => {
+    if (!lightboxOpen) return;
+    const prevOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    const onKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        closeLightbox();
+        return;
+      }
+      if (e.key === "ArrowLeft") {
+        e.preventDefault();
+        handlePrevImage();
+      } else if (e.key === "ArrowRight") {
+        e.preventDefault();
+        handleNextImage();
+      }
+    };
+
+    window.addEventListener("keydown", onKeyDown);
+    const id = requestAnimationFrame(() => lightboxCloseRef.current?.focus());
+
+    return () => {
+      cancelAnimationFrame(id);
+      document.body.style.overflow = prevOverflow;
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [lightboxOpen, closeLightbox, handlePrevImage, handleNextImage]);
+
+  const heroSwipeHandlers =
+    images.length > 1
+      ? {
+          onTouchStart: (e: React.TouchEvent) => {
+            heroTouchStartX.current = e.touches[0].clientX;
+          },
+          onTouchEnd: (e: React.TouchEvent) => {
+            if (heroTouchStartX.current == null) return;
+            const dx = e.changedTouches[0].clientX - heroTouchStartX.current;
+            heroTouchStartX.current = null;
+            if (dx > SWIPE_THRESHOLD_PX) handlePrevImage();
+            else if (dx < -SWIPE_THRESHOLD_PX) handleNextImage();
+          },
+        }
+      : {};
+
+  const lightboxSwipeHandlers =
+    images.length > 1
+      ? {
+          onTouchStart: (e: React.TouchEvent) => {
+            lightboxTouchStartX.current = e.touches[0].clientX;
+          },
+          onTouchEnd: (e: React.TouchEvent) => {
+            if (lightboxTouchStartX.current == null) return;
+            const dx = e.changedTouches[0].clientX - lightboxTouchStartX.current;
+            lightboxTouchStartX.current = null;
+            if (dx > SWIPE_THRESHOLD_PX) handlePrevImage();
+            else if (dx < -SWIPE_THRESHOLD_PX) handleNextImage();
+          },
+        }
+      : {};
 
   /** ---------- Add to cart ---------- */
   const { cart, addItems, removeItem, openAddPopover } = useCart();
@@ -678,19 +753,28 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
               <div className={styles.mainImageWrapper}>
                 <button
                   type="button"
+                  className={styles.mainImageHit}
+                  onClick={openLightbox}
+                  aria-label={t("openLightbox")}
+                  {...heroSwipeHandlers}
+                >
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={images[currentImageIndex]?.url}
+                    alt={images[currentImageIndex]?.alt_text || product.name || t("bikeImage")}
+                    className={styles.mainImage}
+                    draggable={false}
+                  />
+                </button>
+
+                <button
+                  type="button"
                   className={`${styles.imageArrow} ${styles.imageArrowLeft}`}
                   onClick={handlePrevImage}
                   aria-label={t("previousImage")}
                 >
                   ‹
                 </button>
-
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img
-                  src={images[currentImageIndex]?.url}
-                  alt={images[currentImageIndex]?.alt_text || product.name || t("bikeImage")}
-                  className={styles.mainImage}
-                />
 
                 <button
                   type="button"
@@ -704,16 +788,87 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
 
               <div className={styles.thumbs}>
                 {images.map((img, idx) => (
-                  // eslint-disable-next-line @next/next/no-img-element
-                  <img
+                  <button
                     key={img.id}
-                    src={img.url}
-                    alt={img.alt_text || ""}
-                    className={`${styles.thumb} ${idx === currentImageIndex ? styles.thumbActive : ""}`}
+                    type="button"
+                    className={`${styles.thumbBtn} ${idx === currentImageIndex ? styles.thumbBtnActive : ""}`}
                     onClick={() => setCurrentImageIndex(idx)}
-                  />
+                    aria-label={t("thumbnailSelect", {
+                      index: String(idx + 1),
+                      total: String(images.length),
+                    })}
+                    aria-current={idx === currentImageIndex ? "true" : undefined}
+                  >
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={img.url}
+                      alt=""
+                      className={styles.thumbImg}
+                      draggable={false}
+                    />
+                  </button>
                 ))}
               </div>
+
+              {lightboxOpen ? (
+                <div
+                  className={styles.lightboxOverlay}
+                  role="presentation"
+                  onClick={closeLightbox}
+                >
+                  <div
+                    className={styles.lightboxDialog}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-label={t("lightboxAria")}
+                    onClick={(e) => e.stopPropagation()}
+                    {...lightboxSwipeHandlers}
+                  >
+                    <button
+                      ref={lightboxCloseRef}
+                      type="button"
+                      className={styles.lightboxClose}
+                      onClick={closeLightbox}
+                      aria-label={t("closeLightbox")}
+                    >
+                      ×
+                    </button>
+
+                    {images.length > 1 ? (
+                      <>
+                        <button
+                          type="button"
+                          className={`${styles.lightboxArrow} ${styles.lightboxArrowLeft}`}
+                          onClick={handlePrevImage}
+                          aria-label={t("previousImage")}
+                        >
+                          ‹
+                        </button>
+                        <button
+                          type="button"
+                          className={`${styles.lightboxArrow} ${styles.lightboxArrowRight}`}
+                          onClick={handleNextImage}
+                          aria-label={t("nextImage")}
+                        >
+                          ›
+                        </button>
+                      </>
+                    ) : null}
+
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img
+                      src={images[currentImageIndex]?.url}
+                      alt={
+                        images[currentImageIndex]?.alt_text ||
+                        product.name ||
+                        t("bikeImage")
+                      }
+                      className={styles.lightboxImage}
+                      draggable={false}
+                    />
+                  </div>
+                </div>
+              ) : null}
             </>
           )}
         </section>
