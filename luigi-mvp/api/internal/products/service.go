@@ -13,6 +13,7 @@ type productQuerier interface {
 	CreateProduct(ctx context.Context, arg *db.CreateProductParams) (db.Product, error)
 	ListProducts(ctx context.Context, arg *db.ListProductsParams) ([]db.ListProductsRow, error)
 	ListProductsWithPrimaryImage(ctx context.Context, arg *db.ListProductsWithPrimaryImageParams) ([]db.ListProductsWithPrimaryImageRow, error)
+	ListDescendantCategoryIDs(ctx context.Context, arg *db.ListDescendantCategoryIDsParams) ([]int64, error)
 	UpdateProduct(ctx context.Context, arg *db.UpdateProductParams) (db.Product, error)
 	DeleteProduct(ctx context.Context, id int64) (db.Product, error)
 	ListCategoriesForProduct(ctx context.Context, productID int64) ([]db.ProductCategory, error)
@@ -111,8 +112,10 @@ type ListWithImageInput struct {
 	ShopID *int64
 	Locale string
 	Ids    []int64
-	Limit  int32
-	Offset int32
+	// CategoryRootID, when set, keeps only products assigned to this category or any descendant.
+	CategoryRootID *int64
+	Limit          int32
+	Offset         int32
 }
 
 func (s *Service) ListWithPrimaryImage(ctx context.Context, in ListWithImageInput) ([]db.ListProductsWithPrimaryImageRow, error) {
@@ -123,10 +126,23 @@ func (s *Service) ListWithPrimaryImage(ctx context.Context, in ListWithImageInpu
 		in.Offset = 0
 	}
 
+	var categoryIDs []int64
+	if in.CategoryRootID != nil {
+		ids, err := s.q.ListDescendantCategoryIDs(ctx, &db.ListDescendantCategoryIDsParams{
+			RootID: *in.CategoryRootID,
+			ShopID: u.ToNullInt64(in.ShopID),
+		})
+		if err != nil {
+			return nil, err
+		}
+		categoryIDs = ids
+	}
+
 	return s.q.ListProductsWithPrimaryImage(ctx, &db.ListProductsWithPrimaryImageParams{
 		ShopID:          u.ToNullInt64(in.ShopID),
 		RequestedLocale: in.Locale,
 		Ids:             in.Ids,
+		CategoryIds:     categoryIDs,
 		PageOffset:      in.Offset,
 		PageLimit:       in.Limit,
 	})

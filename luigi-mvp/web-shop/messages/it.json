@@ -343,7 +343,14 @@
   },
   "categoryRow": {
     "scrollLeft": "Scorri a sinistra",
-    "scrollRight": "Scorri a destra"
+    "scrollRight": "Scorri a destra",
+    "viewAll": "Vedi tutto"
+  },
+  "categoryPage": {
+    "breadcrumbAria": "Percorso di navigazione",
+    "breadcrumbHome": "Home",
+    "subcategoriesHeading": "Sottocategorie",
+    "empty": "Non ci sono ancora bici in questa categoria."
   },
   "featuredProducts": {
     "title": "Bici consigliate"

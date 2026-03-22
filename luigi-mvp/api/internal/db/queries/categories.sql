@@ -130,3 +130,20 @@ JOIN product_category_assignments a
   ON a.category_id = c.id
 WHERE a.product_id = sqlc.arg(product_id)
 ORDER BY c.sort_order, c.id;
+
+
+-- name: ListDescendantCategoryIDs :many
+WITH RECURSIVE category_subtree AS (
+  SELECT pc.id AS id
+  FROM product_categories pc
+  WHERE pc.id = sqlc.arg(root_id)
+    AND (
+      sqlc.narg(shop_id)::bigint IS NULL
+      OR pc.shop_id = sqlc.narg(shop_id)::bigint
+    )
+  UNION ALL
+  SELECT c.id
+  FROM product_categories c
+  INNER JOIN category_subtree s ON c.parent_id = s.id
+)
+SELECT st.id FROM category_subtree st;
