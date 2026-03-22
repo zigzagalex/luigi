@@ -50,35 +50,89 @@
   
   .row {
     display: grid;
-    grid-template-columns: auto 1fr auto;
-    gap: var(--space-3);
+    grid-template-columns: minmax(0, 1fr) max-content;
+    grid-template-rows: auto auto;
+    column-gap: var(--space-2);
+    row-gap: var(--space-2);
+    align-items: start;
     padding: var(--space-3);
     border: 1px solid var(--color-border);
     border-radius: 12px;
-    align-items: center;
+  }
+
+  .productLink,
+  .productLinkStatic {
+    grid-column: 1;
+    grid-row: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    min-width: 0;
+  }
+
+  /* Upper-right trash: same grid column as price so the trash’s right edge lines up with the amount’s last digit */
+  .rowTrash {
+    grid-column: 2;
+    grid-row: 1;
+    justify-self: end;
+    align-self: start;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  /* Pull icon toward the money rail so its right edge matches the last digit */
+  .rowTrash .trash {
+    padding-right: 0;
+    padding-left: var(--space-2);
+  }
+
+  .productLink {
+    text-decoration: none;
+    color: inherit;
+    border-radius: 8px;
+  }
+
+  .productLink:hover .rowTitle {
+    text-decoration: underline;
+  }
+
+  .productLink:focus-visible {
+    outline: 2px solid var(--color-primary);
+    outline-offset: 2px;
+  }
+
+  .productLinkStatic {
+    cursor: default;
   }
   
   .thumbWrap {
-    width: 52px;
-    height: 52px;
+    flex-shrink: 0;
+    width: calc(52px * 1.2);
+    height: calc(52px * 1.2);
     border-radius: 8px;
     overflow: hidden;
-    background: var(--color-bg-subtle);
+    background: var(--color-bg-section-band);
   }
   
   .thumbWrap img {
     width: 100%;
     height: 100%;
-    object-fit: cover;
+    object-fit: contain;
+    object-position: center;
   }
   
-  /* Info */
-  .rowMain {
+  .rowDetails {
     min-width: 0;
   }
   
   .rowTitle {
     font-weight: 600;
+  }
+
+  .rowSub {
+    font-size: var(--text-meta-size);
+    color: rgba(0,0,0,0.65);
+    margin-top: 2px;
   }
   
   .rowMeta {
@@ -86,26 +140,61 @@
     color: rgba(0,0,0,0.6);
     margin-top: 2px;
   }
-  
-  /* Right side */
-  .rowRight {
-    display: grid;
-    justify-items: end;
+
+  .rowDateRange {
+    white-space: nowrap;
+  }
+
+  .rowFooter {
+    grid-column: 2;
+    grid-row: 2;
+    justify-self: end;
+    align-self: end;
+    display: flex;
+    justify-content: flex-end;
+    width: max-content;
+    max-width: 100%;
+  }
+
+  .rowActions {
+    display: inline-flex;
+    align-items: center;
+    flex-wrap: nowrap;
+    justify-content: flex-end;
     gap: var(--space-2);
+  }
+
+  .qty {
+    font-size: var(--text-meta-size);
+    color: rgba(0,0,0,0.55);
+    font-variant-numeric: tabular-nums;
   }
   
   .price {
     font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
   }
   
   .trash {
     composes: buttonBase from "../ui/primitives.module.css";
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
     background: transparent;
     border-color: transparent;
     color: var(--color-secondary);
     min-height: auto;
-    padding: var(--space-1) var(--space-2);
+    padding: var(--space-1);
     opacity: 0.65;
+    flex-shrink: 0;
+  }
+
+  .trashIcon {
+    width: 18px;
+    height: 18px;
+    display: block;
   }
   
   .trash:hover {
@@ -131,15 +220,23 @@
   .totalRow {
     display: flex;
     justify-content: space-between;
+    align-items: center;
+    gap: var(--space-2);
     margin-bottom: var(--space-3);
+    /* Match .row horizontal inset so totals line up with card amounts */
+    padding-right: var(--space-3);
   }
   
   .totalLabel {
     color: rgba(0,0,0,0.7);
+    min-width: 0;
   }
   
   .totalValue {
     font-weight: 650;
+    font-variant-numeric: tabular-nums;
+    text-align: right;
+    white-space: nowrap;
   }
   
   .cta {
