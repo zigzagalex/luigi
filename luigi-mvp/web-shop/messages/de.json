@@ -22,7 +22,37 @@
     "switchLabel": "Sprache"
   },
   "home": {
-    "empty": "Noch keine Bikes vorhanden. Überprüfe deine API-Konfiguration oder füge Produkte hinzu."
+    "empty": "Noch keine Bikes vorhanden. Überprüfe deine API-Konfiguration oder füge Produkte hinzu.",
+    "trustBanner": {
+      "title": "Warum bei uns mieten",
+      "subtitle": "Ein klarer Ablauf, faire Konditionen und Bikes, die eingestellt und startklar sind.",
+      "processTitle": "So funktioniert’s",
+      "highlightsTitle": "Darauf kannst du zählen",
+      "step1": {
+        "title": "Bike wählen",
+        "body": "Stöbere in den Kategorien, vergleiche Modelle und ergänze das passende Zubehör."
+      },
+      "step2": {
+        "title": "Online reservieren",
+        "body": "Wähle Filiale und Mietzeitraum und sichere dir deine Reservation in wenigen Schritten."
+      },
+      "step3": {
+        "title": "Zahlung bei Abholung",
+        "body": "Keine Vorauszahlung online — du zahlst, wenn du dein Bike im Shop abholst."
+      },
+      "step4": {
+        "title": "Losfahren",
+        "body": "Geniesse gewartetes Material mit gutem Gefühl und lokaler Unterstützung bei Bedarf."
+      },
+      "serviced": {
+        "title": "Gewartete Bikes",
+        "body": "Jedes Bike wird vor der Ausgabe geprüft und eingestellt."
+      },
+      "insured": {
+        "title": "Versicherte Bikes",
+        "body": "Mietvelos sind abgesichert — du kannst dich auf die Tour konzentrieren."
+      }
+    }
   },
   "searchPage": {
     "title": "Verfügbare Bikes",

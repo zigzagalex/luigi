@@ -59,3 +59,7 @@
   font-size: var(--text-meta-size);
   color: var(--color-text-meta);
 }
+
+.emptyMsg {
+  composes: noProductsMsg;
+}

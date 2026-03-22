@@ -22,7 +22,37 @@
     "switchLabel": "Language"
   },
   "home": {
-    "empty": "No bikes to show yet. Check your API config or seed some products."
+    "empty": "No bikes to show yet. Check your API config or seed some products.",
+    "trustBanner": {
+      "title": "Why rent with us",
+      "subtitle": "A simple process, fair terms, and bikes that are tuned and ready to ride.",
+      "processTitle": "How renting works",
+      "highlightsTitle": "What you can count on",
+      "step1": {
+        "title": "Choose your bike",
+        "body": "Browse categories, compare models, and add the accessories you need."
+      },
+      "step2": {
+        "title": "Reserve online",
+        "body": "Pick a store, your dates, and lock in your reservation in a few clicks."
+      },
+      "step3": {
+        "title": "Pay on pickup",
+        "body": "No online prepayment — you pay when you collect your bike at the store."
+      },
+      "step4": {
+        "title": "Ride",
+        "body": "Head out on serviced gear with peace of mind and local support if you need it."
+      },
+      "serviced": {
+        "title": "Serviced bikes",
+        "body": "Every bike is inspected and tuned before it leaves the shop."
+      },
+      "insured": {
+        "title": "Insured bikes",
+        "body": "Rental bikes are covered so you can focus on the ride."
+      }
+    }
   },
   "searchPage": {
     "title": "Available bikes",
