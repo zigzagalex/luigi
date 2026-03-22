@@ -32,7 +32,8 @@
     "apiError": "Erreur API {status} : {text}",
     "searchError": "Une erreur est survenue lors de la recherche de disponibilité.",
     "availabilityFailed": "Impossible de charger les disponibilités pour cette recherche. Vérifie les dates et le magasin, puis réessaie.",
-    "empty": "Aucun vélo disponible pour cette recherche."
+    "empty": "Aucun vélo disponible pour cette recherche.",
+    "resultCount": "{count, plural, one {# vélo correspond à ta recherche} other {# vélos correspondent à ta recherche}}"
   },
   "profilePage": {
     "loading": "Chargement…",

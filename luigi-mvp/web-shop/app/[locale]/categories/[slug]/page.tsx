@@ -154,7 +154,8 @@ export default async function CategoryPage({
 
   return (
     <main className={pageShell.page}>
-      <div className={styles.inner}>
+      <div className={pageShell.inner}>
+        <section className={pageShell.section}>
         <nav aria-label={t("breadcrumbAria")}>
           <ol className={styles.breadcrumbs}>
             <li>
@@ -213,6 +214,7 @@ export default async function CategoryPage({
         ) : (
           <p className={styles.empty}>{t("empty")}</p>
         )}
+        </section>
       </div>
     </main>
   );

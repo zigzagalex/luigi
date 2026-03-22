@@ -12,8 +12,7 @@ type Props = {
   availabilityInfo?: Record<number, AvailabilityInfo>;
   /** Normalized price_category key → from-price per day (cents), same as homepage rows */
   fromDailyPriceByCategory?: Record<string, number>;
-  className?: string; // optional extra class from caller
-  variant?: "default" | "search";
+  className?: string;
   linkSearchParams?: Record<string, string | undefined>;
 };
 
@@ -26,15 +25,12 @@ export default function ProductGrid({
   availabilityInfo,
   fromDailyPriceByCategory,
   className,
-  variant = "default",
   linkSearchParams,
 }: Props) {
   if (!products.length) return null;
 
-  const baseClass = variant === "search" ? styles.searchGrid : styles.grid;
-
   return (
-    <div className={[baseClass, className].filter(Boolean).join(" ")}>
+    <div className={[styles.grid, className].filter(Boolean).join(" ")}>
       {products.map((product) => {
         const info = availabilityInfo?.[product.id];
 

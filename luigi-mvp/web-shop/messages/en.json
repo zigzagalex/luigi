@@ -32,7 +32,8 @@
     "apiError": "API error {status}: {text}",
     "searchError": "Something went wrong while searching availability.",
     "availabilityFailed": "We couldn’t load availability for this search. Please check your dates and store, then try again.",
-    "empty": "No available bikes for that search."
+    "empty": "No available bikes for that search.",
+    "resultCount": "{count, plural, one {# bike matches your search} other {# bikes match your search}}"
   },
   "profilePage": {
     "loading": "Loading…",

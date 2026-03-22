@@ -1,33 +1,50 @@
-.page {
-    /* keep it consistent with the rest of the site */
-    width: 100%;
+.resultsHeader {
+  margin-bottom: var(--space-5);
+}
+
+.title {
+  composes: h3 from "../components/ui/typography.module.css";
+  margin: 0 0 var(--space-1);
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--color-primary);
+  color: var(--color-text-strong);
+  font-size: var(--text-h2-size);
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.subtitle {
+  composes: fontBody from "../components/ui/typography.module.css";
+  margin: 0;
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
+  line-height: 1.45;
+}
+
+.message {
+  composes: fontBody from "../components/ui/typography.module.css";
+  margin: 0;
+  max-width: 42rem;
+  font-size: var(--text-body-size);
+  line-height: 1.55;
+  color: var(--color-text-body);
+}
+
+.messageError {
+  composes: fontBody from "../components/ui/typography.module.css";
+  margin: 0;
+  max-width: 42rem;
+  padding: var(--space-4);
+  border-radius: 12px;
+  border: 1px solid rgba(185, 28, 28, 0.25);
+  background: var(--color-accent-danger-bg);
+  color: var(--color-accent-danger);
+  font-size: var(--text-meta-size);
+  line-height: 1.5;
+}
+
+@media (max-width: 640px) {
+  .title {
+    font-size: clamp(1.25rem, 4.5vw, var(--text-h2-size));
   }
-  
-  .inner {
-    max-width: 1200px;
-    margin: 0 auto;
-  
-    /* this is the “not cramped” part */
-    padding: 0 var(--space-6) var(--space-16);
-  }
-  
-  /* Force the ProductGrid instance on /search to be 3 columns */
-  :global(.product-grid-search) {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-6);
-  }
-  
-  /* Responsive so it doesn’t break on smaller screens */
-  @media (max-width: 1024px) {
-    :global(.product-grid-search) {
-      grid-template-columns: repeat(1, minmax(0, 1fr));
-    }
-  }
-  
-  @media (max-width: 640px) {
-    :global(.product-grid-search) {
-      grid-template-columns: 1fr;
-    }
-  }
-  
+}

@@ -1,9 +1,11 @@
 // app/search/page.tsx
-import styles from "./page.module.css";
 import ProductGrid from "../components/products/ProductGrid";
 import { fetchApi } from "utils/fetchAPI";
 import { fetchProducts, type Product } from "@/../utils/products";
 import { getTranslations } from "next-intl/server";
+
+import pageShell from "../PageShell.module.css";
+import styles from "./page.module.css";
 
 type RawSearchParams = {
   shop_id?: string;
@@ -16,6 +18,7 @@ type RawSearchParams = {
 
 type SearchPageProps = {
   searchParams: Promise<RawSearchParams>;
+  params: Promise<{ locale: string }>;
 };
 
 type AvailabilityVariant = {
@@ -41,7 +44,54 @@ type AvailabilitySearchBody = {
   category_ids?: number[];
 };
 
-export default async function SearchPage({ searchParams }: SearchPageProps) {
+type PricePointDTO = {
+  price_category: string;
+  day_count: number;
+  price_total_cents: number;
+};
+
+function normalizeCategoryKey(value: string): string {
+  return value.trim().toLowerCase();
+}
+
+function buildFromDailyPriceByCategory(
+  pricePoints: PricePointDTO[],
+): Record<string, number> {
+  const oneDayPriceByCategory: Record<string, number> = {};
+  const fallbackByCategory: Record<string, { dayCount: number; priceCents: number }> = {};
+
+  for (const point of pricePoints) {
+    if (point.day_count <= 0) continue;
+
+    const key = normalizeCategoryKey(point.price_category);
+    const priceCents = Math.round(point.price_total_cents);
+
+    if (point.day_count === 1) {
+      oneDayPriceByCategory[key] = priceCents;
+      continue;
+    }
+
+    const existingFallback = fallbackByCategory[key];
+    if (
+      !existingFallback ||
+      point.day_count < existingFallback.dayCount ||
+      (point.day_count === existingFallback.dayCount && priceCents < existingFallback.priceCents)
+    ) {
+      fallbackByCategory[key] = { dayCount: point.day_count, priceCents };
+    }
+  }
+
+  for (const [key, fallback] of Object.entries(fallbackByCategory)) {
+    if (oneDayPriceByCategory[key] == null) {
+      oneDayPriceByCategory[key] = fallback.priceCents;
+    }
+  }
+
+  return oneDayPriceByCategory;
+}
+
+export default async function SearchPage({ searchParams, params }: SearchPageProps) {
+  const { locale } = await params;
   const t = await getTranslations("searchPage");
   const sp: RawSearchParams = (await searchParams) ?? {};
 
@@ -60,7 +110,17 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
   let error: string | null = null;
   let info: string | null = null;
 
-  // Basic input checks (but keep one consistent layout)
+  let fromDailyPriceByCategory: Record<string, number> = {};
+  try {
+    const res = await fetchApi("/v1/price_points");
+    if (res.ok) {
+      const points = (await res.json()) as PricePointDTO[];
+      fromDailyPriceByCategory = buildFromDailyPriceByCategory(points);
+    }
+  } catch (err) {
+    console.error("Failed to fetch price points for search page:", err);
+  }
+
   if (!storeIdRaw) {
     info = t("selectLocation");
   } else if (!storeOk) {
@@ -91,7 +151,6 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
         const availability = (await res.json()) as AvailabilityRow[];
 
         if (availability.length) {
-          // Build availabilityInfo per product
           for (const row of availability) {
             const totalAvailable = row.variants.reduce((sum, v) => sum + v.available_quantity, 0);
 
@@ -109,6 +168,7 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
           products = await fetchProducts({
             shop_id: shopId,
             ids: productIds.join(","),
+            locale,
           });
         }
       }
@@ -118,33 +178,44 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
     }
   }
 
-  return (
-    <main className={styles.page}>
-      <div className={styles.inner}>
-        <h1>{t("title")}</h1>
+  const showGrid = !info && !error && products.length > 0;
 
-        {info ? (
-          <p>{info}</p>
-        ) : error ? (
-          <p style={{ color: "red" }}>{error}</p>
-        ) : products.length === 0 ? (
-          <p>{t("empty")}</p>
-        ) : (
-          <ProductGrid
-            products={products}
-            availabilityInfo={availabilityInfo}
-            className="product-grid-search"
-            linkSearchParams={{
-              shop_id: String(shopId),
-              store_id: storeIdRaw,
-              category_id: sp.category_id,
-              from,
-              to,
-              quantity: String(quantity),
-              ref: "search",
-            }}
-          />
-        )}
+  return (
+    <main className={pageShell.page}>
+      <div className={pageShell.inner}>
+        <section className={pageShell.section}>
+          <header className={styles.resultsHeader}>
+            <h1 className={styles.title}>{t("title")}</h1>
+            {showGrid ? (
+              <p className={styles.subtitle}>
+                {t("resultCount", { count: products.length })}
+              </p>
+            ) : null}
+          </header>
+
+          {info ? (
+            <p className={styles.message}>{info}</p>
+          ) : error ? (
+            <p className={styles.messageError}>{error}</p>
+          ) : products.length === 0 ? (
+            <p className={styles.message}>{t("empty")}</p>
+          ) : (
+            <ProductGrid
+              products={products}
+              availabilityInfo={availabilityInfo}
+              fromDailyPriceByCategory={fromDailyPriceByCategory}
+              linkSearchParams={{
+                shop_id: String(shopId),
+                store_id: storeIdRaw,
+                category_id: sp.category_id,
+                from,
+                to,
+                quantity: String(quantity),
+                ref: "search",
+              }}
+            />
+          )}
+        </section>
       </div>
     </main>
   );
