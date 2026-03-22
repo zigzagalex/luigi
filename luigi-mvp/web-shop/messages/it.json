@@ -26,11 +26,12 @@
   },
   "searchPage": {
     "title": "Bici disponibili",
-    "selectLocation": "Seleziona prima un luogo di ritiro nell'intestazione.",
-    "invalidStore": "Negozio selezionato non valido.",
-    "chooseDates": "Scegli prima le date nella barra di ricerca.",
+    "selectLocation": "Scegli luogo di ritiro e date dalla ricerca nella home, poi avvia la ricerca da lì.",
+    "invalidStore": "Questo punto di ritiro non è valido. Scegli un altro negozio e riprova.",
+    "chooseDates": "Scegli prima data di ritiro e di riconsegna nella barra di ricerca.",
     "apiError": "Errore API {status}: {text}",
     "searchError": "Qualcosa è andato storto durante la ricerca della disponibilità.",
+    "availabilityFailed": "Non siamo riusciti a caricare la disponibilità per questa ricerca. Controlla date e negozio, poi riprova.",
     "empty": "Nessuna bici disponibile per questa ricerca."
   },
   "profilePage": {
@@ -403,7 +404,9 @@
     "chooseLocation": "Scegli il luogo",
     "chooseBikeType": "Scegli il tipo di bici",
     "anyBike": "Qualsiasi bici",
-    "addDates": "Aggiungi date"
+    "addDates": "Aggiungi date",
+    "pickLocationFirst": "Scegli un luogo di ritiro per continuare.",
+    "noStoresAvailable": "Al momento non ci sono punti di ritiro disponibili."
   },
   "footer": {
     "navAria": "Piè di pagina",

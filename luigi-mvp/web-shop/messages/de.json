@@ -26,11 +26,12 @@
   },
   "searchPage": {
     "title": "Verfügbare Bikes",
-    "selectLocation": "Bitte wähle zuerst einen Abholort.",
-    "invalidStore": "Ungültiger Standort ausgewählt.",
-    "chooseDates": "Bitte wähle zuerst ein Datum in der Suchleiste.",
+    "selectLocation": "Wähle Abholort und Mietdaten über die Suche auf der Startseite und starte die Suche von dort.",
+    "invalidStore": "Dieser Abholort ist ungültig. Bitte wähle einen anderen Standort und versuche es erneut.",
+    "chooseDates": "Bitte wähle zuerst Abhol- und Rückgabedatum in der Suchleiste.",
     "apiError": "API-Fehler {status}: {text}",
     "searchError": "Bei der Suche nach Verfügbarkeiten ist ein Fehler aufgetreten.",
+    "availabilityFailed": "Verfügbarkeiten konnten nicht geladen werden. Bitte prüfe Datum und Standort und versuche es erneut.",
     "empty": "Keine Bikes für diese Suchkriterien verfügbar."
   },
   "profilePage": {
@@ -403,7 +404,9 @@
     "chooseLocation": "Ort wählen",
     "chooseBikeType": "Bike-Typ wählen",
     "anyBike": "Beliebiges Bike",
-    "addDates": "Daten hinzufügen"
+    "addDates": "Daten hinzufügen",
+    "pickLocationFirst": "Bitte wähle zuerst einen Abholort.",
+    "noStoresAvailable": "Zurzeit sind keine Abholorte verfügbar."
   },
   "footer": {
     "navAria": "Fusszeile",

@@ -26,11 +26,12 @@
   },
   "searchPage": {
     "title": "Vélos disponibles",
-    "selectLocation": "Veuillez d'abord sélectionner un lieu de retrait dans l'en-tête.",
-    "invalidStore": "Magasin sélectionné invalide.",
-    "chooseDates": "Veuillez d'abord choisir vos dates dans la barre de recherche.",
+    "selectLocation": "Choisis un lieu de retrait et des dates sur la page d’accueil, puis lance la recherche depuis là.",
+    "invalidStore": "Ce lieu de retrait n’est pas valide. Choisis un autre magasin et réessaie.",
+    "chooseDates": "Choisis d’abord les dates de prise en charge et de retour dans la barre de recherche.",
     "apiError": "Erreur API {status} : {text}",
     "searchError": "Une erreur est survenue lors de la recherche de disponibilité.",
+    "availabilityFailed": "Impossible de charger les disponibilités pour cette recherche. Vérifie les dates et le magasin, puis réessaie.",
     "empty": "Aucun vélo disponible pour cette recherche."
   },
   "profilePage": {
@@ -403,7 +404,9 @@
     "chooseLocation": "Choisir le lieu",
     "chooseBikeType": "Choisir le type de vélo",
     "anyBike": "N'importe quel vélo",
-    "addDates": "Ajouter des dates"
+    "addDates": "Ajouter des dates",
+    "pickLocationFirst": "Choisis d’abord un lieu de retrait pour continuer.",
+    "noStoresAvailable": "Aucun lieu de retrait n’est disponible pour le moment."
   },
   "footer": {
     "navAria": "Pied de page",

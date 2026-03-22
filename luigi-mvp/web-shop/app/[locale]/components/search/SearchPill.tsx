@@ -82,13 +82,25 @@ export default function SearchPill({
   const isWhenEmpty = !range?.from;
 
   // ---------- WHERE ----------
-  const [store, setStore] = useState<StoreOption | null>(null);
+  const [store, setStore] = useState<StoreOption | null>(() => {
+    if (selectedStore?.id) return selectedStore;
+    if (stores.length === 1 && stores[0]?.id) return stores[0];
+    return null;
+  });
+  const [gateMessage, setGateMessage] = useState<string | null>(null);
+
   useEffect(() => {
-    if (!selectedStore?.id) return;
-    setStore((prev) => prev ?? selectedStore);
-  }, [selectedStore]);
+    setStore((s) => {
+      if (s?.id) return s;
+      if (selectedStore?.id) return selectedStore;
+      if (stores.length === 1 && stores[0]) return stores[0];
+      return s;
+    });
+  }, [selectedStore, stores.length, stores[0]?.id]);
+
   const whereLabel = storeDisplayName(store, t("chooseLocation"));
   const isWhereEmpty = !store?.id;
+  const hasStores = storeOptions.length > 0;
 
   // refs for anchoring the popover
   const wrapperRef = useRef<HTMLDivElement | null>(null);
@@ -158,9 +170,16 @@ export default function SearchPill({
 
   function handleSearch() {
     if (!store?.id) {
-      console.error("SearchPill: handleSearch called without a valid store");
+      if (!hasStores) {
+        setGateMessage(t("noStoresAvailable"));
+        return;
+      }
+      setGateMessage(t("pickLocationFirst"));
+      setActive("where");
       return;
     }
+
+    setGateMessage(null);
 
     const params = new URLSearchParams();
     params.set("shop_id", String(DEFAULT_SHOP_ID));
@@ -185,6 +204,11 @@ export default function SearchPill({
 
   return (
     <div className={`${styles.heroWrapper} ${embedded ? styles.heroWrapperEmbedded : ""}`}>
+      {gateMessage ? (
+        <p className={styles.gateMessage} role="status" aria-live="polite">
+          {gateMessage}
+        </p>
+      ) : null}
       <div ref={wrapperRef} className={styles.pill}>
         <div ref={pillRef} className={styles.pillInner}>
           {/* WHAT */}
@@ -218,13 +242,23 @@ export default function SearchPill({
             ref={whereBtnRef}
             type="button"
             className={`${styles.section} ${active === "where" ? styles.sectionActive : ""}`}
-            onClick={() => setActive(active === "where" ? null : "where")}
+            onClick={() => {
+              setGateMessage(null);
+              setActive(active === "where" ? null : "where");
+            }}
           >
             <span className={styles.label}>{t("where")}</span>
             <span className={`${styles.value} ${isWhereEmpty ? styles.valueEmpty : ""}`}>{whereLabel}</span>
           </button>
 
-          <button type="button" className={styles.submit} onClick={handleSearch} aria-label={t("searchAria")}>
+          <button
+            type="button"
+            className={styles.submit}
+            onClick={handleSearch}
+            disabled={!hasStores}
+            aria-label={t("searchAria")}
+            title={!hasStores ? t("noStoresAvailable") : undefined}
+          >
             <span className={styles.submitIcon} aria-hidden="true">
               <IconSearch focusable={false} aria-hidden />
             </span>
@@ -275,6 +309,9 @@ export default function SearchPill({
               {active === "where" && (
                 <div className={`${styles.panel} ${styles.wherePanel}`}>
                   <div className={styles.categoryGrid}>
+                    {!hasStores ? (
+                      <p className={styles.whereEmpty}>{t("noStoresAvailable")}</p>
+                    ) : null}
                     {storeOptions.map((s) => {
                       const isSelected = s.id === store?.id;
                       return (
@@ -283,6 +320,7 @@ export default function SearchPill({
                           type="button"
                           onClick={() => {
                             setStore(s);
+                            setGateMessage(null);
                             onStoreChange?.(s);
                             setActive(null);
                           }}

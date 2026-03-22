@@ -112,7 +112,7 @@ export default function AppHeader({ categories, stores }: Props) {
             <SearchPill
               categories={categories ?? []}
               stores={stores ?? []}
-              selectedStore={null}
+              selectedStore={defaultStore}
               embedded
             />
           </div>
@@ -130,7 +130,7 @@ export default function AppHeader({ categories, stores }: Props) {
                 <SearchPill
                   categories={categories ?? []}
                   stores={stores ?? []}
-                  selectedStore={null}
+                  selectedStore={defaultStore}
                 />
               ) : (
                 <div className={styles.disabled}>
