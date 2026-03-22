@@ -551,6 +551,14 @@
   "phoneField": {
     "placeholder": "+41 79 123 45 67"
   },
+  "locationsPage": {
+    "title": "Le nostre sedi",
+    "subtitle": "Ritira il noleggio in qualsiasi negozio Luigi's in Svizzera.",
+    "storesHeading": "Negozi",
+    "openInMaps": "Apri in Google Maps",
+    "noStores": "Nessun negozio disponibile al momento.",
+    "addressPending": "Indirizzo in arrivo"
+  },
   "infoPages": {
     "comingSoon": "Prossimamente.",
     "about": "Chi siamo",

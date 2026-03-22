@@ -241,6 +241,60 @@ export async function fetchStoreOptions(
   }
 }
 
+export type StoreForLocation = {
+  id: number;
+  name: string;
+  line1: string;
+  line2: string;
+  postalCode: string;
+  city: string;
+  country: string;
+  timezone: string;
+};
+
+type StoreDetailDTO = {
+  id: number;
+  shop_id: number;
+  name: string;
+  address1?: unknown;
+  address2?: unknown;
+  postal_code?: unknown;
+  city?: unknown;
+  country?: unknown;
+  timezone?: unknown;
+  is_active?: boolean | null;
+};
+
+export async function fetchStoresForLocations(
+  shopId: number,
+): Promise<StoreForLocation[]> {
+  try {
+    const res = await fetchApi(`/v1/stores?shop_id=${shopId}`);
+    if (!res.ok) {
+      console.error("fetchStoresForLocations failed:", res.status);
+      return [];
+    }
+
+    const data = (await res.json()) as StoreDetailDTO[];
+
+    return data
+      .filter((s) => s.is_active !== false)
+      .map((s) => ({
+        id: s.id,
+        name: (s.name && String(s.name).trim()) || `Store #${s.id}`,
+        line1: unwrapNullString(s.address1),
+        line2: unwrapNullString(s.address2),
+        postalCode: unwrapNullString(s.postal_code),
+        city: unwrapNullString(s.city),
+        country: unwrapNullString(s.country),
+        timezone: unwrapNullString(s.timezone),
+      }));
+  } catch (err) {
+    console.error("fetchStoresForLocations threw:", err);
+    return [];
+  }
+}
+
 // Quote types
 export type QuoteRequest = {
   product_variant_id: number;

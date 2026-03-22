@@ -551,6 +551,14 @@
   "phoneField": {
     "placeholder": "+41 79 123 45 67"
   },
+  "locationsPage": {
+    "title": "Our locations",
+    "subtitle": "Pick up your rental at any Luigi's store across Switzerland.",
+    "storesHeading": "Stores",
+    "openInMaps": "Open in Google Maps",
+    "noStores": "No stores are available yet.",
+    "addressPending": "Address coming soon"
+  },
   "infoPages": {
     "comingSoon": "Coming soon.",
     "about": "About",
