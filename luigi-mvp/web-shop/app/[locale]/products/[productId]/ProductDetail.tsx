@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Product } from "@/../utils/products";
 import { useSearchParams } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import styles from "./ProductDetail.module.css";
 import {
   AvailabilityRangeCalendar,
@@ -97,18 +97,13 @@ function parseYYYYMMDDLocal(s: string | null): Date | undefined {
 }
 
 
-/** Display dd.mm.yyyy for the little summary pills */
-function formatPillDate(d?: Date) {
-  if (!d) return "Add date";
-  return new Intl.DateTimeFormat("de-CH", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric",
-  }).format(d);
+function formatSummaryDate(d: Date, locale: string) {
+  return d.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
 export default function ProductDetail({ product, variants, stores, inventory }: Props) {
   const t = useTranslations("productDetail");
+  const locale = useLocale();
   /** ---------- Read incoming query params from URL ---------- */
   const sp = useSearchParams();
 
@@ -143,6 +138,8 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   const [showStoreConflict, setShowStoreConflict] = useState(false);
+
+  const [datesExpanded, setDatesExpanded] = useState(false);
 
   /** Quote state */
   const [quote, setQuote] = useState<{ currency: string; totalPriceCents: number } | null>(null);
@@ -365,6 +362,10 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   // We only want to let users pick dates if store + variant are selected
   const canPickDates = selectedVariant?.id != null && selectedStoreId != null;
 
+  useEffect(() => {
+    if (!canPickDates) setDatesExpanded(false);
+  }, [canPickDates]);
+
   /** Quote */
   const isValidRange =
   !!range.from &&
@@ -489,8 +490,8 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
           )}
         </section>
 
-        {/* RIGHT: info + controls */}
-        <section className={styles.sidebar}>
+        {/* RIGHT: compact commerce strip */}
+        <section className={`${styles.sidebar} ${styles.sidebarCommerce}`}>
           <header className={styles.header}>
             <h1 className={styles.title}>{title}</h1>
             {description.length > 0 && (
@@ -563,37 +564,59 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
             </div>
           </div>
 
-          {/* Dates */}
+          {/* Dates — compact summary; calendar on demand */}
           <div className={styles.block}>
             <h2 className={styles.blockTitle}>{t("pickupReturn")}</h2>
 
-            {/* Summary row that should now show query-param values when present */}
-            <div className={styles.dateSummary}>
-              <div>
-                <span className={styles.dateSummaryLabel}>{t("pickup")}</span>
-                <span className={styles.dateSummaryValue}>{range.from ? formatPillDate(range.from) : t("addDate")}</span>
-              </div>
-              <div>
-                <span className={styles.dateSummaryLabel}>{t("return")}</span>
-                <span className={styles.dateSummaryValue}>{range.to ? formatPillDate(range.to) : t("addDate")}</span>
-              </div>
-            </div>
+            <button
+              type="button"
+              className={styles.dateSummaryTrigger}
+              disabled={!canPickDates}
+              aria-expanded={datesExpanded}
+              aria-label={datesExpanded ? t("datePickerToggleCollapse") : t("datePickerToggleExpand")}
+              onClick={() => canPickDates && setDatesExpanded((open) => !open)}
+            >
+              <span className={styles.dateSummaryInline}>
+                <span className={styles.dateSummaryInlinePart}>
+                  <span className={styles.dateSummaryInlineLabel}>{t("dateSummaryInlinePickup")}</span>
+                  <span className={styles.dateSummaryInlineDash} aria-hidden>
+                    —
+                  </span>
+                  <span className={styles.dateSummaryInlineValue}>
+                    {range.from ? formatSummaryDate(range.from, locale) : t("addDate")}
+                  </span>
+                </span>
+                <span className={styles.dateSummaryInlineSep} aria-hidden>
+                  ·
+                </span>
+                <span className={styles.dateSummaryInlinePart}>
+                  <span className={styles.dateSummaryInlineLabel}>{t("dateSummaryInlineReturn")}</span>
+                  <span className={styles.dateSummaryInlineDash} aria-hidden>
+                    —
+                  </span>
+                  <span className={styles.dateSummaryInlineValue}>
+                    {range.to ? formatSummaryDate(range.to, locale) : t("addDate")}
+                  </span>
+                </span>
+              </span>
+              <span className={styles.dateSummaryTriggerChevron} aria-hidden>
+                {datesExpanded ? "▴" : "▾"}
+              </span>
+            </button>
 
-            {!canPickDates && (
-              <div style={{ marginTop: 10, fontSize: 12, opacity: 0.7 }}>
-                {t("selectStoreForDates")}
+            {!canPickDates && <p className={styles.dateHintMuted}>{t("selectStoreForDates")}</p>}
+
+            {datesExpanded && canPickDates && (
+              <div className={styles.calendarPanel}>
+                <AvailabilityRangeCalendar
+                  variantId={selectedVariant?.id ?? 0}
+                  storeId={selectedStoreId ?? 0}
+                  quantity={quantity}
+                  value={range}
+                  onChange={setRange}
+                />
               </div>
             )}
-
-            <div className={styles.calendarInline}>
-              <AvailabilityRangeCalendar
-                variantId={selectedVariant?.id ?? 0}
-                storeId={selectedStoreId ?? 0}
-                quantity={quantity}
-                value={range}
-                onChange={setRange}
-              />
-            </div>
           </div>
 
           {/* Quantity */}
