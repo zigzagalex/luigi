@@ -1,14 +1,115 @@
 .page {
   padding-top: var(--space-8);
   padding-bottom: var(--space-12);
-  padding-inline: 24px;
+  padding-inline: 0;
 }
 
 .inner {
-  padding-top: var(--space-12);
+  padding-top: var(--space-6);
   padding-bottom: var(--space-12);
+  padding-inline: 2rem;
   max-width: 1200px;
   margin: 0 auto;
+}
+
+@media (max-width: 768px) {
+  .inner {
+    padding-inline: 1rem;
+  }
+}
+
+.pdpNav {
+  margin-bottom: var(--space-5);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+}
+
+@media (min-width: 768px) {
+  .pdpNav {
+    flex-direction: row;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    column-gap: var(--space-6);
+    row-gap: var(--space-2);
+  }
+
+  .pdpNav .backLink {
+    align-self: center;
+  }
+
+  .pdpNav .breadcrumbNav {
+    flex: 1 1 auto;
+    min-width: 0;
+    display: flex;
+    justify-content: flex-end;
+  }
+
+  .pdpNav .breadcrumbList {
+    justify-content: flex-end;
+  }
+}
+
+.backLink {
+  composes: fontLabel from "../../components/ui/typography.module.css";
+  align-self: flex-start;
+  font-size: 0.88rem;
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+}
+
+.backLink:hover {
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.breadcrumbNav {
+  overflow-x: auto;
+  padding-bottom: 2px;
+}
+
+.breadcrumbList {
+  composes: fontLabel from "../../components/ui/typography.module.css";
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.35rem 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--color-text-meta);
+}
+
+.breadcrumbItem a {
+  color: var(--color-text-meta);
+  text-decoration: none;
+}
+
+.breadcrumbItem a:hover {
+  color: var(--color-primary);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.breadcrumbSep {
+  color: var(--color-text-meta);
+  opacity: 0.65;
+  user-select: none;
+}
+
+.breadcrumbCurrent {
+  color: var(--color-text);
+  font-weight: 650;
+  max-width: min(100%, 42ch);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: inline-block;
+  vertical-align: bottom;
 }
 
 .layout {

@@ -105,6 +105,7 @@ export default async function HomePage({
             <FeaturedProductsSlider
               products={featured}
               fromDailyPriceByCategory={fromDailyPriceByCategory}
+              linkSearchParams={{ ref: "browse" }}
             />
           </section>
         )}
@@ -115,6 +116,7 @@ export default async function HomePage({
               title={row.title}
               products={row.products.slice(0, 10)}
               fromDailyPriceByCategory={fromDailyPriceByCategory}
+              linkSearchParams={{ ref: "browse" }}
             />
           </section>
         ))}

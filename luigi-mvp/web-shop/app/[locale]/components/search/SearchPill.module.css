@@ -4,6 +4,11 @@
   margin: 0 0 var(--space-6);
 }
 
+.heroWrapperEmbedded {
+  margin: 0;
+  width: 100%;
+}
+
 /* ---- Main pill ---- */
 .pill {
   position: relative;

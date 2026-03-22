@@ -10,6 +10,7 @@ type Props = {
   title: string;
   products: Product[];
   fromDailyPriceByCategory?: Record<string, number>;
+  linkSearchParams?: Record<string, string | undefined>;
 };
 
 function normalizeCategoryKey(value: string): string {
@@ -20,6 +21,7 @@ export default function CategoryRow({
   title,
   products,
   fromDailyPriceByCategory,
+  linkSearchParams,
 }: Props) {
   const t = useTranslations("categoryRow");
   const scrollRef = useRef<HTMLDivElement | null>(null);
@@ -61,6 +63,7 @@ export default function CategoryRow({
                 fromPricePerDayCents={
                   fromDailyPriceByCategory?.[normalizeCategoryKey(p.price_category)]
                 }
+                linkSearchParams={linkSearchParams}
               />
             </div>
           ))}

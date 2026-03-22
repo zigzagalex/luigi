@@ -1,12 +1,103 @@
 .header {
   background: var(--color-bg-inverse);
   color: var(--color-bg-surface);
-  padding: 0.65rem 2rem 2.25rem;
+  padding: 0.65rem 0 2.25rem;
+}
+
+.headerCompact {
+  padding: 0.55rem 0 0.75rem;
+}
+
+.headerCompact .topRow {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: center;
+  column-gap: var(--space-3);
+}
+
+.headerCompact .logo {
+  justify-self: start;
+}
+
+.pdpSearchCue {
+  display: flex;
+  justify-content: center;
+  justify-self: center;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.headerCompactSearchOpen {
+  padding-bottom: var(--space-5);
+}
+
+.pdpSearchToggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  padding: 0;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.22);
+  background: rgba(255, 255, 255, 0.08);
+  color: rgba(255, 255, 255, 0.95);
+  cursor: pointer;
+  transition:
+    background 120ms ease,
+    border-color 120ms ease,
+    transform 120ms ease;
+}
+
+.pdpSearchToggle:hover {
+  background: rgba(255, 255, 255, 0.14);
+  border-color: rgba(255, 255, 255, 0.32);
+}
+
+.pdpSearchToggle:active {
+  transform: scale(0.98);
+}
+
+.pdpSearchToggle:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 2px;
+}
+
+.pdpSearchToggleIcon {
+  display: flex;
+  width: 22px;
+  height: 22px;
+}
+
+.pdpSearchToggleIcon svg {
+  width: 100%;
+  height: 100%;
+}
+
+.compactSearchRow {
+  margin-top: var(--space-4);
+  width: 100%;
+  min-width: 0;
+}
+
+.compactSearchRow > * {
+  max-width: 800px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.headerCompact .rightActions {
+  justify-self: end;
+}
+
+.topRow .pdpSearchCue {
+  padding-inline: var(--space-2);
 }
 
 .inner {
   max-width: 1200px;
   margin: 0 auto;
+  padding-inline: 2rem;
 }
 
 /* Row 1: logo (left) | actions (right) */
@@ -137,7 +228,11 @@
 /* Mobile tweaks */
 @media (max-width: 768px) {
   .header {
-    padding: 0.65rem 1rem 1.5rem;
+    padding: 0.65rem 0 1.5rem;
+  }
+
+  .inner {
+    padding-inline: 1rem;
   }
 
   .topRow {
@@ -154,6 +249,10 @@
 
   /* Search pill full width on mobile */
   .searchRow > * {
+    max-width: 100%;
+  }
+
+  .compactSearchRow > * {
     max-width: 100%;
   }
 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useState } from "react";
+import Link from "next/link";
 import type { Product } from "@/../utils/products";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
@@ -96,6 +97,44 @@ function parseYYYYMMDDLocal(s: string | null): Date | undefined {
   return Number.isNaN(dt.getTime()) ? undefined : dt;
 }
 
+const LISTING_SEARCH_KEYS = [
+  "shop_id",
+  "store_id",
+  "from",
+  "to",
+  "quantity",
+] as const;
+
+function listingSearchHref(
+  locale: string,
+  sp: ReturnType<typeof useSearchParams>,
+  opts: { categoryId?: number }
+): string {
+  const params = new URLSearchParams();
+  for (const key of LISTING_SEARCH_KEYS) {
+    const v = sp.get(key);
+    if (v) params.set(key, v);
+  }
+  if (opts.categoryId != null) {
+    params.set("category_id", String(opts.categoryId));
+  }
+  const qs = params.toString();
+  return `/${locale}/search${qs ? `?${qs}` : ""}`;
+}
+
+function searchResultsHref(
+  locale: string,
+  sp: ReturnType<typeof useSearchParams>
+): string {
+  const params = new URLSearchParams();
+  for (const key of [...LISTING_SEARCH_KEYS, "category_id"] as const) {
+    const v = sp.get(key);
+    if (v) params.set(key, v);
+  }
+  const qs = params.toString();
+  return `/${locale}/search${qs ? `?${qs}` : ""}`;
+}
+
 
 function formatSummaryDate(d: Date, locale: string) {
   return d.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
@@ -120,6 +159,34 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     const q = Number(sp.get("quantity") ?? "1");
     return Number.isFinite(q) && q > 0 ? q : 1;
   }, [sp]);
+
+  const categoryIdFromUrl = useMemo(() => {
+    const id = Number(sp.get("category_id") ?? "");
+    return Number.isFinite(id) && id > 0 ? id : null;
+  }, [sp]);
+
+  const breadcrumbCategory = useMemo(() => {
+    const cats = product.categories ?? [];
+    if (!cats.length) return null;
+    if (categoryIdFromUrl != null) {
+      const match = cats.find((c) => c.id === categoryIdFromUrl);
+      if (match) return match;
+    }
+    return cats[0] ?? null;
+  }, [product.categories, categoryIdFromUrl]);
+
+  const listingRef = sp.get("ref");
+
+  const backToListing = useMemo(() => {
+    const bikesHref = listingSearchHref(locale, sp, {});
+    if (listingRef === "search") {
+      return { href: searchResultsHref(locale, sp), label: t("backToResults") };
+    }
+    if (listingRef === "browse") {
+      return { href: `/${locale}`, label: t("backToBrowsing") };
+    }
+    return { href: bikesHref, label: t("backToAllBikes") };
+  }, [listingRef, locale, sp, t]);
 
   /** ---------- Component state ---------- */
 
@@ -436,8 +503,50 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
 
 
   /** ---------- Render ---------- */
+  const bikesSearchHref = listingSearchHref(locale, sp, {});
+  const categorySearchHref = breadcrumbCategory
+    ? listingSearchHref(locale, sp, { categoryId: breadcrumbCategory.id })
+    : bikesSearchHref;
+
   return (
     <div className={styles.inner}>
+      <div className={styles.pdpNav}>
+        <Link href={backToListing.href} className={styles.backLink}>
+          {backToListing.label}
+        </Link>
+        <nav aria-label={t("breadcrumbAria")} className={styles.breadcrumbNav}>
+          <ol className={styles.breadcrumbList}>
+            <li className={styles.breadcrumbItem}>
+              <Link href={`/${locale}`}>{t("breadcrumbHome")}</Link>
+            </li>
+            <li className={styles.breadcrumbSep} aria-hidden="true">
+              /
+            </li>
+            <li className={styles.breadcrumbItem}>
+              <Link href={bikesSearchHref}>{t("breadcrumbBikes")}</Link>
+            </li>
+            {breadcrumbCategory && (
+              <>
+                <li className={styles.breadcrumbSep} aria-hidden="true">
+                  /
+                </li>
+                <li className={styles.breadcrumbItem}>
+                  <Link href={categorySearchHref}>{breadcrumbCategory.name}</Link>
+                </li>
+              </>
+            )}
+            <li className={styles.breadcrumbSep} aria-hidden="true">
+              /
+            </li>
+            <li className={styles.breadcrumbItem}>
+              <span className={styles.breadcrumbCurrent} aria-current="page">
+                {title}
+              </span>
+            </li>
+          </ol>
+        </nav>
+      </div>
+
       <div className={styles.layout}>
         {/* LEFT: media */}
         <section className={styles.media}>

@@ -14,7 +14,9 @@
     "heroCta": "Keine Ausreden. Nur Kilometer.",
     "heroSubtext": "Ausrüstung wählen und loslegen.",
     "openNavMenu": "Navigationsmenü öffnen",
-    "noStoresConfigured": "Noch keine Standorte konfiguriert."
+    "noStoresConfigured": "Noch keine Standorte konfiguriert.",
+    "pdpOpenSearch": "Suche öffnen",
+    "pdpCloseSearch": "Suche schließen"
   },
   "locale": {
     "switchLabel": "Sprache"
@@ -311,7 +313,13 @@
     "noImagesYet": "Noch keine Bilder",
     "previousImage": "Vorheriges Bild",
     "nextImage": "Nächstes Bild",
-    "bikeImage": "Bike-Bild"
+    "bikeImage": "Bike-Bild",
+    "breadcrumbAria": "Brotkrümelnavigation",
+    "breadcrumbHome": "Start",
+    "breadcrumbBikes": "Bikes",
+    "backToResults": "Zurück zu den Ergebnissen",
+    "backToBrowsing": "Zurück zur Übersicht",
+    "backToAllBikes": "Zurück zu allen Bikes"
   },
   "productCard": {
     "fromPrice": "Ab CHF {price}",

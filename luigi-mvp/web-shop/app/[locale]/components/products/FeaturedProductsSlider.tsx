@@ -10,6 +10,7 @@ type Props = {
   products: Product[];
   title?: string;
   fromDailyPriceByCategory?: Record<string, number>;
+  linkSearchParams?: Record<string, string | undefined>;
 };
 
 function normalizeCategoryKey(value: string): string {
@@ -20,6 +21,7 @@ export default function FeaturedProductsSlider({
   products,
   title,
   fromDailyPriceByCategory,
+  linkSearchParams,
 }: Props) {
   const featuredT = useTranslations("featuredProducts");
   const rowT = useTranslations("categoryRow");
@@ -64,6 +66,7 @@ export default function FeaturedProductsSlider({
                     normalizeCategoryKey(product.price_category)
                   ]
                 }
+                linkSearchParams={linkSearchParams}
               />
             </div>
           ))}
