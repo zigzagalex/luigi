@@ -140,6 +140,41 @@ function formatSummaryDate(d: Date, locale: string) {
   return d.toLocaleDateString(locale, { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
+const DEFAULT_DISPLAY_CURRENCY = "CHF";
+
+type PricePointRow = {
+  day_count: number;
+  price_total_cents: number;
+};
+
+type BaselineDisplay =
+  | { kind: "per_day"; cents: number }
+  | { kind: "tier"; cents: number; days: number };
+
+function countInclusiveRentalDays(from: Date, to: Date): number {
+  const a = Date.UTC(from.getFullYear(), from.getMonth(), from.getDate());
+  const b = Date.UTC(to.getFullYear(), to.getMonth(), to.getDate());
+  return Math.floor((b - a) / 86400000) + 1;
+}
+
+function formatMoneyAmount(cents: number, locale: string, currency: string): string {
+  return new Intl.NumberFormat(locale, {
+    style: "currency",
+    currency,
+    minimumFractionDigits: 2,
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
+}
+
+function pickBaselineFromPricePoints(points: PricePointRow[]): BaselineDisplay | null {
+  if (!points.length) return null;
+  const sorted = [...points].sort((a, b) => a.day_count - b.day_count);
+  const one = sorted.find((p) => p.day_count === 1);
+  if (one) return { kind: "per_day", cents: one.price_total_cents };
+  const first = sorted[0];
+  return { kind: "tier", cents: first.price_total_cents, days: first.day_count };
+}
+
 export default function ProductDetail({ product, variants, stores, inventory }: Props) {
   const t = useTranslations("productDetail");
   const locale = useLocale();
@@ -212,6 +247,9 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   const [quote, setQuote] = useState<{ currency: string; totalPriceCents: number } | null>(null);
   const [quoteLoading, setQuoteLoading] = useState(false);
   const [quoteError, setQuoteError] = useState<string | null>(null);
+
+  const [baseline, setBaseline] = useState<BaselineDisplay | null>(null);
+  const [baselineLoading, setBaselineLoading] = useState(true);
 
   /** ---------- Derived values ---------- */
 
@@ -439,6 +477,11 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   !!range.to &&
   range.to.getTime() >= range.from.getTime();
 
+  const rentalDays = useMemo(() => {
+    if (!range.from || !range.to || !isValidRange) return 0;
+    return countInclusiveRentalDays(range.from, range.to);
+  }, [range.from, range.to, isValidRange]);
+
   const canQuote =
     !!selectedVariant?.id &&
     !!selectedStoreId &&
@@ -501,12 +544,69 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     return () => controller.abort();
   }, [canQuote, selectedVariant?.id, selectedStoreId, range.from, range.to, quantity]);
 
+  useEffect(() => {
+    const ac = new AbortController();
+    async function run() {
+      setBaselineLoading(true);
+      setBaseline(null);
+      try {
+        const res = await fetch(
+          `/api/price-points?price_category=${encodeURIComponent(product.price_category)}`,
+          { signal: ac.signal }
+        );
+        if (!res.ok) {
+          setBaseline(null);
+          return;
+        }
+        const data = (await res.json()) as unknown;
+        if (!Array.isArray(data)) {
+          setBaseline(null);
+          return;
+        }
+        const rows: PricePointRow[] = data
+          .map((row) => {
+            const o = row as Record<string, unknown>;
+            const day_count = Number(o.day_count);
+            const price_total_cents = Number(o.price_total_cents);
+            if (!Number.isFinite(day_count) || !Number.isFinite(price_total_cents)) return null;
+            return { day_count, price_total_cents };
+          })
+          .filter((x): x is PricePointRow => x != null);
+        setBaseline(pickBaselineFromPricePoints(rows));
+      } catch {
+        if (!ac.signal.aborted) setBaseline(null);
+      } finally {
+        if (!ac.signal.aborted) setBaselineLoading(false);
+      }
+    }
+    run();
+    return () => ac.abort();
+  }, [product.price_category]);
 
   /** ---------- Render ---------- */
   const bikesSearchHref = listingSearchHref(locale, sp, {});
   const categorySearchHref = breadcrumbCategory
     ? listingSearchHref(locale, sp, { categoryId: breadcrumbCategory.id })
     : bikesSearchHref;
+
+  const baselineLine =
+    baseline == null
+      ? null
+      : baseline.kind === "per_day"
+        ? t("heroStartingAtPerDay", {
+            amount: formatMoneyAmount(baseline.cents, locale, DEFAULT_DISPLAY_CURRENCY),
+          })
+        : t("heroStartingAtForDays", {
+            amount: formatMoneyAmount(baseline.cents, locale, DEFAULT_DISPLAY_CURRENCY),
+            count: baseline.days,
+          });
+
+  const showTripPrice =
+    isValidRange &&
+    rentalDays > 0 &&
+    quote != null &&
+    Number.isFinite(quote.totalPriceCents) &&
+    !quoteLoading;
 
   return (
     <div className={styles.inner}>
@@ -548,7 +648,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
       </div>
 
       <div className={styles.layout}>
-        {/* LEFT: media */}
+        <div className={styles.mediaColumn}>
         <section className={styles.media}>
           {images.length === 0 ? (
             <div className={styles.mediaEmpty}>
@@ -599,10 +699,69 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
           )}
         </section>
 
+        <div className={styles.belowMedia}>
+          <details className={styles.contentDetails} open>
+            <summary className={styles.contentDetailsSummary}>{t("specsSectionTitle")}</summary>
+            <div className={styles.contentDetailsBody}>
+              <p>{t("specsSectionBody")}</p>
+            </div>
+          </details>
+          <details className={styles.contentDetails}>
+            <summary className={styles.contentDetailsSummary}>{t("includedSectionTitle")}</summary>
+            <div className={styles.contentDetailsBody}>
+              <p>{t("includedSectionBody")}</p>
+            </div>
+          </details>
+          <details className={styles.contentDetails}>
+            <summary className={styles.contentDetailsSummary}>{t("pickupInfoSectionTitle")}</summary>
+            <div className={styles.contentDetailsBody}>
+              <p>{t("pickupInfoSectionBody")}</p>
+            </div>
+          </details>
+        </div>
+        </div>
+
         {/* RIGHT: compact commerce strip */}
         <section className={`${styles.sidebar} ${styles.sidebarCommerce}`}>
           <header className={styles.header}>
             <h1 className={styles.title}>{title}</h1>
+            <div className={styles.heroPrice} aria-live="polite">
+              {isValidRange && rentalDays > 0 ? (
+                quoteLoading ? (
+                  baselineLine ? (
+                    <p className={styles.heroPriceMain}>
+                      {baselineLine}{" "}
+                      <span className={styles.heroPriceMuted}>{t("priceUpdating")}</span>
+                    </p>
+                  ) : (
+                    <p className={styles.heroPriceMainMuted}>{t("priceUpdating")}</p>
+                  )
+                ) : showTripPrice && quote ? (
+                  <p className={styles.heroPriceMain}>
+                    {t("tripTotalPrice", {
+                      amount: formatMoneyAmount(
+                        quote.totalPriceCents,
+                        locale,
+                        quote.currency ?? DEFAULT_DISPLAY_CURRENCY
+                      ),
+                      count: rentalDays,
+                    })}
+                  </p>
+                ) : baselineLine ? (
+                  <p className={styles.heroPriceMain}>{baselineLine}</p>
+                ) : quoteError ? (
+                  <p className={styles.heroPriceMainMuted}>{t("heroQuoteFailed")}</p>
+                ) : (
+                  <p className={styles.heroPriceMainMuted}>{t("heroPriceLoading")}</p>
+                )
+              ) : baselineLoading ? (
+                <p className={styles.heroPriceMainMuted}>{t("heroPriceLoading")}</p>
+              ) : baselineLine ? (
+                <p className={styles.heroPriceMain}>{baselineLine}</p>
+              ) : (
+                <p className={styles.heroPriceMeta}>{t("heroPriceAfterDates")}</p>
+              )}
+            </div>
             {description.length > 0 && (
               <p className={styles.headerDescription}>{description}</p>
             )}
@@ -760,18 +919,11 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
             </div>
           </div>
 
-          {/* Price */}
+          {/* Price note (trip total is prominent under title) */}
           <div className={styles.priceBlock}>
-            {quoteLoading ? (
+            {canQuote && quoteLoading && (
               <div className={styles.priceLoading}>{t("calculating")}</div>
-            ) : quote && Number.isFinite(quote.totalPriceCents) ? (
-              <div className={styles.priceBig}>
-                {quote.currency} {(quote.totalPriceCents / 100).toFixed(2)}
-              </div>
-            ) : (
-              <div className={styles.pricePlaceholder}>{t("selectDatesForPrice")}</div>
             )}
-
             <div className={styles.priceHint}>{t("priceHint")}</div>
             {quoteError && <div className={styles.priceError}>{quoteError}</div>}
           </div>
