@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import type { DateRange } from "react-day-picker";
 import { RangeCalendar } from "@/[locale]/components/daterangepicker/DateRangePicker";
+import { IconSearch } from "@/[locale]/components/icons";
 import type { CategoryOption, StoreOption } from "@/../utils/fetchAPI";
 import styles from "./SearchPill.module.css";
 
@@ -220,16 +221,7 @@ export default function SearchPill({
 
           <button type="button" className={styles.submit} onClick={handleSearch} aria-label={t("searchAria")}>
             <span className={styles.submitIcon} aria-hidden="true">
-              <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
-                <circle cx="10.5" cy="10.5" r="6.75" stroke="currentColor" strokeWidth="2.1" />
-                <path
-                  d="m15.75 15.75 4 4"
-                  stroke="currentColor"
-                  strokeWidth="2.1"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
+              <IconSearch focusable={false} aria-hidden />
             </span>
           </button>
 

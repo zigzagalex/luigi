@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { IconArrowRight } from "@/[locale]/components/icons";
 import type { Product } from "@/../utils/products";
 import styles from "./ProductCard.module.css";
 
@@ -85,22 +86,7 @@ export default function ProductCard({
 
         <span className={styles.cta}>
           <span>{t("rentNow")}</span>
-          <svg
-            className={styles.ctaIcon}
-            viewBox="0 0 20 20"
-            fill="none"
-            xmlns="http://www.w3.org/2000/svg"
-            aria-hidden="true"
-            focusable="false"
-          >
-            <path
-              d="M4.16666 10H15.8333M15.8333 10L10.8333 5M15.8333 10L10.8333 15"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <IconArrowRight className={styles.ctaIcon} aria-hidden focusable={false} />
         </span>
       </div>
     </Link>

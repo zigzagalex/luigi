@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
+import { IconWarning } from "@/[locale]/components/icons";
 import { useCart } from "@/[locale]/components/cart/CartContext";
 import styles from "./CartPage.module.css";
 
@@ -52,12 +53,7 @@ export default function CartPage() {
           {blockedItems.length > 0 && (
             <div className={styles.warning}>
               <span className={styles.warningIconWrap} aria-hidden="true">
-                <svg className={styles.warningIcon} viewBox="0 0 24 24" width="20" height="20">
-                  <path
-                    fill="currentColor"
-                    d="M1 21h22L12 2 1 21zm11-3h-2v-2h2v2zm0-4h-2v-4h2v4z"
-                  />
-                </svg>
+                <IconWarning className={styles.warningIcon} width={20} height={20} aria-hidden />
               </span>
               <span className={styles.warningText}>{t("warningBlocked")}</span>
             </div>

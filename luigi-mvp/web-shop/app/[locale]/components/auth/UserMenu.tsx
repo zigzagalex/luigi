@@ -3,54 +3,13 @@
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { useTranslations } from "next-intl";
+import { IconLogout, IconProfile, IconReservations } from "@/[locale]/components/icons";
 import { useAuth } from "./AuthContext";
 import styles from "./UserMenu.module.css";
 
 type Props = {
   onOpenAuth: () => void;
 };
-
-function IconReservations() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={styles.itemSvg}>
-      <path
-        d="M8 6V4m8 2V4M5 10h14M5 8a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v10a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V8Z"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function IconProfile() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={styles.itemSvg}>
-      <path
-        d="M12 12.2a4.1 4.1 0 1 0 0-8.2 4.1 4.1 0 0 0 0 8.2ZM5 20a7 7 0 0 1 14 0"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
-
-function IconLogout() {
-  return (
-    <svg viewBox="0 0 24 24" fill="none" aria-hidden className={styles.itemSvg}>
-      <path
-        d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4M16 17l5-5-5-5M21 12H9"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-    </svg>
-  );
-}
 
 export default function UserMenu({ onOpenAuth }: Props) {
   const t = useTranslations("auth");
@@ -158,15 +117,7 @@ export default function UserMenu({ onOpenAuth }: Props) {
       >
         <span className={styles.desktopLabel}>{t("loginSignup")}</span>
         <span className={styles.mobileIcon} aria-hidden="true">
-          <svg viewBox="0 0 24 24" fill="none" focusable="false" aria-hidden="true">
-            <path
-              d="M12 12.2a4.1 4.1 0 1 0 0-8.2 4.1 4.1 0 0 0 0 8.2ZM5 20a7 7 0 0 1 14 0"
-              stroke="currentColor"
-              strokeWidth="1.8"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            />
-          </svg>
+          <IconProfile focusable={false} aria-hidden />
         </span>
       </button>
     );
@@ -202,7 +153,7 @@ export default function UserMenu({ onOpenAuth }: Props) {
             onClick={() => setOpen(false)}
           >
             <span className={styles.itemIcon} aria-hidden>
-              <IconReservations />
+              <IconReservations className={styles.itemSvg} aria-hidden />
             </span>
             <span className={styles.itemLabel}>{t("reservations")}</span>
           </Link>
@@ -214,7 +165,7 @@ export default function UserMenu({ onOpenAuth }: Props) {
             onClick={() => setOpen(false)}
           >
             <span className={styles.itemIcon} aria-hidden>
-              <IconProfile />
+              <IconProfile className={styles.itemSvg} aria-hidden />
             </span>
             <span className={styles.itemLabel}>{t("profileSettings")}</span>
           </Link>
@@ -230,7 +181,7 @@ export default function UserMenu({ onOpenAuth }: Props) {
             }}
           >
             <span className={`${styles.itemIcon} ${styles.dangerIcon}`} aria-hidden>
-              <IconLogout />
+              <IconLogout className={styles.itemSvg} aria-hidden />
             </span>
             <span className={styles.itemLabel}>{t("logout")}</span>
           </button>
