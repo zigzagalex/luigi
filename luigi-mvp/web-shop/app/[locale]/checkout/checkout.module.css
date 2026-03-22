@@ -65,7 +65,7 @@
   }
   
   .btnGhost {
-    composes: buttonSecondary from "../components/ui/primitives.module.css";
+    composes: buttonTertiary from "../components/ui/primitives.module.css";
   }
   
   .btnPrimary {
@@ -137,6 +137,27 @@
   
   .input {
     composes: surfaceInput from "../components/ui/primitives.module.css";
+  }
+
+  .textarea {
+    composes: surfaceInput from "../components/ui/primitives.module.css";
+    min-height: 6.5rem;
+    padding: var(--space-3);
+    resize: vertical;
+    font-family: inherit;
+    line-height: 1.45;
+  }
+
+  .fieldFullWidth {
+    grid-column: 1 / -1;
+  }
+
+  .paymentInfo {
+    composes: fontBody from "../components/ui/typography.module.css";
+    margin: 0;
+    font-size: var(--text-meta-size);
+    color: var(--color-text-body);
+    line-height: 1.5;
   }
   
   .expandActions {

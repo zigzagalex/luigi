@@ -162,7 +162,7 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
     [cart]
   );
   
-  const canCheckout = blockedItems.length === 0;
+  const canCheckout = itemCount > 0 && blockedItems.length === 0;
 
   // Hydrate product + variant + images caches based on cart items
   useEffect(() => {
