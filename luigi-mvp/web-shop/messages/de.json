@@ -32,7 +32,8 @@
     "apiError": "API-Fehler {status}: {text}",
     "searchError": "Bei der Suche nach Verfügbarkeiten ist ein Fehler aufgetreten.",
     "availabilityFailed": "Verfügbarkeiten konnten nicht geladen werden. Bitte prüfe Datum und Standort und versuche es erneut.",
-    "empty": "Keine Bikes für diese Suchkriterien verfügbar."
+    "empty": "Keine Bikes für diese Suchkriterien verfügbar.",
+    "resultCount": "{count, plural, one {# Bike passt zu deiner Suche} other {# Bikes passen zu deiner Suche}}"
   },
   "profilePage": {
     "loading": "Lädt…",

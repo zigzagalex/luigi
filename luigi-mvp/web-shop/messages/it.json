@@ -32,7 +32,8 @@
     "apiError": "Errore API {status}: {text}",
     "searchError": "Qualcosa è andato storto durante la ricerca della disponibilità.",
     "availabilityFailed": "Non siamo riusciti a caricare la disponibilità per questa ricerca. Controlla date e negozio, poi riprova.",
-    "empty": "Nessuna bici disponibile per questa ricerca."
+    "empty": "Nessuna bici disponibile per questa ricerca.",
+    "resultCount": "{count, plural, one {# bici corrisponde alla ricerca} other {# bici corrispondono alla ricerca}}"
   },
   "profilePage": {
     "loading": "Caricamento…",
