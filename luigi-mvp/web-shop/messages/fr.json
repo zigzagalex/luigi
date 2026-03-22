@@ -391,7 +391,7 @@
     "breadcrumbAria": "Fil d’Ariane",
     "breadcrumbHome": "Accueil",
     "allBikesTitle": "Tous les vélos",
-    "subcategoriesHeading": "Sous-catégories",
+    "subcategoriesNavAria": "Catégories associées",
     "empty": "Aucun vélo dans cette catégorie pour le moment."
   },
   "featuredProducts": {

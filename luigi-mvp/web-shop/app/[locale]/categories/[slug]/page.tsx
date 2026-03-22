@@ -184,22 +184,17 @@ export default async function CategoryPage({
         ) : null}
 
         {subcategories.length > 0 ? (
-          <section aria-labelledby="subcategories-heading">
-            <h2 id="subcategories-heading" className={styles.subsectionTitle}>
-              {t("subcategoriesHeading")}
-            </h2>
-            <div className={styles.subcategories}>
-              {subcategories.map((c) => (
-                <Link
-                  key={c.id}
-                  href={`/${locale}/categories/${c.slug}`}
-                  className={styles.subcategoryLink}
-                >
-                  {c.name}
-                </Link>
-              ))}
-            </div>
-          </section>
+          <nav className={styles.subcategories} aria-label={t("subcategoriesNavAria")}>
+            {subcategories.map((c) => (
+              <Link
+                key={c.id}
+                href={`/${locale}/categories/${c.slug}`}
+                className={styles.subcategoryLink}
+              >
+                {c.name}
+              </Link>
+            ))}
+          </nav>
         ) : null}
 
         {products.length > 0 ? (
