@@ -85,7 +85,8 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
 
       if (!res.ok) {
         const text = await res.text();
-        error = t("apiError", { status: String(res.status), text });
+        console.error("availability search HTTP error:", res.status, text);
+        error = t("availabilityFailed");
       } else {
         const availability = (await res.json()) as AvailabilityRow[];
 

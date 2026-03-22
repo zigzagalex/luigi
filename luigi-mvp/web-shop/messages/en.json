@@ -26,11 +26,12 @@
   },
   "searchPage": {
     "title": "Available bikes",
-    "selectLocation": "Please select a pickup location in the header first.",
-    "invalidStore": "Invalid store selected.",
-    "chooseDates": "Please choose dates in the search bar first.",
+    "selectLocation": "Choose a pickup location and rental dates using the search on the home page, then run your search.",
+    "invalidStore": "That pickup location is not valid. Please choose another store and try again.",
+    "chooseDates": "Please choose pickup and return dates in the search bar first.",
     "apiError": "API error {status}: {text}",
     "searchError": "Something went wrong while searching availability.",
+    "availabilityFailed": "We couldn’t load availability for this search. Please check your dates and store, then try again.",
     "empty": "No available bikes for that search."
   },
   "profilePage": {
@@ -403,7 +404,9 @@
     "chooseLocation": "Choose location",
     "chooseBikeType": "Choose bike type",
     "anyBike": "Any bike",
-    "addDates": "Add dates"
+    "addDates": "Add dates",
+    "pickLocationFirst": "Choose a pickup location to continue.",
+    "noStoresAvailable": "No pickup locations are available right now."
   },
   "footer": {
     "navAria": "Footer",
