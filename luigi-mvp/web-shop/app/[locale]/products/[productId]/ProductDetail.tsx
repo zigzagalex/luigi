@@ -37,7 +37,6 @@ type Store = {
   shop_id: number;
   name: string;
   city?: string | null | { String: string; Valid: boolean };
-  postal_code?: string | null | { String: string; Valid: boolean };
   is_active: boolean | null;
 };
 
@@ -187,13 +186,10 @@ function unwrapDbString(v: unknown): string {
   return "";
 }
 
-/** City + postcode for compact pickup UI; falls back to store name */
+/** City only for compact pickup UI; falls back to store name */
 function storeLocationShortLabel(store: Store): string {
   const city = unwrapDbString(store.city);
-  const postal = unwrapDbString(store.postal_code);
-  if (city && postal) return `${city} ${postal}`;
   if (city) return city;
-  if (postal) return postal;
   return store.name;
 }
 
