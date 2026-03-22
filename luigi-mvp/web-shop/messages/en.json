@@ -391,7 +391,7 @@
     "breadcrumbAria": "Breadcrumb",
     "breadcrumbHome": "Home",
     "allBikesTitle": "All bikes",
-    "subcategoriesHeading": "Browse subcategories",
+    "subcategoriesNavAria": "Related categories",
     "empty": "No bikes in this category yet."
   },
   "featuredProducts": {
