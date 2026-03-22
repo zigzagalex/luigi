@@ -92,6 +92,13 @@ export default function ComponentsPage() {
                 </p>
               </div>
               <div className={styles.swatch}>
+                <div className={styles.swatchChip} style={{ background: "var(--color-bg-section-band)" }} />
+                <p className={`${styles.swatchCode} ${typography.meta}`}>
+                  Homepage category strips (tinted from primary){' '}
+                  <code className={typography.fontCode}>--color-bg-section-band</code>
+                </p>
+              </div>
+              <div className={styles.swatch}>
                 <div className={styles.swatchChip} style={{ background: "var(--color-accent-danger)" }} />
                 <p className={`${styles.swatchCode} ${typography.meta}`}>
                   Accent for urgent state <code className={typography.fontCode}>--color-accent-danger</code>
