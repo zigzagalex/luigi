@@ -109,7 +109,6 @@ export default function ReservationRow({ reservation }: Props) {
 
       <ReservationItemsPreview
         items={items}
-        locale={locale}
         defaultCurrency={currency}
         hideNameAtIndex={items.length > 0 ? 0 : -1}
       />
@@ -125,7 +124,10 @@ export default function ReservationRow({ reservation }: Props) {
         </div>
 
         <div className={styles.bottomRight}>
-          <div className={styles.total}>{totalFormatted}</div>
+          <div className={styles.totalBlock}>
+            <span className={styles.totalLabel}>{t("totalLabel")}</span>
+            <span className={styles.total}>{totalFormatted}</span>
+          </div>
           <div className={styles.actions}>
             <Link href={primaryHref} className={styles.primaryCta}>
               {primaryLabel}

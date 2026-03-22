@@ -127,10 +127,25 @@
   margin-left: auto;
 }
 
+.totalBlock {
+  display: flex;
+  flex-direction: row;
+  align-items: baseline;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+}
+
+.totalLabel {
+  font-size: max(0.8125rem, 13px);
+  font-weight: 600;
+  color: var(--color-text-meta);
+}
+
 .total {
-  font-weight: 700;
-  font-size: max(1.0625rem, 17px);
-  color: var(--color-text-strong);
+  font-size: max(0.8125rem, 13px);
+  font-weight: 600;
+  color: var(--color-text-meta);
 }
 
 .actions {
