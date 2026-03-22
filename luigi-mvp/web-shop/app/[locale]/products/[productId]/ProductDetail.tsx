@@ -10,8 +10,9 @@ import {
   AvailabilityRangeCalendar,
   type RangeValue,
 } from "@/[locale]/components/daterangepicker/AvailabilityRangeCalendar";
-import { useCart } from "@/[locale]/components/cart/CartContext"; 
+import { useCart } from "@/[locale]/components/cart/CartContext";
 import StoreConflictModal from "@/[locale]/components/cart/StoreConflictModal";
+import { TOP_BIKES_CATEGORY_SLUG } from "@/../utils/categorySlugs";
 
 
 /** ---------- Types ---------- */
@@ -105,23 +106,6 @@ const LISTING_SEARCH_KEYS = [
   "to",
   "quantity",
 ] as const;
-
-function listingSearchHref(
-  locale: string,
-  sp: ReturnType<typeof useSearchParams>,
-  opts: { categoryId?: number }
-): string {
-  const params = new URLSearchParams();
-  for (const key of LISTING_SEARCH_KEYS) {
-    const v = sp.get(key);
-    if (v) params.set(key, v);
-  }
-  if (opts.categoryId != null) {
-    params.set("category_id", String(opts.categoryId));
-  }
-  const qs = params.toString();
-  return `/${locale}/search${qs ? `?${qs}` : ""}`;
-}
 
 function searchResultsHref(
   locale: string,
@@ -229,17 +213,33 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   }, [product.categories, categoryIdFromUrl]);
 
   const listingRef = sp.get("ref");
+  const categorySlugFromRef = sp.get("category")?.trim() || null;
+
+  const allBikesCategoryHref = `/${locale}/categories/${TOP_BIKES_CATEGORY_SLUG}`;
 
   const backToListing = useMemo(() => {
-    const bikesHref = listingSearchHref(locale, sp, {});
     if (listingRef === "search") {
       return { href: searchResultsHref(locale, sp), label: t("backToResults") };
     }
     if (listingRef === "browse") {
       return { href: `/${locale}`, label: t("backToBrowsing") };
     }
-    return { href: bikesHref, label: t("backToAllBikes") };
-  }, [listingRef, locale, sp, t]);
+    if (listingRef === "category") {
+      const slug = categorySlugFromRef || TOP_BIKES_CATEGORY_SLUG;
+      return {
+        href: `/${locale}/categories/${slug}`,
+        label: t("backToCategory"),
+      };
+    }
+    return { href: allBikesCategoryHref, label: t("backToAllBikes") };
+  }, [
+    listingRef,
+    categorySlugFromRef,
+    locale,
+    sp,
+    t,
+    allBikesCategoryHref,
+  ]);
 
   /** ---------- Component state ---------- */
 
@@ -603,10 +603,10 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   }, [product.price_category]);
 
   /** ---------- Render ---------- */
-  const bikesSearchHref = listingSearchHref(locale, sp, {});
-  const categorySearchHref = breadcrumbCategory
-    ? listingSearchHref(locale, sp, { categoryId: breadcrumbCategory.id })
-    : bikesSearchHref;
+  const bikesCategoryHref = allBikesCategoryHref;
+  const subcategoryHref = breadcrumbCategory
+    ? `/${locale}/categories/${breadcrumbCategory.slug}`
+    : bikesCategoryHref;
 
   const baselineLine =
     baseline == null
@@ -642,7 +642,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
               /
             </li>
             <li className={styles.breadcrumbItem}>
-              <Link href={bikesSearchHref}>{t("breadcrumbBikes")}</Link>
+              <Link href={bikesCategoryHref}>{t("breadcrumbBikes")}</Link>
             </li>
             {breadcrumbCategory && (
               <>
@@ -650,7 +650,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
                   /
                 </li>
                 <li className={styles.breadcrumbItem}>
-                  <Link href={categorySearchHref}>{breadcrumbCategory.name}</Link>
+                  <Link href={subcategoryHref}>{breadcrumbCategory.name}</Link>
                 </li>
               </>
             )}

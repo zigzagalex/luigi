@@ -332,7 +332,8 @@
     "breadcrumbBikes": "Bikes",
     "backToResults": "Zurück zu den Ergebnissen",
     "backToBrowsing": "Zurück zur Übersicht",
-    "backToAllBikes": "Zurück zu allen Bikes"
+    "backToAllBikes": "Zurück zu allen Bikes",
+    "backToCategory": "Zurück zur Kategorie"
   },
   "productCard": {
     "fromPrice": "Ab CHF {price}",
@@ -349,6 +350,7 @@
   "categoryPage": {
     "breadcrumbAria": "Brotkrümel",
     "breadcrumbHome": "Start",
+    "allBikesTitle": "Alle Bikes",
     "subcategoriesHeading": "Unterkategorien",
     "empty": "In dieser Kategorie gibt es noch keine Bikes."
   },

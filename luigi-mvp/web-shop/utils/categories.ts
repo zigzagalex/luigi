@@ -77,3 +77,14 @@ export function sortedActiveChildren(node: CategoryTreeNode): CategoryTreeNode[]
       return a.name.localeCompare(b.name);
     });
 }
+
+export function sortedActiveRootCategories(
+  tree: CategoryTreeNode[],
+): CategoryTreeNode[] {
+  return [...tree]
+    .filter((c) => c.is_active !== false)
+    .sort((a, b) => {
+      if (a.sort_order !== b.sort_order) return a.sort_order - b.sort_order;
+      return a.name.localeCompare(b.name);
+    });
+}

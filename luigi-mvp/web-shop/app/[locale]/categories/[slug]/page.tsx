@@ -9,7 +9,10 @@ import {
   findCategoryBySlug,
   indexCategoriesById,
   sortedActiveChildren,
+  sortedActiveRootCategories,
+  type CategoryTreeNode,
 } from "@/../utils/categories";
+import { TOP_BIKES_CATEGORY_SLUG } from "@/../utils/categorySlugs";
 import { fetchApi } from "@/../utils/fetchAPI";
 import { fetchProducts, type Product } from "@/../utils/products";
 
@@ -87,25 +90,55 @@ export default async function CategoryPage({
   }
 
   const node = findCategoryBySlug(tree, slug);
-  if (!node || node.is_active === false) {
+  const isVirtualAllBikes =
+    !node && slug === TOP_BIKES_CATEGORY_SLUG;
+
+  if ((!node || node.is_active === false) && !isVirtualAllBikes) {
     notFound();
   }
 
-  const byId = indexCategoriesById(tree);
-  const breadcrumbs = categoryBreadcrumbs(byId, node);
-  const subcategories = sortedActiveChildren(node);
-
+  let breadcrumbs: { slug: string; name: string }[] = [];
+  let subcategories: CategoryTreeNode[] = [];
+  let pageTitle: string;
+  let description: string | null = null;
   let products: Product[] = [];
-  try {
-    products = await fetchProducts({
-      shop_id: DEFAULT_SHOP_ID,
-      category_id: node.id,
-      limit: 200,
-      locale,
-    });
-  } catch (err) {
-    console.error("Failed to fetch category products:", err);
-    products = [];
+  let gridCategorySlug = slug;
+
+  if (node && node.is_active !== false) {
+    const byId = indexCategoriesById(tree);
+    breadcrumbs = categoryBreadcrumbs(byId, node);
+    subcategories = sortedActiveChildren(node);
+    pageTitle = node.name;
+    description =
+      typeof node.description === "string" && node.description.trim()
+        ? node.description.trim()
+        : null;
+    try {
+      products = await fetchProducts({
+        shop_id: DEFAULT_SHOP_ID,
+        category_id: node.id,
+        limit: 200,
+        locale,
+      });
+    } catch (err) {
+      console.error("Failed to fetch category products:", err);
+      products = [];
+    }
+  } else {
+    pageTitle = t("allBikesTitle");
+    breadcrumbs = [{ slug: TOP_BIKES_CATEGORY_SLUG, name: pageTitle }];
+    subcategories = sortedActiveRootCategories(tree);
+    gridCategorySlug = TOP_BIKES_CATEGORY_SLUG;
+    try {
+      products = await fetchProducts({
+        shop_id: DEFAULT_SHOP_ID,
+        limit: 200,
+        locale,
+      });
+    } catch (err) {
+      console.error("Failed to fetch all bikes for top category:", err);
+      products = [];
+    }
   }
 
   let fromDailyPriceByCategory: Record<string, number> = {};
@@ -119,11 +152,6 @@ export default async function CategoryPage({
     console.error("Failed to fetch price points for category page:", err);
   }
 
-  const description =
-    typeof node.description === "string" && node.description.trim()
-      ? node.description.trim()
-      : null;
-
   return (
     <main className={pageShell.page}>
       <div className={styles.inner}>
@@ -133,7 +161,7 @@ export default async function CategoryPage({
               <Link href={`/${locale}`}>{t("breadcrumbHome")}</Link>
             </li>
             {breadcrumbs.map((c, i) => (
-              <li key={c.slug}>
+              <li key={`${c.slug}-${i}`}>
                 <span className={styles.crumbSep} aria-hidden="true">
                   /
                 </span>{" "}
@@ -149,7 +177,7 @@ export default async function CategoryPage({
           </ol>
         </nav>
 
-        <h1 className={styles.title}>{node.name}</h1>
+        <h1 className={styles.title}>{pageTitle}</h1>
         {description ? (
           <p className={styles.description}>{description}</p>
         ) : null}
@@ -176,7 +204,10 @@ export default async function CategoryPage({
         {products.length > 0 ? (
           <ProductGrid
             products={products}
-            linkSearchParams={{ ref: "category", category: slug }}
+            linkSearchParams={{
+              ref: "category",
+              category: gridCategorySlug,
+            }}
             fromDailyPriceByCategory={fromDailyPriceByCategory}
           />
         ) : (
