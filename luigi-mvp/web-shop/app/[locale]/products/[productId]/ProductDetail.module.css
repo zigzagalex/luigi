@@ -465,6 +465,74 @@
   composes: selectionPillSelected from "../../components/ui/primitives.module.css";
 }
 
+/* Pick-up location: horizontal segmented control */
+
+.storeSegmented {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  width: 100%;
+  max-width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg-section-band);
+  padding: 4px;
+  gap: 2px;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.storeSegment {
+  composes: fontLabel from "../../components/ui/typography.module.css";
+  flex: 1 1 0;
+  min-width: 0;
+  margin: 0;
+  border: none;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--color-text-body);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.2;
+  padding: var(--space-2) var(--space-2);
+  cursor: pointer;
+  transition:
+    background 0.12s ease,
+    color 0.12s ease,
+    box-shadow 0.12s ease;
+}
+
+.storeSegment:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.storeSegmentLabel {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.storeSegment:hover:not(:disabled):not(.storeSegmentDisabled) {
+  color: var(--color-primary);
+}
+
+.storeSegmentSelected {
+  background: var(--color-bg-surface);
+  color: var(--color-primary);
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.12);
+}
+
+.storeSegmentDisabled,
+.storeSegment:disabled {
+  opacity: var(--pill-disabled-opacity);
+  cursor: not-allowed;
+  color: var(--color-text-meta);
+}
+
 /* Dates */
 
 .dateRow {

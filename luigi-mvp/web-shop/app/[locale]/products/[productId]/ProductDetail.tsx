@@ -36,6 +36,8 @@ type Store = {
   id: number;
   shop_id: number;
   name: string;
+  city?: string | null | { String: string; Valid: boolean };
+  postal_code?: string | null | { String: string; Valid: boolean };
   is_active: boolean | null;
 };
 
@@ -173,6 +175,26 @@ function pickBaselineFromPricePoints(points: PricePointRow[]): BaselineDisplay |
   if (one) return { kind: "per_day", cents: one.price_total_cents };
   const first = sorted[0];
   return { kind: "tier", cents: first.price_total_cents, days: first.day_count };
+}
+
+/** Supports plain strings or Go/sql JSON `NullString` `{ String, Valid }` from the API */
+function unwrapDbString(v: unknown): string {
+  if (typeof v === "string") return v.trim();
+  if (v && typeof v === "object" && "Valid" in v && "String" in v) {
+    const o = v as { Valid: boolean; String: string };
+    return o.Valid && o.String ? String(o.String).trim() : "";
+  }
+  return "";
+}
+
+/** City + postcode for compact pickup UI; falls back to store name */
+function storeLocationShortLabel(store: Store): string {
+  const city = unwrapDbString(store.city);
+  const postal = unwrapDbString(store.postal_code);
+  if (city && postal) return `${city} ${postal}`;
+  if (city) return city;
+  if (postal) return postal;
+  return store.name;
 }
 
 export default function ProductDetail({ product, variants, stores, inventory }: Props) {
@@ -419,10 +441,11 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
       quantity,
     });
 
+    const storeForPopover = stores.find((s) => s.id === selectedStoreId);
     openAddPopover({
       title,
       imageUrl: images[0]?.url,
-      storeName: stores.find((s) => s.id === selectedStoreId)?.name,
+      storeName: storeForPopover ? storeLocationShortLabel(storeForPopover) : undefined,
       from: formatDateForApiLocal(range.from),
       to: formatDateForApiLocal(range.to),
       quantity,
@@ -767,10 +790,14 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
             )}
           </header>
 
-          {/* Store selector */}
+          {/* Store selector — horizontal segmented control */}
           <div className={styles.block}>
             <h2 className={styles.blockTitle}>{t("pickupLocation")}</h2>
-            <div className={styles.chipRow}>
+            <div
+              className={styles.storeSegmented}
+              role="radiogroup"
+              aria-label={t("pickupLocation")}
+            >
               {stores.map((store) => {
                 const hasInv = storeHasInventoryForSelectedVariant(store.id);
                 const isSelected = selectedStoreId === store.id && hasInv;
@@ -779,17 +806,21 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
                   <button
                     key={store.id}
                     type="button"
+                    role="radio"
+                    aria-checked={isSelected}
                     disabled={!hasInv}
                     onClick={() => hasInv && setSelectedStoreId(store.id)}
                     className={[
-                      styles.chip,
-                      !hasInv ? styles.chipDisabled : "",
-                      isSelected ? styles.chipSelected : "",
+                      styles.storeSegment,
+                      !hasInv ? styles.storeSegmentDisabled : "",
+                      isSelected ? styles.storeSegmentSelected : "",
                     ]
                       .filter(Boolean)
                       .join(" ")}
                   >
-                    {store.name}
+                    <span className={styles.storeSegmentLabel}>
+                      {storeLocationShortLabel(store)}
+                    </span>
                   </button>
                 );
               })}
