@@ -59,8 +59,6 @@ function labelFor(k: keyof CustomerProfile, t: (key: string, values?: Record<str
       return t("country");
     case "notes":
       return t("notes");
-    default:
-      return k.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
   }
 }
 
