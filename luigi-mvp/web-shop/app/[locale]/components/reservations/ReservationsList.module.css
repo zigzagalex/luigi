@@ -1,11 +1,95 @@
+.wrap {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
 .list {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-6);
-  }
-  
-  .empty {
-    color: var(--color-text-meta);
-    font-size: var(--text-meta-size);
-  }
-  
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-6);
+}
+
+.emptyWrap {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--space-4);
+  max-width: 32rem;
+}
+
+.empty {
+  color: var(--color-text);
+  font-size: var(--text-body-size);
+  margin: 0;
+}
+
+.emptyHint {
+  color: var(--color-text-meta);
+  font-size: var(--text-meta-size);
+  margin: 0;
+  line-height: 1.5;
+}
+
+.browseCta {
+  composes: surfaceLinkButton from "../ui/primitives.module.css";
+  margin-top: var(--space-2);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.chip {
+  border: 1px solid var(--color-border);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-strong);
+  font-size: max(0.875rem, 14px);
+  font-weight: 600;
+  padding: var(--space-2) var(--space-4);
+  border-radius: 999px;
+  cursor: pointer;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.chip:hover {
+  border-color: var(--color-text-meta);
+  background: var(--color-bg-hover-soft);
+}
+
+.chip:focus {
+  outline: none;
+}
+
+.chip:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.chipSelected {
+  border-color: #000000;
+  background: #000000;
+  color: #ffffff;
+}
+
+.chipSelected:hover {
+  border-color: #000000;
+  background: #1a1a1a;
+  color: #ffffff;
+}
+
+.chipSelected:focus-visible {
+  outline: 2px solid #ffffff;
+  outline-offset: 2px;
+}
+
+.noMatches {
+  color: var(--color-text-meta);
+  font-size: var(--text-body-size);
+  margin: 0;
+}

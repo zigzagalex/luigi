@@ -116,7 +116,9 @@
   "reservationsPage": {
     "title": "Your reservations",
     "loadFailed": "Failed to load reservations.",
-    "unexpectedError": "Unexpected error occurred."
+    "unexpectedError": "Unexpected error occurred.",
+    "retry": "Try again",
+    "getHelp": "Contact support"
   },
   "reservationDetailsPage": {
     "title": "Reservation",
@@ -129,10 +131,31 @@
     "unexpectedError": "Unexpected error occurred."
   },
   "reservationsList": {
-    "empty": "You don’t have any reservations yet."
+    "empty": "You don’t have any reservations yet.",
+    "emptyHint": "Reservations you complete at checkout will show up here.",
+    "browseProducts": "Browse products",
+    "filterLabel": "Filter reservations",
+    "filterAll": "All",
+    "filterActive": "Active",
+    "filterPast": "Past",
+    "filterCancelled": "Cancelled",
+    "noMatches": "No reservations match this filter."
   },
   "reservationRow": {
-    "reservationNumber": "Reservation {id}"
+    "reservationNumber": "Reservation {id}",
+    "rentalPeriod": "Rental period",
+    "placedOn": "Placed on {date}",
+    "dateRangeTo": "to",
+    "viewDetails": "View details",
+    "pickup": "Pick up",
+    "cancelLink": "Cancel",
+    "editLink": "Edit",
+    "rentalEnded": "Rental ended",
+    "rentalActive": "Rental in progress",
+    "startsToday": "Starts today",
+    "startsTomorrow": "Starts tomorrow",
+    "startsInDays": "Starts in {days} days",
+    "heroMoreItems": "+{count, plural, one {1 more item} other {# more items}}"
   },
   "reservationStatus": {
     "confirmed": "Confirmed",
@@ -141,7 +164,8 @@
   },
   "reservationItemsPreview": {
     "alt": "Reservation item",
-    "more": "+{count} more"
+    "more": "+{count} more",
+    "viewProduct": "View product: {name}"
   },
   "reservationItemsFull": {
     "empty": "No items.",
