@@ -50,6 +50,8 @@
   --color-accent-success-bg: #e8f7ec;
   --color-accent-warning-bg: #fff5dc;
   --color-bg-page: #f4f6fb;
+  /* Homepage product strips: subtle cool tint from primary on page bg */
+  --color-bg-section-band: color-mix(in srgb, var(--color-primary) 6%, var(--color-bg-page));
   --color-bg-surface: #ffffff;
   --color-bg-subtle: #f8fafc;
   --color-bg-inverse: #0b1220;

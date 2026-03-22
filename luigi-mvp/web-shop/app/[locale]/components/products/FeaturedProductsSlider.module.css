@@ -1,5 +1,5 @@
 .row {
-  margin-bottom: 28px;
+  margin-bottom: 0;
 }
 
 .header {
@@ -10,9 +10,11 @@
 }
 
 .title {
-  font-size: 15px;
-  font-weight: 600;
+  composes: h3 from "../ui/typography.module.css";
   margin: 0;
+  color: var(--color-text-strong);
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--color-primary);
 }
 
 .body {
