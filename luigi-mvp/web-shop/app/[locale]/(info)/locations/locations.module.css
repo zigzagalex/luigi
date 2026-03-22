@@ -1,0 +1,100 @@
+.layout {
+  min-width: 0;
+}
+
+.heading {
+  composes: fontSectionTitle from "../../components/ui/typography.module.css";
+  font-size: var(--text-body-size);
+  font-weight: 600;
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-strong);
+}
+
+.cards {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-4);
+  grid-template-columns: 1fr;
+}
+
+@media (min-width: 640px) {
+  .cards {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 960px) {
+  .cards {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.card {
+  margin: 0;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  background: var(--color-bg-surface);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 16px;
+  overflow: hidden;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.card:hover {
+  border-color: var(--color-border);
+  box-shadow: 0 1px 3px var(--color-overlay-subtle);
+}
+
+.cardBody {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-5);
+  flex: 1;
+}
+
+.cardTitle {
+  composes: h3 from "../../components/ui/typography.module.css";
+  margin: 0;
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--color-primary);
+  color: var(--color-text-strong);
+  font-size: var(--text-h3-size);
+}
+
+.cardAddress {
+  composes: fontBody from "../../components/ui/typography.module.css";
+  margin: 0;
+  color: var(--color-text-body);
+  white-space: pre-wrap;
+}
+
+.cardAddressMuted {
+  composes: cardAddress;
+  color: var(--color-text-meta);
+}
+
+.cardLink {
+  composes: fontBody from "../../components/ui/typography.module.css";
+  display: block;
+  margin-top: auto;
+  padding: var(--space-3) var(--space-5) var(--space-5);
+  font-size: var(--text-meta-size);
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  border-top: 1px solid var(--color-border-soft);
+  background: var(--color-bg-subtle);
+}
+
+.cardLink:hover {
+  text-decoration: underline;
+}
+
+.emptyStores {
+  composes: fontBody from "../../components/ui/typography.module.css";
+  margin: 0;
+  color: var(--color-text-meta);
+}

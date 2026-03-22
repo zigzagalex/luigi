@@ -551,6 +551,14 @@
   "phoneField": {
     "placeholder": "+41 79 123 45 67"
   },
+  "locationsPage": {
+    "title": "Nos magasins",
+    "subtitle": "Retirez votre location dans n’importe quel magasin Luigi's en Suisse.",
+    "storesHeading": "Magasins",
+    "openInMaps": "Ouvrir dans Google Maps",
+    "noStores": "Aucun magasin pour le moment.",
+    "addressPending": "Adresse à venir"
+  },
   "infoPages": {
     "comingSoon": "Bientôt disponible.",
     "about": "À propos",

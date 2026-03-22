@@ -551,6 +551,14 @@
   "phoneField": {
     "placeholder": "+41 79 123 45 67"
   },
+  "locationsPage": {
+    "title": "Unsere Standorte",
+    "subtitle": "Hole dein Mietrad bei einem Luigi's-Shop in der ganzen Schweiz ab.",
+    "storesHeading": "Shops",
+    "openInMaps": "In Google Maps öffnen",
+    "noStores": "Noch keine Shops verfügbar.",
+    "addressPending": "Adresse folgt"
+  },
   "infoPages": {
     "comingSoon": "Demnächst verfügbar.",
     "about": "Über uns",
