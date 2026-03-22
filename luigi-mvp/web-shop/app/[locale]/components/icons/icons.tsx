@@ -121,6 +121,192 @@ export function IconWarning(props: IconProps) {
   );
 }
 
+/** Home trust banner — choose a bike */
+export function IconBikeChoose(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <circle cx="7" cy="16" r="3.25" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="17" cy="16" r="3.25" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M9.8 16 12 8.5h3.8M12 8.5l2.1 4.2M12 8.5 10 6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Home trust banner — reserve dates */
+export function IconCalendarReserve(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path
+        d="M8 6V4m8 2V4M5 10h14M5 9a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V9Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m10.3 14.2 1.9 1.9 3.8-4.3"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Home trust banner — pay at store / pickup */
+export function IconPayAtPickup(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path
+        d="M4 20V10l8-4 8 4v10"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M9 20v-5h6v5"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M11 12.5h2"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
+/** Home trust banner — ride */
+export function IconRideBike(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path
+        d="M3.5 14h2M2.5 17h2.5"
+        stroke="currentColor"
+        strokeWidth="1.6"
+        strokeLinecap="round"
+        opacity={0.35}
+      />
+      <circle cx="8" cy="16" r="3.25" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="17.5" cy="16" r="3.25" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M10.5 16 12.3 8.5h3.6l1.6 7.5M12.3 8.5 10.2 6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Home trust banner — serviced / maintenance */
+export function IconWrenchServiced(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path
+        d="m14.8 4.8 2.1 2.1-4.3 4.3a2.9 2.9 0 1 0 2.1 2.1l4.3-4.3 2.1 2.1"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6.5 17.5a2.5 2.5 0 1 0 0-3.5l1.8-1.8"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Home trust banner — cancel up to 24h */
+export function IconUndo24h(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <circle cx="12" cy="13" r="7" stroke="currentColor" strokeWidth="1.75" />
+      <path
+        d="M12 9.5V13l2.8 1.6"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.5 9.5A7.5 7.5 0 0 1 12 5.5v2"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Home trust banner — insurance */
+export function IconShieldInsured(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path
+        d="M12 4 4 7v5c0 5 3.2 9.4 8 11 4.8-1.6 8-6 8-11V7l-8-3Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="m9.3 12.5 1.9 1.9 3.8-4.3"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </svg>
+  );
+}
+
+/** Home trust banner — accessories range */
+export function IconAccessoriesRange(props: IconProps) {
+  return (
+    <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <path
+        d="M6 8.5c0-2.2 2.7-4 6-4s6 1.8 6 4-2.7 4-6 4-6-1.8-6-4Z"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M6 8.5v1c0 2.2 2.7 4 6 4s6-1.8 6-4v-1"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+      <path
+        d="M5.5 18h4M12.5 18h6M8 15.5h8"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
+      />
+    </svg>
+  );
+}
+
 /** Metadata for the components overview and discoverability */
 export const iconCatalog: { name: string; description: string; Icon: IconComponent }[] = [
   { name: "IconReservations", description: "Account menu → reservations", Icon: IconReservations },
@@ -131,4 +317,12 @@ export const iconCatalog: { name: string; description: string; Icon: IconCompone
   { name: "IconSearch", description: "PDP header search, search pill submit", Icon: IconSearch },
   { name: "IconArrowRight", description: "Product card rent CTA", Icon: IconArrowRight },
   { name: "IconWarning", description: "Cart page conflict / blocked items", Icon: IconWarning },
+  { name: "IconBikeChoose", description: "Home trust banner — choose bike", Icon: IconBikeChoose },
+  { name: "IconCalendarReserve", description: "Home trust banner — reserve", Icon: IconCalendarReserve },
+  { name: "IconPayAtPickup", description: "Home trust banner — pay at pickup", Icon: IconPayAtPickup },
+  { name: "IconRideBike", description: "Home trust banner — ride", Icon: IconRideBike },
+  { name: "IconWrenchServiced", description: "Home trust banner — serviced", Icon: IconWrenchServiced },
+  { name: "IconUndo24h", description: "Home trust banner — cancel window", Icon: IconUndo24h },
+  { name: "IconShieldInsured", description: "Home trust banner — insured", Icon: IconShieldInsured },
+  { name: "IconAccessoriesRange", description: "Home trust banner — accessories", Icon: IconAccessoriesRange },
 ];

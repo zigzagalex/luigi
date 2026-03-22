@@ -22,7 +22,37 @@
     "switchLabel": "Lingua"
   },
   "home": {
-    "empty": "Ancora nessuna bici da mostrare. Controlla la configurazione dell'API o aggiungi prodotti."
+    "empty": "Ancora nessuna bici da mostrare. Controlla la configurazione dell'API o aggiungi prodotti.",
+    "trustBanner": {
+      "title": "Perché noleggiare da noi",
+      "subtitle": "Processo chiaro, condizioni eque e bici regolate e pronte all’uso.",
+      "processTitle": "Come funziona il noleggio",
+      "highlightsTitle": "Cosa puoi aspettarti",
+      "step1": {
+        "title": "Scegli la bici",
+        "body": "Sfoglia le categorie, confronta i modelli e aggiungi gli accessori che ti servono."
+      },
+      "step2": {
+        "title": "Prenota online",
+        "body": "Scegli negozio, date e conferma la prenotazione in pochi passaggi."
+      },
+      "step3": {
+        "title": "Pagamento al ritiro",
+        "body": "Nessun anticipo online — paghi quando ritiri la bici in negozio."
+      },
+      "step4": {
+        "title": "Pedala",
+        "body": "Parti con attrezzatura controllata, con serenità e supporto locale se serve."
+      },
+      "serviced": {
+        "title": "Bici controllate",
+        "body": "Ogni bici viene ispezionata e regolata prima della consegna."
+      },
+      "insured": {
+        "title": "Bici assicurate",
+        "body": "Le bici a noleggio sono coperte — pensa solo al percorso."
+      }
+    }
   },
   "searchPage": {
     "title": "Bici disponibili",

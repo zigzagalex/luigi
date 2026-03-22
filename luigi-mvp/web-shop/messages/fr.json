@@ -22,7 +22,37 @@
     "switchLabel": "Langue"
   },
   "home": {
-    "empty": "Aucun vélo à afficher pour le moment. Vérifie ta configuration API ou ajoute des produits."
+    "empty": "Aucun vélo à afficher pour le moment. Vérifie ta configuration API ou ajoute des produits.",
+    "trustBanner": {
+      "title": "Pourquoi louer chez nous",
+      "subtitle": "Un parcours simple, des conditions équitables et des vélos réglés et prêts à rouler.",
+      "processTitle": "Comment ça marche",
+      "highlightsTitle": "Ce que nous t’offrons",
+      "step1": {
+        "title": "Choisis ton vélo",
+        "body": "Parcours les catégories, compare les modèles et ajoute les accessoires utiles."
+      },
+      "step2": {
+        "title": "Réserve en ligne",
+        "body": "Choisis le magasin, tes dates et confirme ta réservation en quelques clics."
+      },
+      "step3": {
+        "title": "Paiement au retrait",
+        "body": "Pas de prépaiement en ligne — tu règles quand tu récupères le vélo en magasin."
+      },
+      "step4": {
+        "title": "Roule",
+        "body": "Pars sur du matériel entretenu, l’esprit tranquille, avec une équipe locale si besoin."
+      },
+      "serviced": {
+        "title": "Vélos entretenus",
+        "body": "Chaque vélo est contrôlé et réglé avant la sortie."
+      },
+      "insured": {
+        "title": "Vélos assurés",
+        "body": "Les vélos de location sont couverts — concentre-toi sur la sortie."
+      }
+    }
   },
   "searchPage": {
     "title": "Vélos disponibles",

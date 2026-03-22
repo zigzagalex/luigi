@@ -1,3 +1,4 @@
+import RentalTrustBanner from "@/[locale]/components/home/RentalTrustBanner";
 import CategoryRow from "@/[locale]/components/products/CategoryRow";
 import FeaturedProductsSlider from "@/[locale]/components/products/FeaturedProductsSlider";
 import {
@@ -125,6 +126,12 @@ export default async function HomePage({
             />
           </section>
         ))}
+
+        {rows.length > 0 && (
+          <section className={styles.section}>
+            <RentalTrustBanner />
+          </section>
+        )}
 
         {products.length === 0 && (
           <p className={styles.emptyMsg}>
