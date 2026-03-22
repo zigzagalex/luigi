@@ -1,5 +1,6 @@
 import Link from "next/link";
 import styles from "./components-page.module.css";
+import { iconCatalog } from "./icons";
 import ui from "./ui/primitives.module.css";
 import typography from "./ui/typography.module.css";
 
@@ -19,6 +20,29 @@ export default function ComponentsPage() {
         </div>
 
         <div className={styles.grid}>
+          <section className={`${styles.card} ${styles.cardWide}`} aria-labelledby="icons-catalog">
+            <h2 id="icons-catalog" className={`${styles.cardTitle} ${typography.h3}`}>
+              Icons
+            </h2>
+            <p className={typography.body}>
+              Stroke and filled SVGs live in{" "}
+              <code className={typography.fontCode}>app/[locale]/components/icons/</code>. Import named exports
+              (for example <code className={typography.fontCode}>IconCart</code>) or reuse{" "}
+              <code className={typography.fontCode}>iconCatalog</code> for tooling or docs.
+            </p>
+            <div className={styles.iconCatalog}>
+              {iconCatalog.map(({ name, description, Icon }) => (
+                <div key={name} className={styles.iconCatalogItem}>
+                  <div className={styles.iconCatalogPreview} aria-hidden>
+                    <Icon className={styles.iconCatalogGlyph} />
+                  </div>
+                  <code className={`${styles.iconCatalogCode} ${typography.fontCode}`}>{name}</code>
+                  <p className={`${styles.iconCatalogMeta} ${typography.meta}`}>{description}</p>
+                </div>
+              ))}
+            </div>
+          </section>
+
           <section className={styles.card} aria-labelledby="fonts-tokens">
             <h2 id="fonts-tokens" className={`${styles.cardTitle} ${typography.h3}`}>
               Font Tokens
