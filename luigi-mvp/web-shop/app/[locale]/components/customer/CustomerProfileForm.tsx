@@ -3,6 +3,7 @@
 import * as React from "react";
 import { useTranslations } from "next-intl";
 import { emptyCustomerProfile, type CustomerProfile } from "@/types/customer";
+import styles from "./CustomerProfileForm.module.css";
 
 const REQUIRED: Array<keyof CustomerProfile> = [
   "email",
@@ -13,6 +14,15 @@ const REQUIRED: Array<keyof CustomerProfile> = [
   "city",
   "postal_code",
 ];
+
+const CONTACT_KEYS = ["first_name", "last_name", "email", "phone"] as const;
+const ADDRESS_KEYS = [
+  "address1",
+  "address2",
+  "postal_code",
+  "city",
+  "country",
+] as const;
 
 function normalizeForApi(v: CustomerProfile) {
   return {
@@ -37,7 +47,10 @@ function missingRequired(v: CustomerProfile): string[] {
   return missing;
 }
 
-function labelFor(k: keyof CustomerProfile, t: (key: string, values?: Record<string, string>) => string) {
+function labelFor(
+  k: keyof CustomerProfile,
+  t: (key: string, values?: Record<string, string>) => string,
+) {
   switch (k) {
     case "first_name":
       return t("firstName");
@@ -62,7 +75,7 @@ function labelFor(k: keyof CustomerProfile, t: (key: string, values?: Record<str
   }
 }
 
-function FieldRow({
+function EditableFieldRow({
   label,
   value,
   required,
@@ -71,13 +84,15 @@ function FieldRow({
   onCancel,
   onSave,
   error,
-  children,
-  requiredLabel = "(required)",
-  notSetLabel = "Not set",
-  addLabel = "Add",
-  editLabel = "Edit",
-  cancelLabel = "Cancel",
-  saveLabel = "Save",
+  saving,
+  actionsLocked,
+  requiredLabel,
+  notSetLabel,
+  addLabel,
+  editLabel,
+  cancelLabel,
+  saveLabel,
+  renderEditor,
 }: {
   label: string;
   value: string;
@@ -86,90 +101,84 @@ function FieldRow({
   onEdit: () => void;
   onCancel: () => void;
   onSave: () => void;
-  error?: string | null;
-  children?: React.ReactNode;
-  requiredLabel?: string;
-  notSetLabel?: string;
-  addLabel?: string;
-  editLabel?: string;
-  cancelLabel?: string;
-  saveLabel?: string;
+  error: string | null;
+  saving: boolean;
+  actionsLocked: boolean;
+  requiredLabel: string;
+  notSetLabel: string;
+  addLabel: string;
+  editLabel: string;
+  cancelLabel: string;
+  saveLabel: string;
+  renderEditor: (inputId: string) => React.ReactNode;
 }) {
+  const reactId = React.useId();
+  const inputId = `${reactId}-input`;
   const empty = !value.trim();
+  const disableActions = actionsLocked || (isEditing && saving);
 
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "180px 1fr auto",
-        gap: 12,
-        alignItems: "center",
-        padding: "10px 0",
-        borderTop: "1px solid #f0f0f0",
-      }}
-    >
-      <div style={{ fontSize: 13, color: "#444" }}>
-        {label}{" "}
-        {required && (
-          <span style={{ color: "#999", fontSize: 12 }}>
-            {requiredLabel}
-          </span>
-        )}
-      </div>
-
-      {!isEditing ? (
-        <div style={{ color: empty ? "#999" : "#111" }}>
-          {empty ? notSetLabel : value}
-        </div>
+    <div className={styles.fieldRow}>
+      {isEditing ? (
+        <label className={styles.fieldLabel} htmlFor={inputId}>
+          {label}{" "}
+          {required && (
+            <span className={styles.fieldLabelMuted}>{requiredLabel}</span>
+          )}
+        </label>
       ) : (
-        <div style={{ display: "grid", gap: 6 }}>
-          {children}
-          {error ? <div style={{ color: "#b00020", fontSize: 12 }}>{error}</div> : null}
+        <div className={styles.fieldLabel} id={`${reactId}-term`}>
+          {label}{" "}
+          {required && (
+            <span className={styles.fieldLabelMuted}>{requiredLabel}</span>
+          )}
         </div>
       )}
 
       {!isEditing ? (
-        <button
-          onClick={onEdit}
-          style={{
-            height: 34,
-            padding: "0 12px",
-            borderRadius: 10,
-            border: "1px solid #e6e6e6",
-            background: "white",
-            cursor: "pointer",
-            fontWeight: 700,
-          }}
+        <div
+          className={empty ? styles.fieldValueEmpty : styles.fieldValue}
+          aria-labelledby={`${reactId}-term`}
         >
-          {empty ? addLabel : editLabel}
-        </button>
+          {empty ? notSetLabel : value}
+        </div>
       ) : (
-        <div style={{ display: "flex", gap: 8 }}>
+        <div className={styles.fieldEditor}>
+          {renderEditor(inputId)}
+          {error ? (
+            <p className={styles.errorText} role="alert">
+              {error}
+            </p>
+          ) : null}
+        </div>
+      )}
+
+      {!isEditing ? (
+        <div className={styles.fieldActions}>
           <button
+            type="button"
+            className={styles.btnSecondary}
+            onClick={onEdit}
+            disabled={disableActions}
+          >
+            {empty ? addLabel : editLabel}
+          </button>
+        </div>
+      ) : (
+        <div className={styles.fieldActions}>
+          <button
+            type="button"
+            className={styles.btnSecondary}
             onClick={onCancel}
-            style={{
-              height: 34,
-              padding: "0 12px",
-              borderRadius: 10,
-              border: "1px solid #e6e6e6",
-              background: "white",
-              cursor: "pointer",
-              fontWeight: 700,
-            }}
+            disabled={disableActions}
           >
             {cancelLabel}
           </button>
           <button
+            type="button"
+            className={styles.btnPrimary}
             onClick={onSave}
-            style={{
-              height: 34,
-              padding: "0 12px",
-              borderRadius: 10,
-              border: "1px solid #e6e6e6",
-              background: "white",
-              cursor: "pointer",
-              fontWeight: 900,
-            }}
+            disabled={disableActions}
           >
             {saveLabel}
           </button>
@@ -179,12 +188,14 @@ function FieldRow({
   );
 }
 
-function Input({
+function TextInput({
+  id,
   value,
   onChange,
   placeholder,
   type = "text",
 }: {
+  id: string;
   value: string;
   onChange: (v: string) => void;
   placeholder?: string;
@@ -192,17 +203,12 @@ function Input({
 }) {
   return (
     <input
+      id={id}
       value={value}
       onChange={(e) => onChange(e.target.value)}
       placeholder={placeholder}
       type={type}
-      style={{
-        height: 40,
-        borderRadius: 12,
-        border: "1px solid #e6e6e6",
-        padding: "0 12px",
-        outline: "none",
-      }}
+      className={styles.textInput}
     />
   );
 }
@@ -211,79 +217,100 @@ export function CustomerProfileForm() {
   const t = useTranslations("customerProfile");
   const [value, setValue] = React.useState<CustomerProfile>(emptyCustomerProfile);
   const [loading, setLoading] = React.useState(true);
+  const [loadError, setLoadError] = React.useState<string | null>(null);
 
-  const [editingKey, setEditingKey] = React.useState<keyof CustomerProfile | null>(null);
+  const [editingKey, setEditingKey] = React.useState<keyof CustomerProfile | null>(
+    null,
+  );
   const [draft, setDraft] = React.useState<string>("");
 
+  const [bulkMode, setBulkMode] = React.useState(false);
+  const [bulkDraft, setBulkDraft] = React.useState<CustomerProfile>(emptyCustomerProfile);
+
   const [saving, setSaving] = React.useState(false);
-  const [error, setError] = React.useState<string | null>(null);
+  const [saveError, setSaveError] = React.useState<string | null>(null);
+  const [savedFlash, setSavedFlash] = React.useState(false);
 
-  React.useEffect(() => {
-    let cancelled = false;
+  const load = React.useCallback(async () => {
+    setLoading(true);
+    setLoadError(null);
 
-    async function load() {
-      setLoading(true);
-      setError(null);
-
-      const res = await fetch("/api/me/customer", { method: "GET", cache: "no-store" });
-      if (!res.ok) {
-        const body = await res.json().catch(() => null);
-        if (!cancelled) setError(body?.error ?? t("failedToLoad"));
-        if (!cancelled) setLoading(false);
-        return;
-      }
-
-      const data = await res.json().catch(() => null);
-
-      if (cancelled) return;
-
-      if (!data) {
-        setValue(emptyCustomerProfile);
-      } else {
-        setValue({
-          ...emptyCustomerProfile,
-          ...data,
-          country: (data.country && String(data.country)) || t("countryPlaceholder"),
-        });
-      }
-
+    const res = await fetch("/api/me/customer", { method: "GET", cache: "no-store" });
+    if (!res.ok) {
+      const body = await res.json().catch(() => null);
+      setLoadError(body?.error ?? t("failedToLoad"));
       setLoading(false);
+      return;
     }
 
-    load();
-    return () => {
-      cancelled = true;
-    };
-  }, []);
+    const data = await res.json().catch(() => null);
+
+    if (!data) {
+      setValue(emptyCustomerProfile);
+    } else {
+      setValue({
+        ...emptyCustomerProfile,
+        ...data,
+        country: (data.country && String(data.country)) || t("countryPlaceholder"),
+      });
+    }
+
+    setLoading(false);
+  }, [t]);
+
+  React.useEffect(() => {
+    void load();
+  }, [load]);
+
+  React.useEffect(() => {
+    if (!savedFlash) return;
+    const id = window.setTimeout(() => setSavedFlash(false), 4000);
+    return () => window.clearTimeout(id);
+  }, [savedFlash]);
 
   const missing = missingRequired(value);
+  const actionsLocked = saving || bulkMode;
 
   function startEdit(k: keyof CustomerProfile) {
-    setError(null);
+    setSaveError(null);
     setEditingKey(k);
     setDraft(value[k] ?? "");
   }
 
   function cancelEdit() {
-    setError(null);
+    setSaveError(null);
     setEditingKey(null);
     setDraft("");
   }
 
+  function openBulkMode() {
+    setSaveError(null);
+    setEditingKey(null);
+    setDraft("");
+    setBulkDraft({
+      ...value,
+      country: value.country.trim() || t("countryPlaceholder"),
+    });
+    setBulkMode(true);
+  }
+
+  function cancelBulkMode() {
+    setSaveError(null);
+    setBulkMode(false);
+  }
+
   async function saveEdit() {
     if (!editingKey) return;
-    setError(null);
+    setSaveError(null);
 
     const k = editingKey;
     const next: CustomerProfile = { ...value, [k]: draft };
 
-    // enforce required fields cannot be saved empty
     if (REQUIRED.includes(k) && !draft.trim()) {
-      setError(t("requiredField", { field: labelFor(k, t) }));
+      setSaveError(t("requiredField", { field: labelFor(k, t) }));
       return;
     }
 
-    // small convenience: default country if someone clears it
     if (k === "country" && !next.country.trim()) {
       next.country = t("countryPlaceholder");
     }
@@ -298,144 +325,344 @@ export function CustomerProfileForm() {
 
       if (!res.ok) {
         const body = await res.json().catch(() => null);
-        setError(body?.error ?? t("failedToSave"));
+        setSaveError(body?.error ?? t("failedToSave"));
         return;
       }
 
       const saved = await res.json().catch(() => null);
       if (saved) {
-        setValue({ ...next, ...saved, country: saved.country || next.country || t("countryPlaceholder") });
+        setValue({
+          ...next,
+          ...saved,
+          country: saved.country || next.country || t("countryPlaceholder"),
+        });
       } else {
         setValue(next);
       }
 
       setEditingKey(null);
       setDraft("");
+      setSavedFlash(true);
     } finally {
       setSaving(false);
     }
   }
 
+  async function saveBulk() {
+    setSaveError(null);
+    const miss = missingRequired(bulkDraft);
+    if (miss.length > 0) {
+      setSaveError(
+        t("pleaseAdd", {
+          fields: miss.map((k) => labelFor(k as keyof CustomerProfile, t)).join(", "),
+        }),
+      );
+      return;
+    }
+
+    let next = { ...bulkDraft };
+    if (!next.country.trim()) next = { ...next, country: t("countryPlaceholder") };
+
+    setSaving(true);
+    try {
+      const res = await fetch("/api/me/customer", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(normalizeForApi(next)),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => null);
+        setSaveError(body?.error ?? t("failedToSave"));
+        return;
+      }
+
+      const saved = await res.json().catch(() => null);
+      if (saved) {
+        setValue({
+          ...next,
+          ...saved,
+          country: saved.country || next.country || t("countryPlaceholder"),
+        });
+      } else {
+        setValue(next);
+      }
+
+      setBulkMode(false);
+      setSavedFlash(true);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function bulkField(
+    k: keyof CustomerProfile,
+    opts?: { type?: string; placeholder?: string },
+  ) {
+    const ph =
+      opts?.placeholder ??
+      (k === "country" ? t("countryPlaceholder") : labelFor(k, t));
+    return (
+      <div className={styles.bulkField} key={k}>
+        <label className={styles.bulkLabel} htmlFor={`bulk-${k}`}>
+          {labelFor(k, t)}
+          {REQUIRED.includes(k) ? ` ${t("required")}` : ""}
+        </label>
+        <TextInput
+          id={`bulk-${k}`}
+          value={bulkDraft[k]}
+          onChange={(v) => setBulkDraft((d) => ({ ...d, [k]: v }))}
+          placeholder={ph}
+          type={opts?.type ?? "text"}
+        />
+      </div>
+    );
+  }
+
   return (
     <div
-      style={{
-        border: "1px solid #eee",
-        borderRadius: 16,
-        padding: 20,
-        display: "grid",
-        gap: 14,
-        opacity: loading ? 0.7 : 1,
-      }}
+      className={`${styles.card} ${loading ? styles.cardLoading : ""}`}
+      aria-busy={loading || undefined}
     >
       <div style={{ display: "grid", gap: 6 }}>
-        <div style={{ fontSize: 18, fontWeight: 900 }}>{t("profileTitle")}</div>
-        <div style={{ fontSize: 13, color: "#666" }}>
-          {t("profileSubtitle")}
-        </div>
+        <h2 className={styles.title}>{t("profileTitle")}</h2>
+        <p className={styles.subtitle}>{t("profileSubtitle")}</p>
       </div>
 
-      {missing.length > 0 && (
-        <div style={{ padding: 12, borderRadius: 12, background: "#fff7e6", border: "1px solid #ffe2b5" }}>
-          <div style={{ fontWeight: 900, marginBottom: 4 }}>{t("profileIncomplete")}</div>
-          <div style={{ color: "#666", fontSize: 13 }}>
-            {t("pleaseAdd", {
-              fields: missing
-                .map((k) => labelFor(k as keyof CustomerProfile, t))
-                .join(", "),
-            })}
+      {savedFlash ? (
+        <p className={styles.savedStatus} role="status" aria-live="polite">
+          {t("saved")}
+        </p>
+      ) : null}
+
+      {loadError ? (
+        <div role="alert" className={styles.banner}>
+          <p className={styles.bannerBody} style={{ margin: 0 }}>
+            {loadError}
+          </p>
+          <div style={{ marginTop: 12 }}>
+            <button
+              type="button"
+              className={styles.btnSecondary}
+              onClick={() => void load()}
+              disabled={loading}
+            >
+              {t("retryLoad")}
+            </button>
           </div>
         </div>
-      )}
+      ) : null}
 
-      {/* CONTACT */}
-      <div style={{ marginTop: 6, fontSize: 14, fontWeight: 900 }}>{t("contact")}</div>
-      {(Array<keyof CustomerProfile>("first_name", "last_name", "email", "phone")).map((k) => (
-        <FieldRow
-          key={k}
-          label={labelFor(k, t)}
-          value={value[k]}
-          required={REQUIRED.includes(k)}
-          isEditing={editingKey === k}
-          onEdit={() => startEdit(k)}
-          onCancel={cancelEdit}
-          onSave={saveEdit}
-          error={editingKey === k ? error : null}
-          requiredLabel={t("required")}
-          notSetLabel={t("notSet")}
-          addLabel={t("add")}
-          editLabel={t("edit")}
-          cancelLabel={t("cancel")}
-          saveLabel={t("save")}
-        >
-          <Input
-            value={draft}
-            onChange={setDraft}
-            type={k === "email" ? "email" : "text"}
-            placeholder={labelFor(k, t)}
+      {!loading && !loadError && bulkMode ? (
+        <>
+          <h3 className={styles.sectionTitle}>{t("completeProfile")}</h3>
+          <div className={styles.bulkForm}>
+            {saveError ? (
+              <p className={styles.errorText} role="alert">
+                {saveError}
+              </p>
+            ) : null}
+            <p className={styles.subtitle} style={{ margin: 0 }}>
+              {t("completeProfileHint")}
+            </p>
+            <div className={styles.bulkGrid}>
+              <h4 className={styles.sectionTitle} style={{ fontSize: "var(--text-meta-size)" }}>
+                {t("contact")}
+              </h4>
+              {CONTACT_KEYS.map((k) =>
+                bulkField(k, { type: k === "email" ? "email" : "text" }),
+              )}
+              <h4
+                className={styles.sectionTitle}
+                style={{ fontSize: "var(--text-meta-size)", marginTop: 8 }}
+              >
+                {t("address")}
+              </h4>
+              {ADDRESS_KEYS.map((k) => bulkField(k))}
+              <h4
+                className={styles.sectionTitle}
+                style={{ fontSize: "var(--text-meta-size)", marginTop: 8 }}
+              >
+                {t("notesSectionTitle")}
+              </h4>
+              <div className={styles.bulkField}>
+                <label className={styles.bulkLabel} htmlFor="bulk-notes">
+                  {t("notes")}
+                </label>
+                <textarea
+                  id="bulk-notes"
+                  value={bulkDraft.notes}
+                  onChange={(e) =>
+                    setBulkDraft((d) => ({ ...d, notes: e.target.value }))
+                  }
+                  rows={4}
+                  className={styles.textarea}
+                  placeholder={t("notes")}
+                />
+              </div>
+            </div>
+            <div className={styles.bulkActions}>
+              <button
+                type="button"
+                className={styles.btnSecondary}
+                onClick={cancelBulkMode}
+                disabled={saving}
+              >
+                {t("cancel")}
+              </button>
+              <button
+                type="button"
+                className={styles.btnPrimary}
+                onClick={() => void saveBulk()}
+                disabled={saving}
+              >
+                {saving ? t("saving") : t("saveAll")}
+              </button>
+            </div>
+          </div>
+        </>
+      ) : !loading && !loadError ? (
+        <>
+          {missing.length > 0 && (
+            <div className={styles.banner}>
+              <p className={styles.bannerTitle}>{t("profileIncomplete")}</p>
+              <p className={styles.bannerBody}>
+                {t("pleaseAdd", {
+                  fields: missing
+                    .map((k) => labelFor(k as keyof CustomerProfile, t))
+                    .join(", "),
+                })}
+              </p>
+              <div className={styles.completeProfileRow} style={{ marginTop: 12 }}>
+                <button
+                  type="button"
+                  className={styles.btnPrimary}
+                  onClick={openBulkMode}
+                  disabled={actionsLocked}
+                >
+                  {t("completeProfile")}
+                </button>
+              </div>
+            </div>
+          )}
+
+          <div style={{ marginTop: 6 }} className={styles.subsectionTitle}>
+            {t("contact")}
+          </div>
+          {CONTACT_KEYS.map((k) => (
+            <EditableFieldRow
+              key={k}
+              label={labelFor(k, t)}
+              value={value[k]}
+              required={REQUIRED.includes(k)}
+              isEditing={editingKey === k}
+              onEdit={() => startEdit(k)}
+              onCancel={cancelEdit}
+              onSave={() => void saveEdit()}
+              error={editingKey === k ? saveError : null}
+              saving={saving}
+              actionsLocked={actionsLocked}
+              requiredLabel={t("required")}
+              notSetLabel={t("notSet")}
+              addLabel={t("add")}
+              editLabel={t("edit")}
+              cancelLabel={t("cancel")}
+              saveLabel={t("save")}
+              renderEditor={(inputId) => (
+                <>
+                  <TextInput
+                    id={inputId}
+                    value={draft}
+                    onChange={setDraft}
+                    type={k === "email" ? "email" : "text"}
+                    placeholder={labelFor(k, t)}
+                  />
+                  {saving && editingKey === k ? (
+                    <span className={styles.subtitle}>{t("saving")}</span>
+                  ) : null}
+                </>
+              )}
+            />
+          ))}
+
+          <div style={{ marginTop: 12 }} className={styles.subsectionTitle}>
+            {t("address")}
+          </div>
+          {ADDRESS_KEYS.map((k) => (
+            <EditableFieldRow
+              key={k}
+              label={labelFor(k, t)}
+              value={value[k]}
+              required={REQUIRED.includes(k)}
+              isEditing={editingKey === k}
+              onEdit={() => startEdit(k)}
+              onCancel={cancelEdit}
+              onSave={() => void saveEdit()}
+              error={editingKey === k ? saveError : null}
+              saving={saving}
+              actionsLocked={actionsLocked}
+              requiredLabel={t("required")}
+              notSetLabel={t("notSet")}
+              addLabel={t("add")}
+              editLabel={t("edit")}
+              cancelLabel={t("cancel")}
+              saveLabel={t("save")}
+              renderEditor={(inputId) => (
+                <>
+                  <TextInput
+                    id={inputId}
+                    value={draft}
+                    onChange={setDraft}
+                    placeholder={
+                      k === "country" ? t("countryPlaceholder") : labelFor(k, t)
+                    }
+                  />
+                  {saving && editingKey === k ? (
+                    <span className={styles.subtitle}>{t("saving")}</span>
+                  ) : null}
+                </>
+              )}
+            />
+          ))}
+
+          <div style={{ marginTop: 12 }} className={styles.subsectionTitle}>
+            {t("notesSectionTitle")}
+          </div>
+          <p className={styles.notesSectionHint}>{t("notesSectionHint")}</p>
+          <EditableFieldRow
+            label={t("notes")}
+            value={value.notes}
+            isEditing={editingKey === "notes"}
+            onEdit={() => startEdit("notes")}
+            onCancel={cancelEdit}
+            onSave={() => void saveEdit()}
+            error={editingKey === "notes" ? saveError : null}
+            saving={saving}
+            actionsLocked={actionsLocked}
+            requiredLabel={t("required")}
+            notSetLabel={t("notSet")}
+            addLabel={t("add")}
+            editLabel={t("edit")}
+            cancelLabel={t("cancel")}
+            saveLabel={t("save")}
+            renderEditor={(inputId) => (
+              <>
+                <textarea
+                  id={inputId}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  rows={4}
+                  className={styles.textarea}
+                  placeholder={t("notes")}
+                />
+                {saving && editingKey === "notes" ? (
+                  <span className={styles.subtitle}>{t("saving")}</span>
+                ) : null}
+              </>
+            )}
           />
-          {saving ? <div style={{ fontSize: 12, color: "#666" }}>{t("saving")}</div> : null}
-        </FieldRow>
-      ))}
-
-      {/* ADDRESS */}
-      <div style={{ marginTop: 12, fontSize: 14, fontWeight: 900 }}>{t("address")}</div>
-      {(Array<keyof CustomerProfile>("address1", "address2", "postal_code", "city", "country")).map((k) => (
-        <FieldRow
-          key={k}
-          label={labelFor(k, t)}
-          value={value[k]}
-          required={REQUIRED.includes(k)}
-          isEditing={editingKey === k}
-          onEdit={() => startEdit(k)}
-          onCancel={cancelEdit}
-          onSave={saveEdit}
-          error={editingKey === k ? error : null}
-          requiredLabel={t("required")}
-          notSetLabel={t("notSet")}
-          addLabel={t("add")}
-          editLabel={t("edit")}
-          cancelLabel={t("cancel")}
-          saveLabel={t("save")}
-        >
-          <Input
-            value={draft}
-            onChange={setDraft}
-            placeholder={k === "country" ? t("countryPlaceholder") : labelFor(k, t)}
-          />
-          {saving ? <div style={{ fontSize: 12, color: "#666" }}>{t("saving")}</div> : null}
-        </FieldRow>
-      ))}
-
-      {/* NOTES */}
-      <div style={{ marginTop: 12, fontSize: 14, fontWeight: 900 }}>{t("notes")}</div>
-      <FieldRow
-        label={t("notes")}
-        value={value.notes}
-        isEditing={editingKey === "notes"}
-        onEdit={() => startEdit("notes")}
-        onCancel={cancelEdit}
-        onSave={saveEdit}
-        error={editingKey === "notes" ? error : null}
-        notSetLabel={t("notSet")}
-        addLabel={t("add")}
-        editLabel={t("edit")}
-        cancelLabel={t("cancel")}
-        saveLabel={t("save")}
-      >
-        <textarea
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          rows={4}
-          style={{
-            borderRadius: 12,
-            border: "1px solid #e6e6e6",
-            padding: 12,
-            outline: "none",
-            resize: "vertical",
-          }}
-        />
-        {saving ? <div style={{ fontSize: 12, color: "#666" }}>{t("saving")}</div> : null}
-      </FieldRow>
+        </>
+      ) : null}
     </div>
   );
 }

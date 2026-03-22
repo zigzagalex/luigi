@@ -35,7 +35,9 @@
   },
   "profilePage": {
     "loading": "Loading…",
-    "signIn": "Please sign in."
+    "title": "Profile",
+    "signInPrompt": "Sign in to view and edit your customer profile.",
+    "backToShop": "Continue shopping"
   },
   "checkout": {
     "title": "Checkout",
@@ -445,7 +447,14 @@
     "requiredField": "{field} is required.",
     "failedToLoad": "Failed to load profile.",
     "failedToSave": "Failed to save.",
-    "countryPlaceholder": "CH"
+    "countryPlaceholder": "CH",
+    "saved": "Saved.",
+    "retryLoad": "Try again",
+    "completeProfile": "Complete profile in one step",
+    "completeProfileHint": "Fill in every required field, then save once.",
+    "saveAll": "Save all",
+    "notesSectionTitle": "Additional details",
+    "notesSectionHint": "Optional — for example delivery notes or preferences."
   },
   "customerFields": {
     "contact": "Contact",

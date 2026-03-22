@@ -7,6 +7,7 @@ import { getMessages, setRequestLocale } from "next-intl/server";
 import AppHeaderShell from "./components/layout/AppHeaderShell";
 import AppFooterShell from "./components/layout/AppFooterShell";
 import { AuthProvider } from "./components/auth/AuthContext";
+import { AuthModalProvider } from "./components/auth/AuthModalContext";
 import { CartProvider } from "./components/cart/CartContext";
 import { CartAddPopover } from "./components/cart/CartAddPopover";
 
@@ -31,12 +32,14 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
-        <CartProvider shopId={DEFAULT_SHOP_ID}>
-          <AppHeaderShell />
-          {children}
-          <AppFooterShell locale={locale} />
-          <CartAddPopover />
-        </CartProvider>
+        <AuthModalProvider>
+          <CartProvider shopId={DEFAULT_SHOP_ID}>
+            <AppHeaderShell />
+            {children}
+            <AppFooterShell locale={locale} />
+            <CartAddPopover />
+          </CartProvider>
+        </AuthModalProvider>
       </AuthProvider>
     </NextIntlClientProvider>
   );
