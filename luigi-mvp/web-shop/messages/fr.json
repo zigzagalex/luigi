@@ -551,6 +551,13 @@
   "phoneField": {
     "placeholder": "+41 79 123 45 67"
   },
+  "faqPage": {
+    "title": "Questions fréquentes",
+    "subtitle": "Réservation, retrait, conditions de location et assistance.",
+    "sectionAriaLabel": "Questions et réponses",
+    "contactPrompt": "Vous ne trouvez pas la réponse ?",
+    "contactLink": "Nous contacter"
+  },
   "locationsPage": {
     "title": "Nos magasins",
     "subtitle": "Retirez votre location dans n’importe quel magasin Luigi's en Suisse.",

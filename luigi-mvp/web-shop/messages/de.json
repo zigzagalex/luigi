@@ -559,6 +559,13 @@
     "noStores": "Noch keine Shops verfügbar.",
     "addressPending": "Adresse folgt"
   },
+  "faqPage": {
+    "title": "Häufig gestellte Fragen",
+    "subtitle": "Antworten zu Buchung, Abholung, Mietbedingungen und Support.",
+    "sectionAriaLabel": "Fragen und Antworten",
+    "contactPrompt": "Findest du keine Antwort?",
+    "contactLink": "Kontakt aufnehmen"
+  },
   "infoPages": {
     "comingSoon": "Demnächst verfügbar.",
     "about": "Über uns",

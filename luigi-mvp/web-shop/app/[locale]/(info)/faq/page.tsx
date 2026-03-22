@@ -1,12 +1,35 @@
 import { getTranslations } from "next-intl/server";
 
-export default async function FAQPage() {
-  const t = await getTranslations("infoPages");
+import FaqList from "./FaqList";
+import pageShell from "../../PageShell.module.css";
+
+type Props = {
+  params: Promise<{ locale: string }>;
+};
+
+export default async function FAQPage({ params }: Props) {
+  const { locale } = await params;
+  const t = await getTranslations("faqPage");
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1>{t("faq")}</h1>
-      <p>{t("comingSoon")}</p>
-    </div>
+    <main className={pageShell.page}>
+      <div className={pageShell.inner}>
+        <header className={pageShell.introSection}>
+          <h1 className={pageShell.introTitle}>{t("title")}</h1>
+          <p className={pageShell.introSubtitle}>{t("subtitle")}</p>
+        </header>
+
+        <section
+          className={pageShell.section}
+          aria-label={t("sectionAriaLabel")}
+        >
+          <FaqList
+            locale={locale}
+            contactPrompt={t("contactPrompt")}
+            contactLink={t("contactLink")}
+          />
+        </section>
+      </div>
+    </main>
   );
 }
