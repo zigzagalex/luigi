@@ -1,0 +1,197 @@
+.card {
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 20px;
+  display: grid;
+  gap: 14px;
+}
+
+.cardLoading {
+  opacity: 0.7;
+}
+
+.title {
+  composes: fontSectionTitle from "../ui/typography.module.css";
+  margin: 0;
+}
+
+.subtitle {
+  composes: meta from "../ui/typography.module.css";
+  margin: 0;
+}
+
+.banner {
+  padding: 12px;
+  border-radius: 12px;
+  background: #fff7e6;
+  border: 1px solid #ffe2b5;
+}
+
+.bannerTitle {
+  font-weight: 900;
+  margin: 0 0 4px;
+  font-size: var(--text-meta-size);
+}
+
+.bannerBody {
+  color: var(--color-text-meta);
+  font-size: var(--text-meta-size);
+  margin: 0;
+}
+
+.completeProfileRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  align-items: center;
+}
+
+.sectionTitle {
+  composes: fontSectionTitle from "../ui/typography.module.css";
+  margin: 0;
+  font-size: var(--text-body-size);
+}
+
+.subsectionTitle {
+  font-family: var(--font-sans);
+  font-size: var(--text-meta-size);
+  font-weight: 900;
+  margin: 0;
+}
+
+.notesSectionHint {
+  composes: meta from "../ui/typography.module.css";
+  margin: 0 0 8px;
+}
+
+.savedStatus {
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border);
+  font-size: var(--text-meta-size);
+  color: var(--color-text-body);
+  margin: 0;
+}
+
+.fieldRow {
+  display: grid;
+  grid-template-columns: minmax(120px, 180px) 1fr auto;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--color-border);
+}
+
+.fieldLabel {
+  font-size: var(--text-meta-size);
+  color: var(--color-text-body);
+}
+
+.fieldLabelMuted {
+  color: var(--color-text-meta);
+  font-size: var(--text-meta-size);
+  font-weight: 400;
+}
+
+.fieldValue {
+  color: var(--color-text-strong);
+  font-size: var(--text-body-size);
+  word-break: break-word;
+}
+
+.fieldValueEmpty {
+  composes: fieldValue;
+  color: var(--color-text-meta);
+}
+
+.fieldEditor {
+  display: grid;
+  gap: 6px;
+  min-width: 0;
+}
+
+.fieldActions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.textInput {
+  composes: surfaceInput from "../ui/primitives.module.css";
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+}
+
+.textarea {
+  composes: surfaceInput from "../ui/primitives.module.css";
+  width: 100%;
+  max-width: 100%;
+  box-sizing: border-box;
+  min-height: 100px;
+  padding: var(--space-3);
+  resize: vertical;
+}
+
+.btnSecondary {
+  composes: buttonSecondary from "../ui/primitives.module.css";
+  font-weight: 700;
+  padding: 0 var(--space-3);
+  min-height: 34px;
+  font-size: var(--text-meta-size);
+}
+
+.btnPrimary {
+  composes: buttonPrimary from "../ui/primitives.module.css";
+  font-weight: 800;
+  padding: 0 var(--space-3);
+  min-height: 34px;
+  font-size: var(--text-meta-size);
+}
+
+.errorText {
+  color: #b00020;
+  font-size: var(--text-meta-size);
+  margin: 0;
+}
+
+.bulkForm {
+  display: grid;
+  gap: 16px;
+  padding-top: 8px;
+}
+
+.bulkGrid {
+  display: grid;
+  gap: 12px;
+}
+
+.bulkField {
+  display: grid;
+  gap: 6px;
+}
+
+.bulkLabel {
+  composes: fontLabel from "../ui/typography.module.css";
+}
+
+.bulkActions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: flex-end;
+  padding-top: 8px;
+}
+
+@media (max-width: 640px) {
+  .fieldRow {
+    grid-template-columns: 1fr;
+    align-items: start;
+  }
+
+  .fieldActions {
+    justify-content: flex-start;
+  }
+}

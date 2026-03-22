@@ -10,8 +10,8 @@ import SearchPill from "../search/SearchPill";
 import type { CategoryOption, StoreOption } from "@/../utils/fetchAPI";
 import styles from "./AppHeader.module.css";
 
-import AuthModal from "../auth/AuthModal";
 import UserMenu from "../auth/UserMenu";
+import { useAuthModal } from "../auth/AuthModalContext";
 import { CartButton } from "../cart/CartButton";
 import { CartPopover } from "../cart/CartPopover";
 import { useCart } from "../cart/CartContext";
@@ -46,7 +46,7 @@ function isCompactHeaderPath(pathname: string | null): boolean {
 }
 
 export default function AppHeader({ categories, stores }: Props) {
-  const [authOpen, setAuthOpen] = useState(false);
+  const { openAuthModal } = useAuthModal();
   const [cartOpen, setCartOpen] = useState(false);
   const [pdpSearchOpen, setPdpSearchOpen] = useState(false);
   const { cart } = useCart();
@@ -95,7 +95,7 @@ export default function AppHeader({ categories, stores }: Props) {
           )}
 
           <div className={styles.rightActions}>
-            <UserMenu onOpenAuth={() => setAuthOpen(true)} />
+            <UserMenu onOpenAuth={openAuthModal} />
             <LocaleSwitcher />
             <div className={styles.cartWrap}>
               <CartButton
@@ -142,7 +142,6 @@ export default function AppHeader({ categories, stores }: Props) {
         )}
       </div>
 
-      <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />
     </header>
   );
 }

@@ -1,0 +1,77 @@
+.page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 48px 24px;
+  display: grid;
+  gap: 20px;
+}
+
+.pageHeader {
+  display: grid;
+  gap: 8px;
+}
+
+.title {
+  composes: fontHeading from "../components/ui/typography.module.css";
+  margin: 0;
+}
+
+.intro {
+  composes: meta from "../components/ui/typography.module.css";
+  margin: 0;
+  max-width: 42rem;
+}
+
+.skeletonCard {
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  padding: 20px;
+  display: grid;
+  gap: 16px;
+  min-height: 200px;
+}
+
+.skeletonLine {
+  height: 22px;
+  width: 45%;
+  border-radius: 6px;
+  background: var(--color-bg-subtle);
+}
+
+.skeletonLineSm {
+  composes: skeletonLine;
+  width: 70%;
+  height: 14px;
+}
+
+.skeletonBlock {
+  height: 120px;
+  border-radius: 12px;
+  background: var(--color-bg-subtle);
+}
+
+.signedOut {
+  display: grid;
+  gap: 16px;
+  max-width: 36rem;
+}
+
+.ctaRow {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+}
+
+.primaryCta {
+  composes: buttonPrimary from "../components/ui/primitives.module.css";
+}
+
+.shopLink {
+  composes: surfaceLinkButtonMuted from "../components/ui/primitives.module.css";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}

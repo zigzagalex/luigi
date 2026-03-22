@@ -35,7 +35,9 @@
   },
   "profilePage": {
     "loading": "Caricamento…",
-    "signIn": "Per favore accedi."
+    "title": "Profilo",
+    "signInPrompt": "Accedi per visualizzare e modificare il tuo profilo cliente.",
+    "backToShop": "Continua lo shopping"
   },
   "checkout": {
     "title": "Cassa",
@@ -445,7 +447,14 @@
     "requiredField": "{field} è obbligatorio.",
     "failedToLoad": "Impossibile caricare il profilo.",
     "failedToSave": "Salvataggio non riuscito.",
-    "countryPlaceholder": "CH"
+    "countryPlaceholder": "CH",
+    "saved": "Salvato.",
+    "retryLoad": "Riprova",
+    "completeProfile": "Completa il profilo in un unico passaggio",
+    "completeProfileHint": "Compila tutti i campi obbligatori e salva una volta.",
+    "saveAll": "Salva tutto",
+    "notesSectionTitle": "Informazioni aggiuntive",
+    "notesSectionHint": "Facoltativo, ad es. note di consegna o preferenze."
   },
   "customerFields": {
     "contact": "Contatto",
