@@ -332,7 +332,8 @@
     "breadcrumbBikes": "Vélos",
     "backToResults": "Retour aux résultats",
     "backToBrowsing": "Retour à la navigation",
-    "backToAllBikes": "Retour à tous les vélos"
+    "backToAllBikes": "Retour à tous les vélos",
+    "backToCategory": "Retour à la catégorie"
   },
   "productCard": {
     "fromPrice": "Dès CHF {price}",
@@ -349,6 +350,7 @@
   "categoryPage": {
     "breadcrumbAria": "Fil d’Ariane",
     "breadcrumbHome": "Accueil",
+    "allBikesTitle": "Tous les vélos",
     "subcategoriesHeading": "Sous-catégories",
     "empty": "Aucun vélo dans cette catégorie pour le moment."
   },
