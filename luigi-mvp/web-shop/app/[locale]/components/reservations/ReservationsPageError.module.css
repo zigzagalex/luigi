@@ -1,0 +1,16 @@
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-4);
+  align-items: center;
+  margin-top: var(--space-6);
+}
+
+.retry {
+  composes: surfaceButton from "../ui/primitives.module.css";
+}
+
+.helpLink {
+  composes: surfaceLinkButtonMuted from "../ui/primitives.module.css";
+  text-align: center;
+}

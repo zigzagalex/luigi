@@ -116,7 +116,9 @@
   "reservationsPage": {
     "title": "Deine Reservationen",
     "loadFailed": "Reservationen konnten nicht geladen werden.",
-    "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten."
+    "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten.",
+    "retry": "Erneut versuchen",
+    "getHelp": "Support kontaktieren"
   },
   "reservationDetailsPage": {
     "title": "Reservation",
@@ -129,10 +131,31 @@
     "unexpectedError": "Ein unerwarteter Fehler ist aufgetreten."
   },
   "reservationsList": {
-    "empty": "Du hast noch keine Reservationen."
+    "empty": "Du hast noch keine Reservationen.",
+    "emptyHint": "Reservationen, die du an der Kasse abschließt, erscheinen hier.",
+    "browseProducts": "Produkte entdecken",
+    "filterLabel": "Reservationen filtern",
+    "filterAll": "Alle",
+    "filterActive": "Aktiv",
+    "filterPast": "Vergangen",
+    "filterCancelled": "Storniert",
+    "noMatches": "Keine Reservationen in dieser Kategorie."
   },
   "reservationRow": {
-    "reservationNumber": "Reservation {id}"
+    "reservationNumber": "Reservation {id}",
+    "rentalPeriod": "Mietzeitraum",
+    "placedOn": "Erstellt am {date}",
+    "dateRangeTo": "bis",
+    "viewDetails": "Details ansehen",
+    "pickup": "Abholen",
+    "cancelLink": "Stornieren",
+    "editLink": "Bearbeiten",
+    "rentalEnded": "Miete beendet",
+    "rentalActive": "Miete läuft",
+    "startsToday": "Startet heute",
+    "startsTomorrow": "Startet morgen",
+    "startsInDays": "Startet in {days} Tagen",
+    "heroMoreItems": "+{count, plural, one {1 weiterer Artikel} other {# weitere Artikel}}"
   },
   "reservationStatus": {
     "confirmed": "Bestätigt",
@@ -141,7 +164,8 @@
   },
   "reservationItemsPreview": {
     "alt": "Reservationsartikel",
-    "more": "+{count} weitere"
+    "more": "+{count} weitere",
+    "viewProduct": "Produkt ansehen: {name}"
   },
   "reservationItemsFull": {
     "empty": "Keine Artikel.",

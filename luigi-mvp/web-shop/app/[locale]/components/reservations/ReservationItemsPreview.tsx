@@ -1,53 +1,92 @@
 "use client";
 
+import Link from "next/link";
 import { ReservationItemView } from "@/lib/reservationClient";
+import { formatMoneyCents } from "@/lib/formatMoney";
 import { useTranslations } from "next-intl";
 import styles from "./ReservationItemsPreview.module.css";
 
 type Props = {
   items: ReservationItemView[];
+  locale: string;
+  defaultCurrency: string;
+  /** Omit product title on this row (e.g. row 0 when title is shown as card hero). */
+  hideNameAtIndex?: number;
 };
 
-export default function ReservationItemsPreview({ items }: Props) {
+export default function ReservationItemsPreview({
+  items,
+  locale,
+  defaultCurrency,
+  hideNameAtIndex = -1,
+}: Props) {
   const t = useTranslations("reservationItemsPreview");
   const preview = items.slice(0, 3);
 
   return (
     <div className={styles.container}>
-      {preview.map((item) => (
-        <div key={item.reservation_item.id} className={styles.item}>
-          <div className={styles.image}>
-            {item.image_url && (
-              <img
-                src={item.image_url}
-                alt={item.product_name ?? t("alt")}
-                className={styles.imageTag}
-              />
-            )}
-          </div>
+      {preview.map((item, index) => {
+        const cur =
+          item.reservation_item.currency || defaultCurrency || "CHF";
+        const line = formatMoneyCents(
+          item.reservation_item.unit_price_cents,
+          locale,
+          cur,
+        );
+        const productId =
+          item.reservation_item.product_id ?? item.product_id ?? null;
+        const hideName = index === hideNameAtIndex;
 
-          <div className={styles.meta}>
-            <div className={styles.name}>
-              {item.product_name}
-            </div>
+        const img =
+          item.image_url ? (
+            <img
+              src={item.image_url}
+              alt={item.product_name ?? t("alt")}
+              className={styles.imageTag}
+              loading="lazy"
+            />
+          ) : (
+            <span className={styles.imagePlaceholder} aria-hidden />
+          );
 
-            {item.variant_text && (
-              <div className={styles.variant}>
-                {item.variant_text}
+        const imageBody =
+          productId != null ? (
+            <Link
+              href={`/products/${productId}`}
+              className={styles.imageLink}
+              aria-label={t("viewProduct", {
+                name: item.product_name ?? t("alt"),
+              })}
+            >
+              {img}
+            </Link>
+          ) : (
+            img
+          );
+
+        return (
+          <div key={item.reservation_item.id} className={styles.item}>
+            <div className={styles.image}>{imageBody}</div>
+
+            <div className={styles.meta}>
+              {!hideName && (
+                <div className={styles.name}>{item.product_name}</div>
+              )}
+
+              {item.variant_text && (
+                <div className={styles.variant}>{item.variant_text}</div>
+              )}
+
+              <div className={styles.priceRow}>
+                <span className={styles.price}>{line}</span>
+                <span className={styles.quantity}>
+                  {item.reservation_item.quantity}×
+                </span>
               </div>
-            )}
-
-            <div className={styles.priceRow}>
-              <span className={styles.price}>
-                CHF {(item.reservation_item.unit_price_cents / 100).toFixed(2)}
-              </span>
-              <span className={styles.quantity}>
-                {item.reservation_item.quantity}×
-              </span>
             </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
 
       {items.length > 3 && (
         <div className={styles.more}>

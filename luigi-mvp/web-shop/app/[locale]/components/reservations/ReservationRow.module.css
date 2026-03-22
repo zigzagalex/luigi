@@ -1,45 +1,175 @@
 .card {
-    border: 1px solid var(--color-border-soft);
-    border-radius: 14px;
-    padding: var(--space-6);
-    text-decoration: none;
-    color: inherit;
-    background: white;
-    transition: box-shadow 0.2s ease;
-  }
-  
-  .card:hover {
-    box-shadow: 0 4px 18px rgba(0, 0, 0, 0.04);
-  }
-  
-  .header {
-    display: flex;
-    justify-content: space-between;
-    margin-bottom: var(--space-4);
-  }
-  
-  .number {
-    font-size: var(--text-h3-size);
-    font-weight: 600;
-  }
-  
-  .date {
-    font-size: var(--text-meta-size);
-    color: var(--color-text-meta);
-  }
-  
-  .right {
-    text-align: right;
-  }
-  
-  .total {
-    font-weight: 600;
-    font-size: var(--text-body-size);
-  }
-  
-  .range {
-    margin-top: var(--space-4);
-    font-size: var(--text-meta-size);
-    color: var(--color-text-meta);
-  }
-  
+  border: 1px solid var(--color-border-soft);
+  border-radius: 14px;
+  padding: var(--space-6);
+  color: inherit;
+  background: var(--color-bg-surface);
+  transition: box-shadow 0.2s ease;
+}
+
+.card:hover {
+  box-shadow: 0 4px 18px rgba(0, 0, 0, 0.06);
+}
+
+.cardTop {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.cardTopMain {
+  min-width: 0;
+  flex: 1;
+}
+
+.statusCorner {
+  flex-shrink: 0;
+}
+
+.periodLabel {
+  font-size: max(0.875rem, 14px);
+  color: var(--color-text-meta);
+  margin-bottom: var(--space-2);
+  font-weight: 500;
+}
+
+.periodDatesRow {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+}
+
+.periodDates {
+  font-size: var(--text-body-size);
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.relativeBadge {
+  font-size: max(0.875rem, 14px);
+  font-weight: 600;
+  color: var(--color-text-strong);
+  background: var(--color-bg-subtle);
+  border: 1px solid var(--color-border-soft);
+  padding: var(--space-1) var(--space-3);
+  border-radius: 999px;
+  white-space: nowrap;
+}
+
+.rangeArrow {
+  font-weight: 600;
+}
+
+.visuallyHidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.heroTitle {
+  font-size: var(--text-h2-size);
+  font-weight: 700;
+  line-height: 1.2;
+  margin: 0 0 var(--space-2);
+  color: var(--color-text-strong);
+}
+
+.heroMore {
+  margin: 0 0 var(--space-4);
+  font-size: max(0.875rem, 14px);
+  color: var(--color-text-meta);
+  font-weight: 500;
+}
+
+.bottom {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  gap: var(--space-6);
+  margin-top: var(--space-4);
+  padding-top: var(--space-4);
+  border-top: 1px solid var(--color-border-soft);
+  flex-wrap: wrap;
+}
+
+.bottomMeta {
+  min-width: 0;
+}
+
+.reservationIdMuted {
+  font-size: max(0.75rem, 12px);
+  color: var(--color-text-meta);
+  font-weight: 500;
+}
+
+.placedOnMuted {
+  font-size: max(0.75rem, 12px);
+  color: var(--color-text-meta);
+  margin-top: var(--space-1);
+  opacity: 0.9;
+}
+
+.bottomRight {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3);
+  flex-shrink: 0;
+  margin-left: auto;
+}
+
+.total {
+  font-weight: 700;
+  font-size: max(1.0625rem, 17px);
+  color: var(--color-text-strong);
+}
+
+.actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+}
+
+.primaryCta {
+  composes: surfaceLinkButton from "../ui/primitives.module.css";
+  font-size: max(0.9375rem, 15px);
+  padding: 0 var(--space-5);
+  min-height: var(--control-min-height);
+  text-align: center;
+}
+
+.secondaryLinks {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+.secondaryLink {
+  font-size: max(0.875rem, 14px);
+  font-weight: 600;
+  color: var(--color-secondary);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.secondaryLink:hover {
+  color: var(--color-secondary-hover);
+}
+
+.linkSep {
+  color: var(--color-text-meta);
+  font-weight: 600;
+  user-select: none;
+}

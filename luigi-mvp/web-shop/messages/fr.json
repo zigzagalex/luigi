@@ -116,7 +116,9 @@
   "reservationsPage": {
     "title": "Tes réservations",
     "loadFailed": "Échec du chargement des réservations.",
-    "unexpectedError": "Une erreur inattendue est survenue."
+    "unexpectedError": "Une erreur inattendue est survenue.",
+    "retry": "Réessayer",
+    "getHelp": "Contacter le support"
   },
   "reservationDetailsPage": {
     "title": "Réservation",
@@ -129,10 +131,31 @@
     "unexpectedError": "Une erreur inattendue est survenue."
   },
   "reservationsList": {
-    "empty": "Tu n'as pas encore de réservations."
+    "empty": "Tu n'as pas encore de réservations.",
+    "emptyHint": "Les réservations que tu finalises au paiement apparaîtront ici.",
+    "browseProducts": "Parcourir les produits",
+    "filterLabel": "Filtrer les réservations",
+    "filterAll": "Toutes",
+    "filterActive": "Actives",
+    "filterPast": "Passées",
+    "filterCancelled": "Annulées",
+    "noMatches": "Aucune réservation ne correspond à ce filtre."
   },
   "reservationRow": {
-    "reservationNumber": "Réservation {id}"
+    "reservationNumber": "Réservation {id}",
+    "rentalPeriod": "Période de location",
+    "placedOn": "Créée le {date}",
+    "dateRangeTo": "au",
+    "viewDetails": "Voir les détails",
+    "pickup": "Retrait",
+    "cancelLink": "Annuler",
+    "editLink": "Modifier",
+    "rentalEnded": "Location terminée",
+    "rentalActive": "Location en cours",
+    "startsToday": "Commence aujourd’hui",
+    "startsTomorrow": "Commence demain",
+    "startsInDays": "Commence dans {days} jours",
+    "heroMoreItems": "+{count, plural, one {1 autre article} other {# autres articles}}"
   },
   "reservationStatus": {
     "confirmed": "Confirmée",
@@ -141,7 +164,8 @@
   },
   "reservationItemsPreview": {
     "alt": "Article de la réservation",
-    "more": "+{count} autre(s)"
+    "more": "+{count} autre(s)",
+    "viewProduct": "Voir le produit : {name}"
   },
   "reservationItemsFull": {
     "empty": "Aucun article.",

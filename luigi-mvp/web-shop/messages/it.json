@@ -116,7 +116,9 @@
   "reservationsPage": {
     "title": "Le tue prenotazioni",
     "loadFailed": "Impossibile caricare le prenotazioni.",
-    "unexpectedError": "Si è verificato un errore imprevisto."
+    "unexpectedError": "Si è verificato un errore imprevisto.",
+    "retry": "Riprova",
+    "getHelp": "Contatta il supporto"
   },
   "reservationDetailsPage": {
     "title": "Prenotazione",
@@ -129,10 +131,31 @@
     "unexpectedError": "Si è verificato un errore imprevisto."
   },
   "reservationsList": {
-    "empty": "Non hai ancora nessuna prenotazione."
+    "empty": "Non hai ancora nessuna prenotazione.",
+    "emptyHint": "Le prenotazioni completate al checkout compariranno qui.",
+    "browseProducts": "Sfoglia i prodotti",
+    "filterLabel": "Filtra le prenotazioni",
+    "filterAll": "Tutte",
+    "filterActive": "Attive",
+    "filterPast": "Passate",
+    "filterCancelled": "Annullate",
+    "noMatches": "Nessuna prenotazione corrisponde a questo filtro."
   },
   "reservationRow": {
-    "reservationNumber": "Prenotazione {id}"
+    "reservationNumber": "Prenotazione {id}",
+    "rentalPeriod": "Periodo di noleggio",
+    "placedOn": "Effettuata il {date}",
+    "dateRangeTo": "al",
+    "viewDetails": "Vedi dettagli",
+    "pickup": "Ritiro",
+    "cancelLink": "Annulla",
+    "editLink": "Modifica",
+    "rentalEnded": "Noleggio terminato",
+    "rentalActive": "Noleggio in corso",
+    "startsToday": "Inizia oggi",
+    "startsTomorrow": "Inizia domani",
+    "startsInDays": "Inizia tra {days} giorni",
+    "heroMoreItems": "+{count, plural, one {1 altro articolo} other {# altri articoli}}"
   },
   "reservationStatus": {
     "confirmed": "Confermata",
@@ -141,7 +164,8 @@
   },
   "reservationItemsPreview": {
     "alt": "Articolo prenotato",
-    "more": "+{count} altri"
+    "more": "+{count} altri",
+    "viewProduct": "Vedi prodotto: {name}"
   },
   "reservationItemsFull": {
     "empty": "Nessun articolo.",

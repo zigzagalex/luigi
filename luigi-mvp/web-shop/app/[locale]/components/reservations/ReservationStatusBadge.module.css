@@ -1,28 +1,56 @@
 .badge {
-    margin-top: var(--space-2);
-    padding: var(--space-2) var(--space-3);
-    border-radius: 999px;
-    font-size: var(--text-meta-size);
-    display: inline-block;
-  }
-  
-  .default {
-    background: var(--color-border);
-    color: var(--color-text-meta);
-  }
-  
-  .confirmed {
-    background: var(--color-accent-success-bg);
-    color: var(--color-accent-success);
-  }
-  
-  .cancelled {
-    background: var(--color-accent-danger-bg);
-    color: var(--color-accent-danger);
-  }
-  
-  .pending {
-    background: var(--color-accent-warning-bg);
-    color: var(--color-accent-warning);
-  }
-  
+  margin-top: var(--space-2);
+  padding: var(--space-2) var(--space-3);
+  border-radius: 999px;
+  font-size: var(--text-meta-size);
+  font-weight: 600;
+  display: inline-block;
+}
+
+.badgeHigh {
+  margin-top: 0;
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.875rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+.default {
+  background: var(--color-border);
+  color: var(--color-text-meta);
+}
+
+.defaultHigh {
+  background: var(--color-bg-inverse);
+  color: var(--color-text-inverse);
+}
+
+.confirmed {
+  background: var(--color-accent-success-bg);
+  color: var(--color-accent-success);
+}
+
+.confirmedHigh {
+  background: var(--color-accent-success);
+  color: #ffffff;
+}
+
+.cancelled {
+  background: var(--color-accent-danger-bg);
+  color: var(--color-accent-danger);
+}
+
+.cancelledHigh {
+  background: var(--color-accent-danger);
+  color: #ffffff;
+}
+
+.pending {
+  background: var(--color-accent-warning-bg);
+  color: var(--color-accent-warning);
+}
+
+.pendingHigh {
+  background: var(--color-accent-warning);
+  color: #1a1a1a;
+}
