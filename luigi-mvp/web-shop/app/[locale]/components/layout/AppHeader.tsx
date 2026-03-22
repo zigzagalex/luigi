@@ -1,8 +1,9 @@
 // app/[locale]/components/layout/AppHeader.tsx
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { useTranslations } from "next-intl";
 
 import SearchPill from "../search/SearchPill";
@@ -23,13 +24,29 @@ type Props = {
   stores: StoreOption[];
 };
 
+function isProductDetailPath(pathname: string | null): boolean {
+  if (!pathname) return false;
+  const parts = pathname.split("/").filter(Boolean);
+  // /{locale}/products/{id}
+  return (
+    parts.length === 3 && parts[1] === "products" && parts[2].length > 0
+  );
+}
+
 export default function AppHeader({ categories, stores }: Props) {
   const [authOpen, setAuthOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [pdpSearchOpen, setPdpSearchOpen] = useState(false);
   const { cart } = useCart();
 
   const tHeader = useTranslations("header");
   const locale = useLocale();
+  const pathname = usePathname();
+  const compact = isProductDetailPath(pathname);
+
+  useEffect(() => {
+    if (!compact) setPdpSearchOpen(false);
+  }, [compact, pathname]);
 
   const items = cart?.items ?? [];
   const itemCount = items.length;
@@ -37,12 +54,42 @@ export default function AppHeader({ categories, stores }: Props) {
   const defaultStore: StoreOption | null = stores?.[0] ?? null;
 
   return (
-    <header className={styles.header}>
+    <header
+      className={`${styles.header} ${compact ? styles.headerCompact : ""} ${compact && pdpSearchOpen ? styles.headerCompactSearchOpen : ""}`}
+    >
       <div className={styles.inner}>
         <div className={styles.topRow}>
           <Link href={`/${locale}`} className={styles.logo}>
             <span className={styles.logoTitle}>{tHeader("title")}</span>
           </Link>
+
+          {compact && defaultStore && (
+            <div className={styles.pdpSearchCue}>
+              <button
+                type="button"
+                className={styles.pdpSearchToggle}
+                aria-expanded={pdpSearchOpen}
+                aria-controls="pdp-header-search"
+                aria-label={
+                  pdpSearchOpen ? tHeader("pdpCloseSearch") : tHeader("pdpOpenSearch")
+                }
+                onClick={() => setPdpSearchOpen((v) => !v)}
+              >
+                <span className={styles.pdpSearchToggleIcon} aria-hidden>
+                  <svg viewBox="0 0 24 24" fill="none" focusable="false">
+                    <circle cx="10.5" cy="10.5" r="6.75" stroke="currentColor" strokeWidth="2.1" />
+                    <path
+                      d="m15.75 15.75 4 4"
+                      stroke="currentColor"
+                      strokeWidth="2.1"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                  </svg>
+                </span>
+              </button>
+            </div>
+          )}
 
           <div className={styles.rightActions}>
             <UserMenu onOpenAuth={() => setAuthOpen(true)} />
@@ -57,24 +104,39 @@ export default function AppHeader({ categories, stores }: Props) {
           </div>
         </div>
 
-        <div className={styles.heroZone}>
-          <h1 className={styles.heroTitle}>{tHeader("heroCta")}</h1>
-          <p className={styles.heroSubtitle}>{tHeader("heroSubtext")}</p>
-        </div>
-
-        <div className={styles.searchRow}>
-          {defaultStore ? (
+        {compact && pdpSearchOpen && defaultStore && (
+          <div id="pdp-header-search" className={styles.compactSearchRow}>
             <SearchPill
               categories={categories ?? []}
               stores={stores ?? []}
               selectedStore={null}
+              embedded
             />
-          ) : (
-            <div className={styles.disabled}>
-              {tHeader("noStoresConfigured")}
+          </div>
+        )}
+
+        {!compact && (
+          <>
+            <div className={styles.heroZone}>
+              <h1 className={styles.heroTitle}>{tHeader("heroCta")}</h1>
+              <p className={styles.heroSubtitle}>{tHeader("heroSubtext")}</p>
             </div>
-          )}
-        </div>
+
+            <div className={styles.searchRow}>
+              {defaultStore ? (
+                <SearchPill
+                  categories={categories ?? []}
+                  stores={stores ?? []}
+                  selectedStore={null}
+                />
+              ) : (
+                <div className={styles.disabled}>
+                  {tHeader("noStoresConfigured")}
+                </div>
+              )}
+            </div>
+          </>
+        )}
       </div>
 
       <AuthModal open={authOpen} onClose={() => setAuthOpen(false)} />

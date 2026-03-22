@@ -15,6 +15,8 @@ type SearchPillProps = {
   stores: StoreOption[];
   selectedStore: StoreOption | null;
   onStoreChange?: (store: StoreOption) => void;
+  /** Tighter wrapper when shown inside the compact PDP header */
+  embedded?: boolean;
 };
 
 const DEFAULT_SHOP_ID = 1;
@@ -32,7 +34,13 @@ function storeDisplayName(store?: StoreOption | null, fallback = "Choose locatio
   return store.name ?? store.label ?? fallback;
 }
 
-export default function SearchPill({ categories, stores, selectedStore, onStoreChange }: SearchPillProps) {
+export default function SearchPill({
+  categories,
+  stores,
+  selectedStore,
+  onStoreChange,
+  embedded = false,
+}: SearchPillProps) {
   const t = useTranslations("searchPill");
   const router = useRouter();
   const [active, setActive] = useState<ActivePanel>(null);
@@ -170,7 +178,7 @@ export default function SearchPill({ categories, stores, selectedStore, onStoreC
     !active || isMobile || !popoverPos ? undefined : { left: popoverPos.left, width: popoverPos.width };
 
   return (
-    <div className={styles.heroWrapper}>
+    <div className={`${styles.heroWrapper} ${embedded ? styles.heroWrapperEmbedded : ""}`}>
       <div ref={wrapperRef} className={styles.pill}>
         <div ref={pillRef} className={styles.pillInner}>
           {/* WHAT */}

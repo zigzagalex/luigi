@@ -135,11 +135,12 @@ export default async function SearchPage({ searchParams }: SearchPageProps) {
             className="product-grid-search"
             linkSearchParams={{
               shop_id: String(shopId),
-              store_id: storeIdRaw,         
+              store_id: storeIdRaw,
               category_id: sp.category_id,
               from,
               to,
               quantity: String(quantity),
+              ref: "search",
             }}
           />
         )}

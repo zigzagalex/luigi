@@ -14,7 +14,9 @@
     "heroCta": "Domina ogni strada.",
     "heroSubtext": "Trova la tua bici e parti.",
     "openNavMenu": "Apri il menu di navigazione",
-    "noStoresConfigured": "Nessun negozio ancora configurato."
+    "noStoresConfigured": "Nessun negozio ancora configurato.",
+    "pdpOpenSearch": "Apri ricerca",
+    "pdpCloseSearch": "Chiudi ricerca"
   },
   "locale": {
     "switchLabel": "Lingua"
@@ -311,7 +313,13 @@
     "noImagesYet": "Ancora nessuna immagine",
     "previousImage": "Immagine precedente",
     "nextImage": "Immagine successiva",
-    "bikeImage": "Immagine della bici"
+    "bikeImage": "Immagine della bici",
+    "breadcrumbAria": "Percorso di navigazione",
+    "breadcrumbHome": "Home",
+    "breadcrumbBikes": "Bici",
+    "backToResults": "Torna ai risultati",
+    "backToBrowsing": "Torna alla home",
+    "backToAllBikes": "Torna a tutte le bici"
   },
   "productCard": {
     "fromPrice": "Da CHF {price}",

@@ -14,7 +14,9 @@
     "heroCta": "Dévorez le terrain.",
     "heroSubtext": "Louez votre matériel et partez à l'aventure.",
     "openNavMenu": "Ouvrir le menu de navigation",
-    "noStoresConfigured": "Aucun magasin configuré pour le moment."
+    "noStoresConfigured": "Aucun magasin configuré pour le moment.",
+    "pdpOpenSearch": "Ouvrir la recherche",
+    "pdpCloseSearch": "Fermer la recherche"
   },
   "locale": {
     "switchLabel": "Langue"
@@ -311,7 +313,13 @@
     "noImagesYet": "Pas encore d'images",
     "previousImage": "Image précédente",
     "nextImage": "Image suivante",
-    "bikeImage": "Image du vélo"
+    "bikeImage": "Image du vélo",
+    "breadcrumbAria": "Fil d’Ariane",
+    "breadcrumbHome": "Accueil",
+    "breadcrumbBikes": "Vélos",
+    "backToResults": "Retour aux résultats",
+    "backToBrowsing": "Retour à la navigation",
+    "backToAllBikes": "Retour à tous les vélos"
   },
   "productCard": {
     "fromPrice": "Dès CHF {price}",

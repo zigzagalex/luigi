@@ -14,7 +14,9 @@
     "heroCta": "Switzerland won’t ride itself.",
     "heroSubtext": "Pick your gear and get out there.",
     "openNavMenu": "Open navigation menu",
-    "noStoresConfigured": "No stores configured yet."
+    "noStoresConfigured": "No stores configured yet.",
+    "pdpOpenSearch": "Open search",
+    "pdpCloseSearch": "Close search"
   },
   "locale": {
     "switchLabel": "Language"
@@ -311,7 +313,13 @@
     "noImagesYet": "No images yet",
     "previousImage": "Previous image",
     "nextImage": "Next image",
-    "bikeImage": "Bike image"
+    "bikeImage": "Bike image",
+    "breadcrumbAria": "Breadcrumb",
+    "breadcrumbHome": "Home",
+    "breadcrumbBikes": "Bikes",
+    "backToResults": "Back to results",
+    "backToBrowsing": "Back to browsing",
+    "backToAllBikes": "Back to all bikes"
   },
   "productCard": {
     "fromPrice": "From CHF {price}",
