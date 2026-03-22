@@ -24,13 +24,24 @@ type Props = {
   stores: StoreOption[];
 };
 
-function isProductDetailPath(pathname: string | null): boolean {
+function isCompactHeaderPath(pathname: string | null): boolean {
   if (!pathname) return false;
   const parts = pathname.split("/").filter(Boolean);
+  const seg1 = parts[1];
+  if (!seg1) return false;
   // /{locale}/products/{id}
-  return (
-    parts.length === 3 && parts[1] === "products" && parts[2].length > 0
-  );
+  if (seg1 === "products" && parts.length === 3 && parts[2].length > 0) {
+    return true;
+  }
+  // /{locale}/cart
+  if (seg1 === "cart" && parts.length === 2) {
+    return true;
+  }
+  // /{locale}/checkout, /{locale}/checkout/confirmation, …
+  if (seg1 === "checkout") {
+    return true;
+  }
+  return false;
 }
 
 export default function AppHeader({ categories, stores }: Props) {
@@ -42,7 +53,7 @@ export default function AppHeader({ categories, stores }: Props) {
   const tHeader = useTranslations("header");
   const locale = useLocale();
   const pathname = usePathname();
-  const compact = isProductDetailPath(pathname);
+  const compact = isCompactHeaderPath(pathname);
 
   useEffect(() => {
     if (!compact) setPdpSearchOpen(false);
