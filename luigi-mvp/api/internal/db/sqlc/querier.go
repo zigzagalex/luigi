@@ -93,6 +93,7 @@ type Querier interface {
 	ListCategoriesByShop(ctx context.Context, shopID int64) ([]ProductCategory, error)
 	ListCategoriesForProduct(ctx context.Context, productID int64) ([]ProductCategory, error)
 	ListCustomers(ctx context.Context, arg *ListCustomersParams) ([]ListCustomersRow, error)
+	ListDescendantCategoryIDs(ctx context.Context, arg *ListDescendantCategoryIDsParams) ([]int64, error)
 	ListHoldsByCartItem(ctx context.Context, cartItemID sql.NullInt64) ([]Hold, error)
 	ListImagesByVariantID(ctx context.Context, productVariantID int64) ([]ProductVariantImage, error)
 	ListInventoryItems(ctx context.Context, arg *ListInventoryItemsParams) ([]InventoryItem, error)

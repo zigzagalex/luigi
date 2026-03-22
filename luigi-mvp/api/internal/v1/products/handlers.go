@@ -62,14 +62,25 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 			return
 		}
 
+		var categoryRootIDPtr *int64
+		if s := strings.TrimSpace(r.URL.Query().Get("category_id")); s != "" {
+			v, err := strconv.ParseInt(s, 10, 64)
+			if err != nil || v <= 0 {
+				httpx.Fail(w, http.StatusBadRequest, "invalid_category_id", nil)
+				return
+			}
+			categoryRootIDPtr = &v
+		}
+
 		items, err := svc.ListWithPrimaryImageDTO(
 			r.Context(),
 			productsvc.ListWithImageInput{
-				ShopID: shopIDPtr,
-				Locale: locale,
-				Ids:    ids,
-				Limit:  int32(limit),
-				Offset: int32(offset),
+				ShopID:         shopIDPtr,
+				Locale:         locale,
+				Ids:            ids,
+				CategoryRootID: categoryRootIDPtr,
+				Limit:          int32(limit),
+				Offset:         int32(offset),
 			},
 			mediaBaseURL,
 		)

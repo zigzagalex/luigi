@@ -343,7 +343,14 @@
   },
   "categoryRow": {
     "scrollLeft": "Faire défiler vers la gauche",
-    "scrollRight": "Faire défiler vers la droite"
+    "scrollRight": "Faire défiler vers la droite",
+    "viewAll": "Tout voir"
+  },
+  "categoryPage": {
+    "breadcrumbAria": "Fil d’Ariane",
+    "breadcrumbHome": "Accueil",
+    "subcategoriesHeading": "Sous-catégories",
+    "empty": "Aucun vélo dans cette catégorie pour le moment."
   },
   "featuredProducts": {
     "title": "Vélos recommandés"

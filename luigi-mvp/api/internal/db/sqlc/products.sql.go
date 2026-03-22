@@ -264,14 +264,24 @@ LEFT JOIN LATERAL (
 WHERE
   ($2::bigint IS NULL OR p.shop_id = $2::bigint)
   AND ($3::bigint[] IS NULL OR p.id = ANY($3))
+  AND (
+    $4::bigint[] IS NULL
+    OR EXISTS (
+      SELECT 1
+      FROM product_category_assignments pca
+      WHERE pca.product_id = p.id
+        AND pca.category_id = ANY($4::bigint[])
+    )
+  )
 ORDER BY p.id
-LIMIT $5 OFFSET $4
+LIMIT $6 OFFSET $5
 `
 
 type ListProductsWithPrimaryImageParams struct {
 	RequestedLocale string        `json:"requested_locale"`
 	ShopID          sql.NullInt64 `json:"shop_id"`
 	Ids             []int64       `json:"ids"`
+	CategoryIds     []int64       `json:"category_ids"`
 	PageOffset      int32         `json:"page_offset"`
 	PageLimit       int32         `json:"page_limit"`
 }
@@ -294,6 +304,7 @@ func (q *Queries) ListProductsWithPrimaryImage(ctx context.Context, arg *ListPro
 		arg.RequestedLocale,
 		arg.ShopID,
 		pq.Array(arg.Ids),
+		pq.Array(arg.CategoryIds),
 		arg.PageOffset,
 		arg.PageLimit,
 	)

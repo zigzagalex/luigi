@@ -275,6 +275,51 @@ func (q *Queries) ListCategoriesForProduct(ctx context.Context, productID int64)
 	return items, nil
 }
 
+const listDescendantCategoryIDs = `-- name: ListDescendantCategoryIDs :many
+WITH RECURSIVE category_subtree AS (
+  SELECT pc.id AS id
+  FROM product_categories pc
+  WHERE pc.id = $1
+    AND (
+      $2::bigint IS NULL
+      OR pc.shop_id = $2::bigint
+    )
+  UNION ALL
+  SELECT c.id
+  FROM product_categories c
+  INNER JOIN category_subtree s ON c.parent_id = s.id
+)
+SELECT st.id FROM category_subtree st
+`
+
+type ListDescendantCategoryIDsParams struct {
+	RootID int64         `json:"root_id"`
+	ShopID sql.NullInt64 `json:"shop_id"`
+}
+
+func (q *Queries) ListDescendantCategoryIDs(ctx context.Context, arg *ListDescendantCategoryIDsParams) ([]int64, error) {
+	rows, err := q.db.QueryContext(ctx, listDescendantCategoryIDs, arg.RootID, arg.ShopID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		items = append(items, id)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateProductCategory = `-- name: UpdateProductCategory :one
 UPDATE product_categories
 SET

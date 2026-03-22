@@ -111,6 +111,15 @@ LEFT JOIN LATERAL (
 WHERE
   (sqlc.narg(shop_id)::bigint IS NULL OR p.shop_id = sqlc.narg(shop_id)::bigint)
   AND (sqlc.narg(ids)::bigint[] IS NULL OR p.id = ANY(sqlc.narg(ids)))
+  AND (
+    sqlc.narg(category_ids)::bigint[] IS NULL
+    OR EXISTS (
+      SELECT 1
+      FROM product_category_assignments pca
+      WHERE pca.product_id = p.id
+        AND pca.category_id = ANY(sqlc.narg(category_ids)::bigint[])
+    )
+  )
 ORDER BY p.id
 LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
 

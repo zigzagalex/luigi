@@ -343,7 +343,14 @@
   },
   "categoryRow": {
     "scrollLeft": "Scroll left",
-    "scrollRight": "Scroll right"
+    "scrollRight": "Scroll right",
+    "viewAll": "View all"
+  },
+  "categoryPage": {
+    "breadcrumbAria": "Breadcrumb",
+    "breadcrumbHome": "Home",
+    "subcategoriesHeading": "Browse subcategories",
+    "empty": "No bikes in this category yet."
   },
   "featuredProducts": {
     "title": "Recommended bikes"

@@ -6,7 +6,22 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-4);
   margin-bottom: var(--space-3);
+}
+
+.viewAll {
+  composes: fontBody from "../ui/typography.module.css";
+  flex-shrink: 0;
+  font-size: var(--text-meta-size);
+  font-weight: 600;
+  color: var(--color-primary);
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.viewAll:hover {
+  text-decoration: underline;
 }
 
 .title {
@@ -15,6 +30,8 @@
   color: var(--color-text-strong);
   padding-left: var(--space-3);
   border-left: 3px solid var(--color-primary);
+  min-width: 0;
+  flex: 1;
 }
 
 .body {

@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { Product } from "@/../utils/products";
@@ -10,6 +11,8 @@ type Props = {
   title: string;
   products: Product[];
   fromDailyPriceByCategory?: Record<string, number>;
+  /** e.g. `/en/categories/mountain-bikes` — shows “View all” in the row header */
+  viewAllHref?: string;
   linkSearchParams?: Record<string, string | undefined>;
 };
 
@@ -21,6 +24,7 @@ export default function CategoryRow({
   title,
   products,
   fromDailyPriceByCategory,
+  viewAllHref,
   linkSearchParams,
 }: Props) {
   const t = useTranslations("categoryRow");
@@ -43,6 +47,11 @@ export default function CategoryRow({
     <section className={styles.row}>
       <div className={styles.header}>
         <h2 className={styles.title}>{title}</h2>
+        {viewAllHref ? (
+          <Link href={viewAllHref} className={styles.viewAll}>
+            {t("viewAll")}
+          </Link>
+        ) : null}
       </div>
 
       <div className={styles.body}>

@@ -116,6 +116,11 @@ export default async function HomePage({
               title={row.title}
               products={row.products.slice(0, 10)}
               fromDailyPriceByCategory={fromDailyPriceByCategory}
+              viewAllHref={
+                row.key !== "other"
+                  ? `/${locale}/categories/${row.key}`
+                  : undefined
+              }
               linkSearchParams={{ ref: "browse" }}
             />
           </section>
