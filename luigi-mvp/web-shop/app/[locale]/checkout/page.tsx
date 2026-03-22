@@ -3,7 +3,7 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useLocale, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 
 import styles from "./checkout.module.css";
 
@@ -30,25 +30,12 @@ type PickupPerson = {
   phone: string;
 };
 
-type PaymentMethod = "pay_at_pickup" | "credit_card" | "bank_transfer" | "twint" | "paypal";
+type CheckoutBanner =
+  | { kind: "error"; message: string }
+  | { kind: "warning"; message: string };
 
 function missingRequired(v: CustomerProfile): Array<keyof CustomerProfile> {
   return REQUIRED.filter((k) => !String(v[k] ?? "").trim());
-}
-
-function labelFor(k: keyof CustomerProfile) {
-  switch (k) {
-    case "first_name":
-      return "First name";
-    case "last_name":
-      return "Last name";
-    case "postal_code":
-      return "Postal code";
-    case "address1":
-      return "Address line 1";
-    default:
-      return k.replace("_", " ").replace(/\b\w/g, (c) => c.toUpperCase());
-  }
 }
 
 function normalizeForApi(v: CustomerProfile) {
@@ -112,6 +99,7 @@ function SummaryRow({ label, value }: { label: string; value: React.ReactNode })
 }
 
 function Field({
+  id,
   label,
   required,
   value,
@@ -119,7 +107,13 @@ function Field({
   type = "text",
   placeholder,
   disabled,
+  autoComplete,
+  multiline,
+  rows = 4,
+  maxLength,
+  className,
 }: {
+  id: string;
   label: string;
   required?: boolean;
   value: string;
@@ -127,29 +121,80 @@ function Field({
   type?: string;
   placeholder?: string;
   disabled?: boolean;
+  autoComplete?: string;
+  multiline?: boolean;
+  rows?: number;
+  maxLength?: number;
+  className?: string;
 }) {
+  const rootClass = className ? `${styles.field} ${className}` : styles.field;
   return (
-    <label className={styles.field}>
-      <div className={styles.fieldLabel}>
-        {label} {required ? <span className={styles.req}>*</span> : null}
-      </div>
-      <input
-        className={styles.input}
-        type={type}
-        value={value}
-        placeholder={placeholder}
-        onChange={(e) => onChange(e.target.value)}
-        disabled={disabled}
-      />
-    </label>
+    <div className={rootClass}>
+      <label className={styles.fieldLabel} htmlFor={id}>
+        {label}
+        {required ? <span className={styles.req}>*</span> : null}
+      </label>
+      {multiline ? (
+        <textarea
+          id={id}
+          className={styles.textarea}
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          rows={rows}
+          maxLength={maxLength}
+          autoComplete={autoComplete}
+        />
+      ) : (
+        <input
+          id={id}
+          className={styles.input}
+          type={type}
+          value={value}
+          placeholder={placeholder}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          autoComplete={autoComplete}
+          maxLength={maxLength}
+        />
+      )}
+    </div>
   );
 }
 
 export default function CheckoutPage() {
   const t = useTranslations("checkout");
-  const locale = useLocale();
   const router = useRouter();
+  const fieldId = React.useId();
   const { me, loading: authLoading } = useAuth();
+
+  function profileFieldLabel(k: keyof CustomerProfile): string {
+    switch (k) {
+      case "email":
+        return t("email");
+      case "first_name":
+        return t("firstName");
+      case "last_name":
+        return t("lastName");
+      case "phone":
+        return t("phone");
+      case "address1":
+        return t("address1");
+      case "address2":
+        return t("address2");
+      case "postal_code":
+        return t("postalCode");
+      case "city":
+        return t("city");
+      case "country":
+        return t("country");
+      case "notes":
+        return t("notesLabel");
+      default:
+        return String(k);
+    }
+  }
 
   const {
     cart,
@@ -178,7 +223,7 @@ export default function CheckoutPage() {
   const [profileSaving, setProfileSaving] = React.useState(false);
   const [profileError, setProfileError] = React.useState<string | null>(null);
 
-  // pickup + payment + terms
+  // pickup + terms
   const [pickupExpanded, setPickupExpanded] = React.useState(false);
   const [pickup, setPickup] = React.useState<PickupPerson>({
     enabled: false,
@@ -195,7 +240,7 @@ export default function CheckoutPage() {
     phone: "",
   });
 
-  const [payment, setPayment] = React.useState<PaymentMethod>("pay_at_pickup");
+  const [checkoutBanner, setCheckoutBanner] = React.useState<CheckoutBanner | null>(null);
   const [agreed, setAgreed] = React.useState(false);
 
   React.useEffect(() => {
@@ -214,7 +259,7 @@ export default function CheckoutPage() {
 
         if (missingRequired(c).length > 0) setProfileExpanded(true);
       } catch (e: any) {
-        if (!cancelled) setProfileError(e?.message ?? "Failed to load profile");
+        if (!cancelled) setProfileError(e?.message ?? t("failedToLoadProfile"));
       } finally {
         if (!cancelled) setLoadingCustomer(false);
       }
@@ -223,7 +268,7 @@ export default function CheckoutPage() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [t]);
 
   const missing = missingRequired(customer);
   const missingDraft = missingRequired(profileDraft);
@@ -242,7 +287,7 @@ export default function CheckoutPage() {
     setProfileError(null);
 
     if (missingDraft.length > 0) {
-      setProfileError(`Please fill: ${missingDraft.map(labelFor).join(", ")}`);
+      setProfileError(t("pleaseFill", { fields: missingDraft.map(profileFieldLabel).join(", ") }));
       return;
     }
 
@@ -253,7 +298,7 @@ export default function CheckoutPage() {
       setProfileDraft(saved);
       setProfileExpanded(false);
     } catch (e: any) {
-      setProfileError(e?.message ?? "Failed to save profile");
+      setProfileError(e?.message ?? t("failedToSaveProfile"));
     } finally {
       setProfileSaving(false);
     }
@@ -273,11 +318,13 @@ export default function CheckoutPage() {
     canCheckout; 
 
     async function onBuy() {
+      setCheckoutBanner(null);
+
       if (!agreed) {
-        alert(t("acceptTermsAlert"));
+        setCheckoutBanner({ kind: "warning", message: t("acceptTermsAlert") });
         return;
       }
-    
+
       const idempotencyKey = crypto.randomUUID();
 
       const customerName = `${customer.first_name} ${customer.last_name}`.trim();
@@ -289,11 +336,13 @@ export default function CheckoutPage() {
       const pickupPersonEmail = pickup.enabled ? pickup.email.trim() : customer.email.trim();
       const pickupPersonPhone = pickup.enabled ? pickup.phone.trim() : customer.phone.trim();
 
+      const notesTrimmed = (profileExpanded ? profileDraft.notes : customer.notes)?.trim() || null;
+
       const payload = {
         shop_id: me?.shop_id,
         store_id: cart?.store_id,
         idempotency_key: idempotencyKey,
-        notes: customer.notes?.trim() || null,
+        notes: notesTrimmed,
 
         pickup_person_name: pickupPersonName || null,
         pickup_person_email: pickupPersonEmail || null,
@@ -311,7 +360,7 @@ export default function CheckoutPage() {
     
         if (!res.ok) {
           console.error(data);
-          alert(t("checkoutFailed"));
+          setCheckoutBanner({ kind: "error", message: t("checkoutFailed") });
           return;
         }
 
@@ -320,7 +369,7 @@ export default function CheckoutPage() {
         router.push(`/checkout/confirmation?success=1`);
       } catch (err) {
         console.error(err);
-        alert(t("unexpectedError"));
+        setCheckoutBanner({ kind: "error", message: t("unexpectedError") });
       }
     }
 
@@ -375,7 +424,7 @@ export default function CheckoutPage() {
               <div className={styles.warnBox}>
                 <div className={styles.warnTitle}>{t("profileIncomplete")}</div>
                 <div className={styles.warnText}>
-                  {t("pleaseAdd", { fields: missing.map(labelFor).join(", ") })}
+                  {t("pleaseAdd", { fields: missing.map(profileFieldLabel).join(", ") })}
                 </div>
               </div>
             ) : null}
@@ -392,20 +441,107 @@ export default function CheckoutPage() {
                     : t("dash")
                 }
               />
+              {customer.notes.trim() ? <SummaryRow label={t("notesLabel")} value={customer.notes.trim()} /> : null}
             </div>
           </div>
         ) : (
           <div className={styles.expand}>
             <div className={styles.expandGrid}>
-              <Field label={t("firstName")} required value={profileDraft.first_name} onChange={(v) => setProfileDraft((p) => ({ ...p, first_name: v }))} disabled={profileSaving} />
-              <Field label={t("lastName")} required value={profileDraft.last_name} onChange={(v) => setProfileDraft((p) => ({ ...p, last_name: v }))} disabled={profileSaving} />
-              <Field label={t("email")} required type="email" value={profileDraft.email} onChange={(v) => setProfileDraft((p) => ({ ...p, email: v }))} disabled={profileSaving} />
-              <Field label={t("phone")} required placeholder={t("phonePlaceholder")} value={profileDraft.phone} onChange={(v) => setProfileDraft((p) => ({ ...p, phone: v }))} disabled={profileSaving} />
-              <Field label={t("address1")} required value={profileDraft.address1} onChange={(v) => setProfileDraft((p) => ({ ...p, address1: v }))} disabled={profileSaving} />
-              <Field label={t("postalCode")} required value={profileDraft.postal_code} onChange={(v) => setProfileDraft((p) => ({ ...p, postal_code: v }))} disabled={profileSaving} />
-              <Field label={t("city")} required value={profileDraft.city} onChange={(v) => setProfileDraft((p) => ({ ...p, city: v }))} disabled={profileSaving} />
-              <Field label={t("country")} placeholder={t("countryPlaceholder")} value={profileDraft.country} onChange={(v) => setProfileDraft((p) => ({ ...p, country: v }))} disabled={profileSaving} />
-              <Field label={t("address2")} value={profileDraft.address2} onChange={(v) => setProfileDraft((p) => ({ ...p, address2: v }))} disabled={profileSaving} />
+              <Field
+                id={`${fieldId}-profile-first_name`}
+                label={t("firstName")}
+                required
+                value={profileDraft.first_name}
+                onChange={(v) => setProfileDraft((p) => ({ ...p, first_name: v }))}
+                disabled={profileSaving}
+                autoComplete="given-name"
+              />
+              <Field
+                id={`${fieldId}-profile-last_name`}
+                label={t("lastName")}
+                required
+                value={profileDraft.last_name}
+                onChange={(v) => setProfileDraft((p) => ({ ...p, last_name: v }))}
+                disabled={profileSaving}
+                autoComplete="family-name"
+              />
+              <Field
+                id={`${fieldId}-profile-email`}
+                label={t("email")}
+                required
+                type="email"
+                value={profileDraft.email}
+                onChange={(v) => setProfileDraft((p) => ({ ...p, email: v }))}
+                disabled={profileSaving}
+                autoComplete="email"
+              />
+              <Field
+                id={`${fieldId}-profile-phone`}
+                label={t("phone")}
+                required
+                placeholder={t("phonePlaceholder")}
+                value={profileDraft.phone}
+                onChange={(v) => setProfileDraft((p) => ({ ...p, phone: v }))}
+                disabled={profileSaving}
+                autoComplete="tel"
+              />
+              <Field
+                id={`${fieldId}-profile-address1`}
+                label={t("address1")}
+                required
+                value={profileDraft.address1}
+                onChange={(v) => setProfileDraft((p) => ({ ...p, address1: v }))}
+                disabled={profileSaving}
+                autoComplete="street-address"
+              />
+              <Field
+                id={`${fieldId}-profile-postal_code`}
+                label={t("postalCode")}
+                required
+                value={profileDraft.postal_code}
+                onChange={(v) => setProfileDraft((p) => ({ ...p, postal_code: v }))}
+                disabled={profileSaving}
+                autoComplete="postal-code"
+              />
+              <Field
+                id={`${fieldId}-profile-city`}
+                label={t("city")}
+                required
+                value={profileDraft.city}
+                onChange={(v) => setProfileDraft((p) => ({ ...p, city: v }))}
+                disabled={profileSaving}
+                autoComplete="address-level2"
+              />
+              <Field
+                id={`${fieldId}-profile-country`}
+                label={t("country")}
+                placeholder={t("countryPlaceholder")}
+                value={profileDraft.country}
+                onChange={(v) => setProfileDraft((p) => ({ ...p, country: v }))}
+                disabled={profileSaving}
+                autoComplete="country"
+              />
+              <Field
+                id={`${fieldId}-profile-address2`}
+                label={t("address2")}
+                value={profileDraft.address2}
+                onChange={(v) => setProfileDraft((p) => ({ ...p, address2: v }))}
+                disabled={profileSaving}
+                autoComplete="address-line2"
+              />
+              <Field
+                id={`${fieldId}-profile-notes`}
+                className={styles.fieldFullWidth}
+                label={t("notesLabel")}
+                placeholder={t("notesPlaceholder")}
+                value={profileDraft.notes}
+                onChange={(v) => setProfileDraft((p) => ({ ...p, notes: v }))}
+                disabled={profileSaving}
+                multiline
+                rows={3}
+                maxLength={500}
+                autoComplete="off"
+              />
             </div>
 
             {profileError ? <div className={styles.errorBox}>{profileError}</div> : null}
@@ -427,7 +563,7 @@ export default function CheckoutPage() {
                 className={styles.btnPrimary}
                 onClick={onContinueProfile}
                 disabled={profileSaving || missingDraft.length > 0}
-                title={missingDraft.length > 0 ? t("missingTitle", { fields: missingDraft.map(labelFor).join(", ") }) : ""}
+                title={missingDraft.length > 0 ? t("missingTitle", { fields: missingDraft.map(profileFieldLabel).join(", ") }) : ""}
               >
                 {profileSaving ? t("saving") : t("save")}
               </button>
@@ -589,10 +725,40 @@ export default function CheckoutPage() {
 
             {pickupDraft.enabled ? (
               <div className={styles.expandGrid}>
-                <Field label={t("firstName")} value={pickupDraft.first_name} onChange={(v) => setPickupDraft((p) => ({ ...p, first_name: v }))} />
-                <Field label={t("lastName")} value={pickupDraft.last_name} onChange={(v) => setPickupDraft((p) => ({ ...p, last_name: v }))} />
-                <Field label={t("email")} type="email" value={pickupDraft.email} onChange={(v) => setPickupDraft((p) => ({ ...p, email: v }))} />
-                <Field label={t("phone")} value={pickupDraft.phone} onChange={(v) => setPickupDraft((p) => ({ ...p, phone: v }))} />
+                <Field
+                  id={`${fieldId}-pickup-first_name`}
+                  label={t("firstName")}
+                  required={pickupDraft.enabled}
+                  value={pickupDraft.first_name}
+                  onChange={(v) => setPickupDraft((p) => ({ ...p, first_name: v }))}
+                  autoComplete="given-name"
+                />
+                <Field
+                  id={`${fieldId}-pickup-last_name`}
+                  label={t("lastName")}
+                  required={pickupDraft.enabled}
+                  value={pickupDraft.last_name}
+                  onChange={(v) => setPickupDraft((p) => ({ ...p, last_name: v }))}
+                  autoComplete="family-name"
+                />
+                <Field
+                  id={`${fieldId}-pickup-email`}
+                  label={t("email")}
+                  required={pickupDraft.enabled}
+                  type="email"
+                  value={pickupDraft.email}
+                  onChange={(v) => setPickupDraft((p) => ({ ...p, email: v }))}
+                  autoComplete="email"
+                />
+                <Field
+                  id={`${fieldId}-pickup-phone`}
+                  label={t("phone")}
+                  required={pickupDraft.enabled}
+                  placeholder={t("phonePlaceholder")}
+                  value={pickupDraft.phone}
+                  onChange={(v) => setPickupDraft((p) => ({ ...p, phone: v }))}
+                  autoComplete="tel"
+                />
               </div>
             ) : (
               <div className={styles.muted}>{t("pickupWillBeCustomer")}</div>
@@ -622,41 +788,30 @@ export default function CheckoutPage() {
         )}
       </div>
 
-      {/* 4) Payment method */}
+      {/* 4) Payment (informational — matches checkout API) */}
       <div className={styles.card}>
         <div className={styles.cardHeader}>
           <div>
             <div className={styles.cardTitle}>{t("payment")}</div>
-            <div className={styles.cardSubtitle}>{t("paymentSubtitle")}</div>
+            <div className={styles.cardSubtitle}>{t("paymentInfoSubtitle")}</div>
           </div>
         </div>
 
-        <div className={styles.radioList}>
-          {[
-            { v: "pay_at_pickup", label: t("payAtPickup") },
-            { v: "credit_card", label: t("creditCard") },
-            { v: "bank_transfer", label: t("bankTransfer") },
-            { v: "twint", label: t("twint") },
-            { v: "paypal", label: t("paypal") },
-          ].map((o) => (
-            <label key={o.v} className={styles.radioRow}>
-              <input
-                type="radio"
-                name="payment"
-                value={o.v}
-                checked={payment === (o.v as PaymentMethod)}
-                onChange={() => setPayment(o.v as PaymentMethod)}
-              />
-              <span>{o.label}</span>
-            </label>
-          ))}
-        </div>
+        <p className={styles.paymentInfo}>{t("paymentInfoBody")}</p>
       </div>
 
       {/* Terms + Buy */}
       <div className={styles.card}>
         <label className={styles.checkboxRow}>
-          <input type="checkbox" checked={agreed} onChange={(e) => setAgreed(e.target.checked)} />
+          <input
+            type="checkbox"
+            checked={agreed}
+            onChange={(e) => {
+              const checked = e.target.checked;
+              setAgreed(checked);
+              if (checked) setCheckoutBanner(null);
+            }}
+          />
           <span>
             {t("agreePrefix")}{" "}
             <Link className={styles.inlineLink} href="/agbs">
@@ -670,26 +825,39 @@ export default function CheckoutPage() {
           </span>
         </label>
 
+        {checkoutBanner?.kind === "error" ? (
+          <div className={styles.errorBox} role="alert">
+            {checkoutBanner.message}
+          </div>
+        ) : null}
+        {checkoutBanner?.kind === "warning" ? (
+          <div className={styles.warnBox} role="status">
+            <div className={styles.warnText}>{checkoutBanner.message}</div>
+          </div>
+        ) : null}
+
         <button
           className={styles.buyBtn}
           disabled={!canBuy}
           onClick={onBuy}
           title={
-            !canCheckout
+            blockedItems.length > 0
               ? t("fixBlockedItemsTitle")
+              : items.length === 0
+              ? t("cartEmptyTitle")
               : !profileComplete
               ? t("completeProfileTitle")
               : !agreed
               ? t("acceptTermsTitle")
-              : items.length === 0
-              ? t("cartEmptyTitle")
               : ""
           }
         >
           {t("rent")}
         </button>
 
-        {!canCheckout ? <div className={styles.muted}>{t("blockedCheckoutHint")}</div> : null}
+        {blockedItems.length > 0 ? (
+          <div className={styles.muted}>{t("blockedCheckoutHint")}</div>
+        ) : null}
       </div>
     </div>
   );
