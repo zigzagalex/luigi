@@ -1,9 +1,12 @@
 "use client";
 
+import { useEffect, useMemo, useState } from "react";
 import { DayPicker, DateRange } from "react-day-picker";
-import { de } from "date-fns/locale";
 import { startOfToday } from "date-fns";
+import { useLocale } from "next-intl";
 import "react-day-picker/dist/style.css";
+
+import { dateFnsLocaleForAppLocale } from "./dateFnsLocale";
 
 export type RangeValue = {
   from?: Date;
@@ -16,25 +19,39 @@ type Props = {
   className?: string;
 };
 
-const MAX_DAYS = 29; 
-
+const MAX_DAYS = 29;
 
 export function RangeCalendar({ value, onChange, className }: Props) {
+  const appLocale = useLocale();
+  const dateFnsLocale = useMemo(() => dateFnsLocaleForAppLocale(appLocale), [appLocale]);
+  /** Keep Monday-first grid regardless of locale (matches previous behaviour + CH rental norm). */
+  const weekStartsOn = 1;
+
+  const [numberOfMonths, setNumberOfMonths] = useState(1);
+
+  useEffect(() => {
+    const mql = window.matchMedia("(min-width: 769px)");
+    const apply = () => setNumberOfMonths(mql.matches ? 2 : 1);
+    apply();
+    mql.addEventListener("change", apply);
+    return () => mql.removeEventListener("change", apply);
+  }, []);
+
   const today = startOfToday();
 
   // Only pass a selection if we actually have at least one date
   const selected: DateRange | undefined =
     value.from || value.to ? { from: value.from, to: value.to } : undefined;
-  
-  const isSunday = (d: Date) => d.getDay() === 0;
 
+  const isSunday = (d: Date) => d.getDay() === 0;
 
   return (
     <div className={className}>
       <DayPicker
         mode="range"
-        numberOfMonths={2}
-        locale={de}
+        numberOfMonths={numberOfMonths}
+        locale={dateFnsLocale}
+        weekStartsOn={weekStartsOn}
         selected={selected}
         /* keep the “Airbnb” style behaviour */
         onSelect={(next) => {
@@ -58,7 +75,6 @@ export function RangeCalendar({ value, onChange, className }: Props) {
         // don’t allow navigating to months before today
         fromMonth={today}
         pagedNavigation
-        weekStartsOn={1}
         showOutsideDays
         // grey out and disable all past days
         disabled={{ before: today }}

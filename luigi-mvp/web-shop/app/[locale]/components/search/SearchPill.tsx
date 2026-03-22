@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useRef, useEffect, type CSSProperties } from "react";
+import { useState, useRef, useEffect, useMemo, type CSSProperties } from "react";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import type { DateRange } from "react-day-picker";
 import { RangeCalendar } from "@/[locale]/components/daterangepicker/DateRangePicker";
+import { intlLocaleTagForAppLocale } from "@/[locale]/components/daterangepicker/dateFnsLocale";
 import { IconSearch } from "@/[locale]/components/icons";
 import type { CategoryOption, StoreOption } from "@/../utils/fetchAPI";
 import styles from "./SearchPill.module.css";
@@ -43,6 +44,7 @@ export default function SearchPill({
   embedded = false,
 }: SearchPillProps) {
   const t = useTranslations("searchPill");
+  const appLocale = useLocale();
   const router = useRouter();
   const [active, setActive] = useState<ActivePanel>(null);
 
@@ -59,12 +61,15 @@ export default function SearchPill({
   // ---------- WHEN ----------
   const [range, setRange] = useState<DateRange | undefined>(undefined);
 
-  const whenLabel = (() => {
+  const whenLabel = useMemo(() => {
     if (!range?.from) return t("addDates");
     const from = range.from;
     const to = range.to ?? range.from;
 
-    const fmt = new Intl.DateTimeFormat("de-CH", { day: "2-digit", month: "short" });
+    const fmt = new Intl.DateTimeFormat(intlLocaleTagForAppLocale(appLocale), {
+      day: "2-digit",
+      month: "short",
+    });
 
     const fromStr = fmt.format(from);
     const toStr = fmt.format(to);
@@ -73,7 +78,7 @@ export default function SearchPill({
       return `${from.getDate()}.–${toStr}`;
     }
     return `${fromStr}–${toStr}`;
-  })();
+  }, [range, appLocale, t]);
   const isWhenEmpty = !range?.from;
 
   // ---------- WHERE ----------
@@ -223,6 +228,7 @@ export default function SearchPill({
             <span className={styles.submitIcon} aria-hidden="true">
               <IconSearch focusable={false} aria-hidden />
             </span>
+            <span className={styles.submitLabel}>{t("searchAria")}</span>
           </button>
 
           {/* POPOVER */}
