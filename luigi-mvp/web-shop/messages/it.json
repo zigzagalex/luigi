@@ -4,8 +4,8 @@
     "hi": "Ciao, {name}",
     "there": "a tutti",
     "accountMenuLabel": "Menu account",
-    "reservations": "Prenotazioni",
-    "profileSettings": "Impostazioni profilo",
+    "reservations": "Le tue prenotazioni",
+    "profileSettings": "Profilo",
     "logout": "Esci"
   },
   "header": {
