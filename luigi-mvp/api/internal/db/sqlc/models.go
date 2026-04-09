@@ -42,6 +42,19 @@ type AccessoryVariant struct {
 	UpdatedAt   time.Time             `json:"updated_at"`
 }
 
+type AccessoryVariantImage struct {
+	ID                 int64          `json:"id"`
+	AccessoryVariantID int64          `json:"accessory_variant_id"`
+	ObjectKey          string         `json:"object_key"`
+	SortOrder          int32          `json:"sort_order"`
+	IsPrimary          bool           `json:"is_primary"`
+	AltText            sql.NullString `json:"alt_text"`
+	WidthPx            sql.NullInt32  `json:"width_px"`
+	HeightPx           sql.NullInt32  `json:"height_px"`
+	CreatedAt          time.Time      `json:"created_at"`
+	UpdatedAt          time.Time      `json:"updated_at"`
+}
+
 type Cart struct {
 	ID         int64          `json:"id"`
 	ShopID     int64          `json:"shop_id"`
