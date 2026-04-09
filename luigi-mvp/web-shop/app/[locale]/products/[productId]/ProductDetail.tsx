@@ -183,7 +183,9 @@ function storeLocationShortLabel(store: Store): string {
 
 export default function ProductDetail({ product, variants, stores, inventory }: Props) {
   const t = useTranslations("productDetail");
+  const tAcc = useTranslations("accessoryDetail");
   const locale = useLocale();
+  const isAccessory = product.is_accessory === true;
   /** ---------- Read incoming query params from URL ---------- */
   const sp = useSearchParams();
 
@@ -222,6 +224,9 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   const allBikesCategoryHref = `/${locale}/categories/${TOP_BIKES_CATEGORY_SLUG}`;
 
   const backToListing = useMemo(() => {
+    if (isAccessory) {
+      return { href: `/${locale}/accessories`, label: tAcc("backToAccessories") };
+    }
     if (listingRef === "search") {
       return { href: searchResultsHref(locale, sp), label: t("backToResults") };
     }
@@ -237,11 +242,13 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     }
     return { href: allBikesCategoryHref, label: t("backToAllBikes") };
   }, [
+    isAccessory,
     listingRef,
     categorySlugFromRef,
     locale,
     sp,
     t,
+    tAcc,
     allBikesCategoryHref,
   ]);
 
@@ -346,52 +353,66 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
       return;
     }
 
-    // Try to respect the store from URL if it exists and has stock for ANY size.
     const preferredStoreId = initialStoreId;
 
     let newVariantId: number | null = null;
     let newStoreId: number | null = null;
 
-    // A) If URL store exists, try to find a variant that has stock in that store
-    if (preferredStoreId) {
-      for (const size of sizeOptions) {
-        const v = sizeMap.get(size);
-        if (!v) continue;
+    if (sizeOptions.length > 0) {
+      if (preferredStoreId) {
+        for (const size of sizeOptions) {
+          const v = sizeMap.get(size);
+          if (!v) continue;
 
-        if (getAvailableQuantity(v.id, preferredStoreId) > 0) {
-          newVariantId = v.id;
-          newStoreId = preferredStoreId;
-          break;
+          if (getAvailableQuantity(v.id, preferredStoreId) > 0) {
+            newVariantId = v.id;
+            newStoreId = preferredStoreId;
+            break;
+          }
+        }
+      }
+
+      if (newVariantId === null) {
+        for (const size of sizeOptions) {
+          const v = sizeMap.get(size);
+          if (!v) continue;
+
+          const storeWithStock = stores.find((s) => getAvailableQuantity(v.id, s.id) > 0);
+          if (storeWithStock) {
+            newVariantId = v.id;
+            newStoreId = storeWithStock.id;
+            break;
+          }
+        }
+      }
+    } else {
+      if (preferredStoreId) {
+        for (const v of variants) {
+          if (getAvailableQuantity(v.id, preferredStoreId) > 0) {
+            newVariantId = v.id;
+            newStoreId = preferredStoreId;
+            break;
+          }
+        }
+      }
+
+      if (newVariantId === null) {
+        for (const v of variants) {
+          const storeWithStock = stores.find((s) => getAvailableQuantity(v.id, s.id) > 0);
+          if (storeWithStock) {
+            newVariantId = v.id;
+            newStoreId = storeWithStock.id;
+            break;
+          }
         }
       }
     }
 
-    // B) Fallback: find first store with stock for any size
-    if (newVariantId === null) {
-      for (const size of sizeOptions) {
-        const v = sizeMap.get(size);
-        if (!v) continue;
-
-        const storeWithStock = stores.find((s) => getAvailableQuantity(v.id, s.id) > 0);
-        if (storeWithStock) {
-          newVariantId = v.id;
-          newStoreId = storeWithStock.id;
-          break;
-        }
-      }
-    }
-
-    // Apply results (only once when data is ready)
     setSelectedVariantId(newVariantId ?? variants[0]?.id ?? null);
 
-    // Only override selectedStoreId if:
-    // - we found a valid one, OR
-    // - the current one is null
     setSelectedStoreId((prev) => (prev == null ? newStoreId : prev));
 
     setCurrentImageIndex(0);
-    // NOTE: we intentionally depend on initialStoreId here, but do NOT include selectedStoreId,
-    // so we don't "fight" the user's clicks.
   }, [variants, stores, inventory, sizeOptions, sizeMap, getAvailableQuantity, initialStoreId]);
 
   /** ---------- Clamp quantity to stock ---------- */
@@ -500,7 +521,10 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   const title = product.name || t("bikeFallback", { id: String(product.id) });
   const priceLabel = product.price_category || t("standard");
   const description = product.description?.trim() ?? "";
-  const detailedDescription = product.detailed_description?.trim() ?? "";
+  const detailedDescription = useMemo(
+    () => (product.detailed_description?.trim() ?? "").replace(/\\n/g, "\n"),
+    [product.detailed_description],
+  );
 
   const addCurrentSelection = useCallback(async () => {
     if (!canAddToCart || !selectedVariant || !selectedStoreId || !range.from || !range.to) return;
@@ -719,17 +743,25 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
             <li className={styles.breadcrumbSep} aria-hidden="true">
               /
             </li>
-            <li className={styles.breadcrumbItem}>
-              <Link href={bikesCategoryHref}>{t("breadcrumbBikes")}</Link>
-            </li>
-            {breadcrumbCategory && (
+            {isAccessory ? (
+              <li className={styles.breadcrumbItem}>
+                <Link href={`/${locale}/accessories`}>{tAcc("breadcrumbAccessories")}</Link>
+              </li>
+            ) : (
               <>
-                <li className={styles.breadcrumbSep} aria-hidden="true">
-                  /
-                </li>
                 <li className={styles.breadcrumbItem}>
-                  <Link href={subcategoryHref}>{breadcrumbCategory.name}</Link>
+                  <Link href={bikesCategoryHref}>{t("breadcrumbBikes")}</Link>
                 </li>
+                {breadcrumbCategory && (
+                  <>
+                    <li className={styles.breadcrumbSep} aria-hidden="true">
+                      /
+                    </li>
+                    <li className={styles.breadcrumbItem}>
+                      <Link href={subcategoryHref}>{breadcrumbCategory.name}</Link>
+                    </li>
+                  </>
+                )}
               </>
             )}
             <li className={styles.breadcrumbSep} aria-hidden="true">
@@ -989,41 +1021,74 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
             </div>
           </div>
 
-          {/* Size selector */}
-          <div className={styles.block}>
-            <h2 className={styles.blockTitle}>{t("size")}</h2>
-            <div className={styles.chipRow}>
-              {sizeOptions.map((size) => {
-                const variantForSize = sizeMap.get(size);
-                if (!variantForSize) return null;
+          {/* Size (bikes) or variant label (accessories / non-size SKUs) */}
+          {(sizeOptions.length > 0 || variants.length > 1) && (
+            <div className={styles.block}>
+              <h2 className={styles.blockTitle}>
+                {sizeOptions.length > 0 ? t("size") : tAcc("variant")}
+              </h2>
+              <div className={styles.chipRow}>
+                {sizeOptions.length > 0
+                  ? sizeOptions.map((size) => {
+                      const variantForSize = sizeMap.get(size);
+                      if (!variantForSize) return null;
 
-                // Enable size only if selectedStore has stock for that size
-                const enabled =
-                  selectedStoreId !== null &&
-                  getAvailableQuantity(variantForSize.id, selectedStoreId) > 0;
+                      const enabled =
+                        selectedStoreId !== null &&
+                        getAvailableQuantity(variantForSize.id, selectedStoreId) > 0;
 
-                const isSelected = enabled && selectedVariantId === variantForSize.id;
+                      const isSelected = enabled && selectedVariantId === variantForSize.id;
 
-                return (
-                  <button
-                    key={size}
-                    type="button"
-                    disabled={!enabled}
-                    onClick={() => enabled && setSelectedVariantId(variantForSize.id)}
-                    className={[
-                      styles.chip,
-                      !enabled ? styles.chipDisabled : "",
-                      isSelected ? styles.chipSelected : "",
-                    ]
-                      .filter(Boolean)
-                      .join(" ")}
-                  >
-                    {size}
-                  </button>
-                );
-              })}
+                      return (
+                        <button
+                          key={size}
+                          type="button"
+                          disabled={!enabled}
+                          onClick={() => enabled && setSelectedVariantId(variantForSize.id)}
+                          className={[
+                            styles.chip,
+                            !enabled ? styles.chipDisabled : "",
+                            isSelected ? styles.chipSelected : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                        >
+                          {size}
+                        </button>
+                      );
+                    })
+                  : variants.map((variant) => {
+                      const enabled =
+                        selectedStoreId !== null &&
+                        getAvailableQuantity(variant.id, selectedStoreId) > 0;
+
+                      const isSelected = enabled && selectedVariantId === variant.id;
+
+                      return (
+                        <button
+                          key={variant.id}
+                          type="button"
+                          disabled={!enabled}
+                          onClick={() => {
+                            if (!enabled) return;
+                            setSelectedVariantId(variant.id);
+                            setCurrentImageIndex(0);
+                          }}
+                          className={[
+                            styles.chip,
+                            !enabled ? styles.chipDisabled : "",
+                            isSelected ? styles.chipSelected : "",
+                          ]
+                            .filter(Boolean)
+                            .join(" ")}
+                        >
+                          {variant.label}
+                        </button>
+                      );
+                    })}
+              </div>
             </div>
-          </div>
+          )}
 
           {/* Dates — compact summary; calendar on demand */}
           <div className={styles.block}>

@@ -1,16 +1,10 @@
+import { notFound } from "next/navigation";
+import ProductDetail from "@/[locale]/products/[productId]/ProductDetail";
+import { loadProductDetailPageData } from "@/../utils/productDetailPageData";
+
 export const dynamic = "force-dynamic";
 
-import { notFound } from "next/navigation";
-import AccessoryDetail from "./AccessoryDetail";
-import {
-  fetchAccessoryByID,
-  fetchAccessoryInventory,
-  fetchImagesForAccessoryVariant,
-  fetchStores,
-  fetchVariantsForAccessory,
-} from "@/../utils/accessories";
-
-async function parseID(raw: string): Promise<number> {
+function parseID(raw: string): number {
   const id = Number(raw);
   if (!Number.isFinite(id) || id <= 0) {
     notFound();
@@ -24,35 +18,27 @@ export default async function AccessoryDetailPage({
   params: Promise<{ locale: string; accessoryId: string }>;
 }) {
   const { locale, accessoryId } = await params;
-  const id = await parseID(accessoryId);
+  const id = parseID(accessoryId);
 
-  let accessory;
+  let data;
   try {
-    accessory = await fetchAccessoryByID(id, locale);
+    data = await loadProductDetailPageData(String(id), locale);
   } catch (err) {
-    console.error("Failed to fetch accessory:", err);
+    console.error("Failed to load accessory PDP data:", err);
     notFound();
   }
 
-  const variants = await fetchVariantsForAccessory(id);
-  const imagesPerVariant = await Promise.all(variants.map((v) => fetchImagesForAccessoryVariant(v.id)));
-  const allImages = imagesPerVariant.flat();
-  const variantsWithImages = variants.map((variant, idx) => ({
-    ...variant,
-    images: imagesPerVariant[idx]?.length ? imagesPerVariant[idx] : allImages,
-  }));
+  if (!data.product.is_accessory) {
+    notFound();
+  }
 
-  const variantIds = variants.map((v) => v.id);
-  const [stores, inventory] = await Promise.all([
-    fetchStores(accessory.shop_id),
-    fetchAccessoryInventory(accessory.shop_id, variantIds),
-  ]);
+  const { product, variantsWithImages, stores, inventory } = data;
 
   return (
     <main className="page product-detail-page">
       <div className="page-inner">
-        <AccessoryDetail
-          accessory={accessory}
+        <ProductDetail
+          product={product}
           variants={variantsWithImages}
           stores={stores}
           inventory={inventory}

@@ -16,32 +16,40 @@ create_price_point() {
     >/dev/null
 }
 
-# Seed 1–30 days (adjust if you want fewer)
-for day in $(seq 1 30); do
-  # --- STANDARD ---
-  if [ "$day" -le 3 ]; then
-    rate_std=50   # CHF / day
-  elif [ "$day" -le 7 ]; then
-    rate_std=40
-  else
-    rate_std=30
-  fi
+# Seed 1–30 days with tiered effective CHF/day (multiplied by day_count for total cents),
+# matching the bike scripts: short trips pay a higher per-day band, longer trips a lower band.
+seed_price_category_tiered() {
+  local category="$1"
+  local rate_short="$2"   # CHF / day equivalent for day_count 1–3
+  local rate_mid="$3"     # days 4–7
+  local rate_long="$4"    # days 8–30
 
-  # --- PROFESSIONAL (standard + 30 CHF/day) ---
-  if [ "$day" -le 3 ]; then
-    rate_professional=80
-  elif [ "$day" -le 7 ]; then
-    rate_professional=70
-  else
-    rate_professional=60
-  fi
+  local day
+  for day in $(seq 1 30); do
+    local rate
+    if [ "$day" -le 3 ]; then
+      rate=$rate_short
+    elif [ "$day" -le 7 ]; then
+      rate=$rate_mid
+    else
+      rate=$rate_long
+    fi
 
-  # Convert CHF/day → total cents for that duration
-  total_std_cents=$((rate_std * day * 100))
-  total_professional_cents=$((rate_professional * day * 100))
+    local total_cents=$((rate * day * 100))
+    create_price_point "$category" "$day" "$total_cents"
+  done
+}
 
-  create_price_point "standard" "$day" "$total_std_cents"
-  create_price_point "professional"  "$day" "$total_professional_cents"
-done
+# Bikes: full-day rental bands (CHF/day equivalent)
+seed_price_category_tiered "standard"       50 40 30
+seed_price_category_tiered "professional" 80 70 60
 
-echo "✅ Seeded price_points for categories: standard, professional (1–30 days)."
+# Accessories: add-on rental — same formula, much lower totals than bikes
+#  - accessory_compact: small parts (mounts, tool kits, kids bundles)
+#  - accessory_standard: pedals, most helmets, everyday protection
+#  - accessory_premium: performance shoes + flagship helmets
+seed_price_category_tiered "accessory_compact"  6  5  4
+seed_price_category_tiered "accessory_standard"  11 9  7
+seed_price_category_tiered "accessory_premium"  17 14 11
+
+echo "✅ Seeded price_points for: standard, professional, accessory_compact, accessory_standard, accessory_premium (1–30 days each)."

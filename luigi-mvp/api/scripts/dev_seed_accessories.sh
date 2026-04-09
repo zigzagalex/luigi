@@ -88,10 +88,30 @@ find_accessory_product_id_by_sku() {
     | head -n1
 }
 
+ensure_product_price_category() {
+  local product_id="$1"
+  local price_category="$2"
+
+  local http_code
+  http_code="$(
+    curl -sS -o /dev/null -w "%{http_code}" \
+      -X PUT "${API_BASE_URL}/v1/products/${product_id}" \
+      -H "Content-Type: application/json" \
+      -d "{\"price_category\": $(json_escape "$price_category")}"
+  )"
+
+  if [ "${http_code}" != "200" ]; then
+    echo "   WARN: PUT /v1/products/${product_id} price_category returned ${http_code} (expected 200)" >&2
+  else
+    echo "   price_category -> ${price_category}"
+  fi
+}
+
 create_accessory_product() {
   local sku="$1"
   local name="$2"
   local description="$3"
+  local price_category="$4"
 
   local resp http_code
   resp="$(
@@ -103,7 +123,7 @@ create_accessory_product() {
   "sku": $(json_escape "$sku"),
   "name": $(json_escape "$name"),
   "description": $(json_escape "$description"),
-  "price_category": "standard",
+  "price_category": $(json_escape "$price_category"),
   "is_accessory": true,
   "is_active": true
 }
@@ -288,8 +308,7 @@ upload_variant_images_once() {
 }
 
 resolve_accessory_category_ids() {
-  local variant_mode="$1"
-  local sku="$2"
+  local sku="$1"
 
   local acc_root
   acc_root="$(get_cat_id_by_slug "accessories")"
@@ -299,26 +318,71 @@ resolve_accessory_category_ids() {
     return
   fi
 
+  local group_slug=""
   local sub_slug=""
-  case "${variant_mode}" in
-    shoes) sub_slug="acc-shoes" ;;
-    helmets) sub_slug="acc-helmets" ;;
-    default)
-      case "${sku}" in
-        ACC-PEDAL-*) sub_slug="acc-pedals" ;;
-        ACC-NAV-*) sub_slug="acc-navigation" ;;
-        ACC-TOOLS-*) sub_slug="acc-tools" ;;
-        ACC-KIDS-*) sub_slug="acc-kids" ;;
-        *) sub_slug="acc-general" ;;
-      esac
+  case "${sku}" in
+    ACC-SHOE-TORCH-RD)
+      group_slug="acc-shoes"
+      sub_slug="acc-road-shoes"
       ;;
+    ACC-SHOE-RECON-30|ACC-SHOE-RIME-MTB)
+      group_slug="acc-shoes"
+      sub_slug="acc-mtb-shoes"
+      ;;
+    ACC-HLMT-PREVAIL-3)
+      group_slug="acc-helmets"
+      sub_slug="acc-road-helmets"
+      ;;
+    ACC-HLMT-TRAIL-65)
+      group_slug="acc-helmets"
+      sub_slug="acc-mtb-helmets"
+      ;;
+    ACC-HLMT-CHAMONIX-3)
+      group_slug="acc-helmets"
+      sub_slug="acc-city-helmets"
+      ;;
+    ACC-HLMT-MIO-2)
+      group_slug="acc-helmets"
+      sub_slug="acc-youth-helmets"
+      ;;
+    ACC-PEDAL-*)
+      sub_slug="acc-pedals"
+      ;;
+    ACC-NAV-*)
+      sub_slug="acc-navigation"
+      ;;
+    ACC-TOOLS-*)
+      sub_slug="acc-tools"
+      ;;
+    ACC-KIDS-*)
+      sub_slug="acc-kids"
+      ;;
+    *) sub_slug="" ;;
   esac
+
+  if [ -z "${sub_slug}" ]; then
+    echo "   WARN: no accessory subcategory mapping for SKU ${sku}; assigning root accessories only" >&2
+    echo "[${acc_root}]"
+    return
+  fi
 
   local sub_id
   sub_id="$(get_cat_id_by_slug "${sub_slug}")"
   if [ -z "${sub_id}" ] || [ "${sub_id}" = "null" ]; then
-    echo "   WARN: subcategory '${sub_slug}' not found; assigning root accessories only" >&2
+    echo "   WARN: subcategory '${sub_slug}' not found; run dev_seed_categories.sh on this DB (or create the category). Assigning root accessories only." >&2
     echo "[${acc_root}]"
+    return
+  fi
+
+  if [ -n "${group_slug}" ]; then
+    local group_id
+    group_id="$(get_cat_id_by_slug "${group_slug}")"
+    if [ -z "${group_id}" ] || [ "${group_id}" = "null" ]; then
+      echo "   WARN: group '${group_slug}' not found; assigning root + leaf only." >&2
+      echo "[${acc_root}, ${sub_id}]"
+      return
+    fi
+    echo "[${acc_root}, ${group_id}, ${sub_id}]"
     return
   fi
 
@@ -330,16 +394,17 @@ seed_accessory_product() {
   local name="$2"
   local short_description="$3"
   local detailed_description="$4"
-  local variant_mode="$5"  # shoes | helmets | default
-  shift 5
+  local price_category="$5"
+  local variant_mode="$6"  # shoes | helmets | default
+  shift 6
   local image_paths=("$@")
 
-  echo "-> ${name} (${sku})"
+  echo "-> ${name} (${sku}) [${price_category}]"
 
   local product_id
   product_id="$(find_accessory_product_id_by_sku "$sku")"
   if [ -z "${product_id}" ]; then
-    product_id="$(create_accessory_product "$sku" "$name" "$short_description")" || exit 1
+    product_id="$(create_accessory_product "$sku" "$name" "$short_description" "$price_category")" || exit 1
     echo "   created accessory product id=${product_id}"
   else
     echo "   accessory product exists id=${product_id}"
@@ -350,10 +415,12 @@ seed_accessory_product() {
     exit 1
   fi
 
+  ensure_product_price_category "${product_id}" "${price_category}"
+
   upsert_product_translation_en "${product_id}" "${name}" "${short_description}" "${detailed_description}"
 
   local cat_ids_json
-  cat_ids_json="$(resolve_accessory_category_ids "${variant_mode}" "${sku}")"
+  cat_ids_json="$(resolve_accessory_category_ids "${sku}")"
   if [ -n "${cat_ids_json}" ]; then
     echo "   assign categories ${cat_ids_json}"
     assign_product_categories "${product_id}" "${cat_ids_json}"
@@ -414,6 +481,7 @@ seed_accessory_product \
   "Recon 3.0 MTB Shoes" \
   "Trail-focused cycling shoes with stable power transfer and all-day comfort." \
   "The Recon 3.0 is designed for riders who need efficient pedaling and confident off-bike traction.\n\n- Stiff sole to transfer power on climbs and sprints\n- Reinforced toe area for rocky terrain\n- Secure closure for a precise fit\n- Breathable upper for warm-weather rides\n- Durable outsole suitable for hike-a-bike sections\n\nIdeal for: mountain biking, mixed terrain rides, and long trail days." \
+  "accessory_premium" \
   "shoes" \
   "${MEDIA_ROOT}/Shoes/61524-3042_SHOE_24_RECON_30_Black_HERO.webp" \
   "${MEDIA_ROOT}/Shoes/61524-3042_SHOE_24_RECON_30_Black_PAIR.webp"
@@ -423,6 +491,7 @@ seed_accessory_product \
   "Torch Road Shoes" \
   "Performance road cycling shoes built for efficient pedaling and secure fit." \
   "Torch Road Shoes are tuned for road riders who want a responsive feel and reliable comfort over long hours.\n\n- Stiff sole for efficient watt transfer\n- Ergonomic closure for pressure-free hold\n- Ventilated upper for airflow at high intensity\n- Stable heel cup for confident accelerations\n- Durable construction for regular training use\n\nIdeal for: road training, fast group rides, and sportive events." \
+  "accessory_premium" \
   "shoes" \
   "${MEDIA_ROOT}/Shoes/61026-003_SHOE_SW-TORCH-RD-SHOE-FRYRED-BLK_HERO-PDP.webp" \
   "${MEDIA_ROOT}/Shoes/61026-003_SHOE_SW-TORCH-RD-SHOE-FRYRED-BLK_PAIR.webp"
@@ -432,6 +501,7 @@ seed_accessory_product \
   "Rime 2.0 MTB Shoes" \
   "All-mountain shoes that balance pedaling efficiency and walkable grip." \
   "Rime 2.0 MTB Shoes are built for riders who climb, descend, and occasionally hike technical sections.\n\n- Balanced stiffness for pedaling and comfort\n- Grippy outsole for wet rocks and loose dirt\n- Protective upper for rough trail conditions\n- Secure fit to reduce foot movement on descents\n- Breathable design for all-day adventures\n\nIdeal for: trail riding, enduro days, and mountain adventures." \
+  "accessory_premium" \
   "shoes" \
   "${MEDIA_ROOT}/Shoes/61119-734_SHOE_RIME-20-MTB_BLK_HERO.webp" \
   "${MEDIA_ROOT}/Shoes/61119-734_SHOE_RIME-20-MTB_BLK_PAIR.webp"
@@ -441,6 +511,7 @@ seed_accessory_product \
   "Mio 2 Helmet" \
   "Lightweight youth-oriented helmet focused on comfort and everyday protection." \
   "The Mio 2 Helmet is designed for younger riders and smaller head sizes, with ventilation and a stable fit.\n\n- Protective shell with modern impact standards\n- Easy adjustment dial for quick fit tuning\n- Vent layout for daily comfort\n- Lightweight construction for reduced neck fatigue\n- Clean design suitable for city and recreational riding\n\nIdeal for: daily rides, school commutes, and beginner cyclists." \
+  "accessory_standard" \
   "helmets" \
   "${MEDIA_ROOT}/Helmets/60025-441_HLMT_MIO-2-HLMT-CE-DUNEWHTOIS_HERO-PDP.webp"
 
@@ -449,6 +520,7 @@ seed_accessory_product \
   "S-Works Prevail 3 Helmet" \
   "High-ventilation performance helmet optimized for warm conditions and hard efforts." \
   "S-Works Prevail 3 is built for riders who prioritize airflow and low weight without compromising safety.\n\n- Advanced ventilation channels for cooling\n- Aerodynamic profile for high-speed riding\n- Lightweight in-mold construction\n- Precision retention system for race-ready fit\n- Compatible shape for modern road positions\n\nIdeal for: road racing, fast group rides, and summer training blocks." \
+  "accessory_premium" \
   "helmets" \
   "${MEDIA_ROOT}/Helmets/60923-100_HLMT_SW-PREVAIL-3-HLMT-CE-BLK-M_HERO.webp"
 
@@ -457,6 +529,7 @@ seed_accessory_product \
   "Trail 65 Helmet" \
   "Versatile trail helmet with extended coverage for off-road confidence." \
   "The Trail 65 Helmet offers dependable protection and all-day comfort for mountain and gravel riders.\n\n- Extended rear coverage for trail riding\n- Ventilation designed for low-speed climbs and technical descents\n- Secure fit system for rough terrain\n- Durable shell finish for regular use\n- Balanced weight for long sessions\n\nIdeal for: trail riding, bike parks, and mixed-surface adventures." \
+  "accessory_standard" \
   "helmets" \
   "${MEDIA_ROOT}/Helmets/60222-193_HLMT_65-TRAIL-HLMT-CE-COLOR-3-M_HERO.webp"
 
@@ -465,6 +538,7 @@ seed_accessory_product \
   "Chamonix 3 Helmet" \
   "Comfort-first all-round helmet suitable for commuting and leisure rides." \
   "Chamonix 3 is a reliable everyday helmet with easy fit adjustment and broad riding versatility.\n\n- Protective design with practical everyday coverage\n- User-friendly rear adjustment system\n- Ventilation for urban and weekend riding\n- Compatible shape for casual and fitness use\n- Durable shell for frequent handling\n\nIdeal for: city commuting, weekend loops, and fitness cycling." \
+  "accessory_standard" \
   "helmets" \
   "${MEDIA_ROOT}/Helmets/60125-180_HLMT_CHAMONIX-3-HLMT_VISOR-CE-HYPERVIZ-ROUND_HERO (1).webp"
 
@@ -473,6 +547,7 @@ seed_accessory_product \
   "Trail Flat Pedals" \
   "Wide-platform pedals with consistent grip for control on technical terrain." \
   "Trail Flat Pedals prioritize stability and confidence for riders who prefer flat-shoe control.\n\n- Large contact platform for better foot support\n- Serviceable axle and bearing setup\n- Pin layout tuned for reliable grip\n- Durable body for repeated trail impacts\n- Balanced profile for cornering clearance\n\nIdeal for: trail bikes, enduro riding, and all-mountain setups." \
+  "accessory_standard" \
   "default" \
   "${MEDIA_ROOT}/Pedals/d7cb3fb9-b10e-4055-af9c-1b0a3fe363bc.jpeg" \
   "${MEDIA_ROOT}/Pedals/62270f66-461c-49b4-9383-d713794c664a.jpeg" \
@@ -483,6 +558,7 @@ seed_accessory_product \
   "Handlebar Navigation Mount" \
   "Compact cockpit mount for phones and GPS units on road or gravel bikes." \
   "This handlebar navigation mount keeps your route information centered and easy to read.\n\n- Stable clamp interface for rough surfaces\n- Low-profile design to keep cockpit clean\n- Quick install and adjustment\n- Broad compatibility with common handlebar diameters\n- Vibration-resistant setup for better readability\n\nIdeal for: touring, gravel exploration, and long route planning rides." \
+  "accessory_compact" \
   "default" \
   "${MEDIA_ROOT}/Navigation/6eeff327-5350-4348-9116-4884806dfd2f.jpeg"
 
@@ -491,6 +567,7 @@ seed_accessory_product \
   "Essential Ride Tool Kit" \
   "Portable tool bundle for roadside adjustments and common bike fixes." \
   "Essential Ride Tool Kit covers the most frequent mid-ride adjustments in a compact package.\n\n- Multi-tool core for fit and drivetrain tweaks\n- Compact form factor for jersey pocket or saddle bag\n- Durable metal tools for repeated use\n- Organized layout for quick access\n- Built for emergency and preventive maintenance\n\nIdeal for: training rides, commuting, and bikepacking carry." \
+  "accessory_compact" \
   "default" \
   "${MEDIA_ROOT}/Tools/ce5e7c87-2b6e-4a40-8431-f4c4c2bcf6ff.jpeg" \
   "${MEDIA_ROOT}/Tools/5ec91be9-a75e-411b-bfa5-c335a44b0bf9.jpeg"
@@ -500,6 +577,7 @@ seed_accessory_product \
   "Kids Starter Protection Set" \
   "Beginner-friendly protective accessory set sized for young riders." \
   "Kids Starter Protection Set is made to help children ride with confidence and comfort from day one.\n\n- Soft-contact materials for comfortable wear\n- Adjustable closures to support growth and fit\n- Lightweight construction for easy movement\n- Durable build for repeated daily use\n- Simple setup for parents and instructors\n\nIdeal for: first rides, family cycling days, and youth training sessions." \
+  "accessory_compact" \
   "default" \
   "${MEDIA_ROOT}/Kids/a4b29729-4287-4b43-b6fd-b72d8b95253a.jpeg"
 
