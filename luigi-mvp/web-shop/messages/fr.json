@@ -412,6 +412,20 @@
     "viewDetails": "voir les détails",
     "rentNow": "louer maintenant"
   },
+  "accessoryPage": {
+    "title": "Accessoires",
+    "subtitle": "Choisissez les compléments pour le confort, la sécurité et la performance.",
+    "empty": "Aucun accessoire disponible pour le moment."
+  },
+  "accessoryCard": {
+    "viewDetails": "voir les détails"
+  },
+  "accessoryDetail": {
+    "variant": "Variante",
+    "pickupLocation": "Lieu de retrait",
+    "availableNow": "{count} disponible(s) maintenant",
+    "thumbnail": "Image {index} sur {total}"
+  },
   "categoryRow": {
     "scrollLeft": "Faire défiler vers la gauche",
     "scrollRight": "Faire défiler vers la droite",
@@ -449,6 +463,7 @@
     "locations": "Lieux",
     "about": "À propos",
     "products": "Produits",
+    "accessories": "Accessoires",
     "search": "Recherche",
     "agb": "CG",
     "privacy": "Confidentialité",

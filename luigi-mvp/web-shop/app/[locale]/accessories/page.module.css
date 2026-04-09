@@ -1,0 +1,12 @@
+.title {
+  margin: 0 0 0.5rem;
+}
+
+.description {
+  margin: 0 0 1.25rem;
+  color: #4b5563;
+}
+
+.empty {
+  color: #6b7280;
+}

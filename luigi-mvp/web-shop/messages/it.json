@@ -412,6 +412,20 @@
     "viewDetails": "vedi dettagli",
     "rentNow": "noleggia ora"
   },
+  "accessoryPage": {
+    "title": "Accessori",
+    "subtitle": "Scegli extra utili per comfort, sicurezza e prestazioni.",
+    "empty": "Nessun accessorio disponibile al momento."
+  },
+  "accessoryCard": {
+    "viewDetails": "vedi dettagli"
+  },
+  "accessoryDetail": {
+    "variant": "Variante",
+    "pickupLocation": "Luogo di ritiro",
+    "availableNow": "{count} disponibili ora",
+    "thumbnail": "Immagine {index} di {total}"
+  },
   "categoryRow": {
     "scrollLeft": "Scorri a sinistra",
     "scrollRight": "Scorri a destra",
@@ -449,6 +463,7 @@
     "locations": "Sedi",
     "about": "Chi siamo",
     "products": "Prodotti",
+    "accessories": "Accessori",
     "search": "Ricerca",
     "agb": "CG",
     "privacy": "Privacy",

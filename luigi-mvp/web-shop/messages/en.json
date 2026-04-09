@@ -412,6 +412,20 @@
     "viewDetails": "view details",
     "rentNow": "rent now"
   },
+  "accessoryPage": {
+    "title": "Accessories",
+    "subtitle": "Choose add-ons for comfort, safety, and performance.",
+    "empty": "No accessories available yet."
+  },
+  "accessoryCard": {
+    "viewDetails": "view details"
+  },
+  "accessoryDetail": {
+    "variant": "Variant",
+    "pickupLocation": "Pick-up location",
+    "availableNow": "{count} available now",
+    "thumbnail": "Image {index} of {total}"
+  },
   "categoryRow": {
     "scrollLeft": "Scroll left",
     "scrollRight": "Scroll right",
@@ -449,6 +463,7 @@
     "locations": "Locations",
     "about": "About us",
     "products": "Products",
+    "accessories": "Accessories",
     "search": "Search",
     "agb": "AGB",
     "privacy": "Privacy",

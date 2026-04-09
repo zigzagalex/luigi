@@ -19,6 +19,7 @@ export const footerColumns: FooterColumn[] = [
     links: [
       { labelKey: "about", href: "/about" },
       { labelKey: "products", href: "/products" },
+      { labelKey: "accessories", href: "/accessories" },
       { labelKey: "search", href: "/search" },
     ],
   },

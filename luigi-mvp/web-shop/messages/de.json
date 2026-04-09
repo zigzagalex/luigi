@@ -412,6 +412,20 @@
     "viewDetails": "details ansehen",
     "rentNow": "jetzt mieten"
   },
+  "accessoryPage": {
+    "title": "Zubehör",
+    "subtitle": "Wähle passende Extras für Komfort, Sicherheit und Performance.",
+    "empty": "Noch kein Zubehör verfügbar."
+  },
+  "accessoryCard": {
+    "viewDetails": "Details ansehen"
+  },
+  "accessoryDetail": {
+    "variant": "Variante",
+    "pickupLocation": "Abholort",
+    "availableNow": "{count} aktuell verfügbar",
+    "thumbnail": "Bild {index} von {total}"
+  },
   "categoryRow": {
     "scrollLeft": "Nach links scrollen",
     "scrollRight": "Nach rechts scrollen",
@@ -449,6 +463,7 @@
     "locations": "Standorte",
     "about": "Über uns",
     "products": "Produkte",
+    "accessories": "Zubehör",
     "search": "Suche",
     "agb": "AGB",
     "privacy": "Datenschutz",
