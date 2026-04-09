@@ -250,7 +250,7 @@ echo "${ROAD_E_JSON}" | jq .
 export CAT_ROAD_E_ID="$(echo "${ROAD_E_JSON}" | jq -r '.id')"
 
 ########################################
-# Accessories (for add-on products; children match dev_seed_accessories SKUs)
+# Accessories (for add-on products; leaves matched per SKU in dev_seed_accessories.sh)
 ########################################
 
 echo "-> Creating Accessories root category..."
@@ -270,18 +270,60 @@ JSON
 echo "${ACC_ROOT_JSON}" | jq .
 export CAT_ACC_ID="$(echo "${ACC_ROOT_JSON}" | jq -r '.id')"
 
+echo "-> Creating accessory group: Shoes..."
+ACC_SHOES_JSON="$(
+  curl -sS -X POST "${BASE}/v1/categories" \
+    -H "Content-Type: application/json" \
+    -d @- <<JSON
+{
+  "shop_id": ${SHOP_ID},
+  "parent_id": ${CAT_ACC_ID},
+  "slug": "acc-shoes",
+  "name": "Shoes",
+  "description": "Road, MTB, and performance cycling footwear.",
+  "is_active": true
+}
+JSON
+)"
+echo "${ACC_SHOES_JSON}" | jq .
+export CAT_ACC_SHOES_ID="$(echo "${ACC_SHOES_JSON}" | jq -r '.id')"
+
+echo "-> Creating accessory group: Helmets..."
+ACC_HELMETS_JSON="$(
+  curl -sS -X POST "${BASE}/v1/categories" \
+    -H "Content-Type: application/json" \
+    -d @- <<JSON
+{
+  "shop_id": ${SHOP_ID},
+  "parent_id": ${CAT_ACC_ID},
+  "slug": "acc-helmets",
+  "name": "Helmets",
+  "description": "Road, trail, city, and youth helmets.",
+  "is_active": true
+}
+JSON
+)"
+echo "${ACC_HELMETS_JSON}" | jq .
+export CAT_ACC_HELMETS_GROUP_ID="$(echo "${ACC_HELMETS_JSON}" | jq -r '.id')"
+
+# Shoe and helmet leaves (riding context); pedals / navigation / tools / kids stay under Accessories root.
 for pair in \
-  "acc-shoes:Shoes:Cycling shoes" \
-  "acc-helmets:Helmets:Helmets and head protection" \
-  "acc-pedals:Pedals:Platform and clip-in pedals" \
-  "acc-navigation:Navigation:Mounts and navigation accessories" \
-  "acc-tools:Tools:Tool kits and ride essentials" \
-  "acc-kids:Kids:Youth protection and starter gear" \
-  "acc-general:General:Miscellaneous accessories"; do
+  "acc-road-shoes:${CAT_ACC_SHOES_ID}:Road shoes:Performance road and tri-oriented cycling shoes" \
+  "acc-mtb-shoes:${CAT_ACC_SHOES_ID}:MTB shoes:Trail and all-mountain riding shoes" \
+  "acc-road-helmets:${CAT_ACC_HELMETS_GROUP_ID}:Road helmets:Aero and high-ventilation road helmets" \
+  "acc-mtb-helmets:${CAT_ACC_HELMETS_GROUP_ID}:Trail helmets:Extended-coverage MTB and enduro helmets" \
+  "acc-city-helmets:${CAT_ACC_HELMETS_GROUP_ID}:City & leisure helmets:Comfort-first commuting and fitness helmets" \
+  "acc-youth-helmets:${CAT_ACC_HELMETS_GROUP_ID}:Youth helmets:Smaller-fit helmets for younger riders" \
+  "acc-pedals:${CAT_ACC_ID}:Pedals:Platform and clip-in pedals" \
+  "acc-navigation:${CAT_ACC_ID}:Navigation:Mounts and cockpit navigation accessories" \
+  "acc-tools:${CAT_ACC_ID}:Tools:Tool kits and ride essentials" \
+  "acc-kids:${CAT_ACC_ID}:Kids:Youth protection and starter bundles"; do
   slug="${pair%%:*}"
   rest="${pair#*:}"
-  name="${rest%%:*}"
-  desc="${rest#*:}"
+  parent_id="${rest%%:*}"
+  rest2="${rest#*:}"
+  name="${rest2%%:*}"
+  desc="${rest2#*:}"
   echo "-> Creating accessory subcategory: ${name}..."
   sub_json="$(
     curl -sS -X POST "${BASE}/v1/categories" \
@@ -289,7 +331,7 @@ for pair in \
       -d @- <<JSON
 {
   "shop_id": ${SHOP_ID},
-  "parent_id": ${CAT_ACC_ID},
+  "parent_id": ${parent_id},
   "slug": "${slug}",
   "name": "${name}",
   "description": "${desc}",
