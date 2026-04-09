@@ -19,6 +19,7 @@ import (
 	usersvc "github.com/zigzagalex/luigi/api/internal/users"
 
 	v1accessories "github.com/zigzagalex/luigi/api/internal/v1/accessories"
+	v1accessoryvariantimages "github.com/zigzagalex/luigi/api/internal/v1/accessory_variant_images"
 	v1accessoryvariants "github.com/zigzagalex/luigi/api/internal/v1/accessory_variants"
 	v1auth "github.com/zigzagalex/luigi/api/internal/v1/auth"
 	v1availability "github.com/zigzagalex/luigi/api/internal/v1/availability"
@@ -86,6 +87,7 @@ func New(d Deps) http.Handler {
 		v1categories.RegisterRoutes(r, d.Q)
 		v1availability.RegisterRoutes(r, d.Q)
 		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
+		v1accessoryvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
 		v1inventory.RegisterRoutes(r, d.Q)
 		v1pricepoints.RegisterRoutes(r, d.Q)
 
