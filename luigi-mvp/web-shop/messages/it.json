@@ -424,7 +424,13 @@
     "variant": "Variante",
     "pickupLocation": "Luogo di ritiro",
     "availableNow": "{count} disponibili ora",
-    "thumbnail": "Immagine {index} di {total}"
+    "thumbnail": "Immagine {index} di {total}",
+    "breadcrumbAria": "Percorso di navigazione",
+    "breadcrumbHome": "Home",
+    "breadcrumbAccessories": "Accessori",
+    "backToAccessories": "Torna agli accessori",
+    "detailsTitle": "Dettagli",
+    "detailsFallback": "I dettagli dell’accessorio appariranno qui."
   },
   "categoryRow": {
     "scrollLeft": "Scorri a sinistra",

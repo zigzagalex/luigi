@@ -158,7 +158,7 @@ seed_accessory_inventory_for_variant() {
   local store_id
   IFS=',' read -ra store_ids <<< "${ACCESSORY_STORE_IDS}"
   for store_id in "${store_ids[@]}"; do
-    store_id="$(echo "${store_id}" | xargs)"
+    store_id="${store_id//[[:space:]]/}"
     if [ -z "${store_id}" ]; then
       continue
     fi
@@ -190,14 +190,24 @@ upload_variant_images_once() {
   shift
   local image_paths=("$@")
 
-  local existing_count
-  existing_count="$(
-    curl -sS "${API_BASE_URL}/v1/accessory_variants/${variant_id}/images" | jq 'length'
+  local existing_json existing_count has_broken_urls
+  existing_json="$(curl -sS "${API_BASE_URL}/v1/accessory_variants/${variant_id}/images")"
+  existing_count="$(echo "${existing_json}" | jq 'length')"
+  has_broken_urls="$(
+    echo "${existing_json}" | jq -r 'any(.[]; (.url | contains("/accessory-variants/")))'
   )"
 
   if [ "${existing_count}" -gt 0 ]; then
-    echo "      images already exist for variant ${variant_id}, skipping upload"
-    return
+    if [ "${has_broken_urls}" = "true" ]; then
+      echo "      existing dev-uploaded image URLs detected, resetting variant ${variant_id} images"
+      echo "${existing_json}" | jq -r '.[].id' | while read -r image_id; do
+        curl -sS -X DELETE "${API_BASE_URL}/v1/accessory_variants/${variant_id}/images/${image_id}" >/dev/null
+      done
+      existing_count=0
+    else
+      echo "      images already exist for variant ${variant_id}, skipping upload"
+      return
+    fi
   fi
 
   if [ "${#image_paths[@]}" -eq 0 ]; then
@@ -208,9 +218,13 @@ upload_variant_images_once() {
   local path
   for path in "${image_paths[@]}"; do
     if [ -f "${path}" ]; then
+      local rel_path object_key
+      rel_path="${path#${MEDIA_ROOT}/}"
+      object_key="media/Accessories/${rel_path}"
       echo "      upload image -> $(basename "${path}")"
       curl -sS -X POST "${API_BASE_URL}/v1/accessory_variants/${variant_id}/images" \
-        -F "file=@${path}" >/dev/null
+        -F "file=@${path}" \
+        -F "object_key=${object_key}" >/dev/null
     fi
   done
 }
