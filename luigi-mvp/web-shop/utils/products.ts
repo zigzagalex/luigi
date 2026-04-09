@@ -14,6 +14,7 @@ export interface Product {
   sku: string | null;
   name: string;
   description: string | null;
+  detailed_description?: string | null;
   price_category: string;
   is_active: boolean | null;
 

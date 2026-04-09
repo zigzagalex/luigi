@@ -5,6 +5,8 @@ import Link from "next/link";
 import type { Product } from "@/../utils/products";
 import { useSearchParams } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 import styles from "./ProductDetail.module.css";
 import {
   AvailabilityRangeCalendar,
@@ -498,6 +500,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
   const title = product.name || t("bikeFallback", { id: String(product.id) });
   const priceLabel = product.price_category || t("standard");
   const description = product.description?.trim() ?? "";
+  const detailedDescription = product.detailed_description?.trim() ?? "";
 
   const addCurrentSelection = useCallback(async () => {
     if (!canAddToCart || !selectedVariant || !selectedStoreId || !range.from || !range.to) return;
@@ -877,7 +880,15 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
           <details className={styles.contentDetails} open>
             <summary className={styles.contentDetailsSummary}>{t("specsSectionTitle")}</summary>
             <div className={styles.contentDetailsBody}>
-              <p>{t("specsSectionBody")}</p>
+              {detailedDescription ? (
+                <div className={styles.markdownContent}>
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                    {detailedDescription}
+                  </ReactMarkdown>
+                </div>
+              ) : (
+                <p>{t("specsSectionBody")}</p>
+              )}
             </div>
           </details>
           <details className={styles.contentDetails}>
