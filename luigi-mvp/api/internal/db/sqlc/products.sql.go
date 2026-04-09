@@ -54,20 +54,7 @@ type CreateProductParams struct {
 	IsActive      sql.NullBool   `json:"is_active"`
 }
 
-type CreateProductRow struct {
-	ID            int64          `json:"id"`
-	ShopID        int64          `json:"shop_id"`
-	Sku           sql.NullString `json:"sku"`
-	Name          string         `json:"name"`
-	Description   sql.NullString `json:"description"`
-	PriceCategory string         `json:"price_category"`
-	IsAccessory   bool           `json:"is_accessory"`
-	IsActive      bool           `json:"is_active"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
-}
-
-func (q *Queries) CreateProduct(ctx context.Context, arg *CreateProductParams) (CreateProductRow, error) {
+func (q *Queries) CreateProduct(ctx context.Context, arg *CreateProductParams) (Product, error) {
 	row := q.db.QueryRowContext(ctx, createProduct,
 		arg.ShopID,
 		arg.Sku,
@@ -77,7 +64,7 @@ func (q *Queries) CreateProduct(ctx context.Context, arg *CreateProductParams) (
 		arg.IsAccessory,
 		arg.IsActive,
 	)
-	var i CreateProductRow
+	var i Product
 	err := row.Scan(
 		&i.ID,
 		&i.ShopID,
@@ -109,22 +96,9 @@ RETURNING
   updated_at
 `
 
-type DeleteProductRow struct {
-	ID            int64          `json:"id"`
-	ShopID        int64          `json:"shop_id"`
-	Sku           sql.NullString `json:"sku"`
-	Name          string         `json:"name"`
-	Description   sql.NullString `json:"description"`
-	PriceCategory string         `json:"price_category"`
-	IsAccessory   bool           `json:"is_accessory"`
-	IsActive      bool           `json:"is_active"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
-}
-
-func (q *Queries) DeleteProduct(ctx context.Context, id int64) (DeleteProductRow, error) {
+func (q *Queries) DeleteProduct(ctx context.Context, id int64) (Product, error) {
 	row := q.db.QueryRowContext(ctx, deleteProduct, id)
-	var i DeleteProductRow
+	var i Product
 	err := row.Scan(
 		&i.ID,
 		&i.ShopID,
@@ -438,20 +412,7 @@ type UpdateProductParams struct {
 	ID            int64          `json:"id"`
 }
 
-type UpdateProductRow struct {
-	ID            int64          `json:"id"`
-	ShopID        int64          `json:"shop_id"`
-	Sku           sql.NullString `json:"sku"`
-	Name          string         `json:"name"`
-	Description   sql.NullString `json:"description"`
-	PriceCategory string         `json:"price_category"`
-	IsAccessory   bool           `json:"is_accessory"`
-	IsActive      bool           `json:"is_active"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
-}
-
-func (q *Queries) UpdateProduct(ctx context.Context, arg *UpdateProductParams) (UpdateProductRow, error) {
+func (q *Queries) UpdateProduct(ctx context.Context, arg *UpdateProductParams) (Product, error) {
 	row := q.db.QueryRowContext(ctx, updateProduct,
 		arg.Sku,
 		arg.Name,
@@ -461,7 +422,7 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg *UpdateProductParams) (
 		arg.IsActive,
 		arg.ID,
 	)
-	var i UpdateProductRow
+	var i Product
 	err := row.Scan(
 		&i.ID,
 		&i.ShopID,

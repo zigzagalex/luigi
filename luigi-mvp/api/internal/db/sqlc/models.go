@@ -90,6 +90,7 @@ type MaintenanceWindow struct {
 	InventoryItemID int64          `json:"inventory_item_id"`
 	Reason          sql.NullString `json:"reason"`
 	TimeRange       interface{}    `json:"time_range"`
+	ReservationID   sql.NullInt64  `json:"reservation_id"`
 }
 
 type Payment struct {
@@ -129,10 +130,10 @@ type Product struct {
 	Name          string         `json:"name"`
 	Description   sql.NullString `json:"description"`
 	PriceCategory string         `json:"price_category"`
+	IsAccessory   bool           `json:"is_accessory"`
 	IsActive      bool           `json:"is_active"`
 	CreatedAt     time.Time      `json:"created_at"`
 	UpdatedAt     time.Time      `json:"updated_at"`
-	IsAccessory   bool           `json:"is_accessory"`
 }
 
 type ProductAccessory struct {
