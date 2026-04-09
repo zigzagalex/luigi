@@ -75,8 +75,16 @@ assign_product_categories() {
 
 find_accessory_product_id_by_sku() {
   local sku="$1"
+  # sku may be a JSON string (normal) or legacy sql.NullString shape {"String","Valid"}
   curl -sS "${API_BASE_URL}/v1/products?shop_id=${SHOP_ID}&is_accessory=true&limit=500&offset=0" \
-    | jq -r --arg sku "$sku" '.[] | select(.sku == $sku) | .id' \
+    | jq -r --arg sku "$sku" '
+        .[]?
+        | select(
+            (if (.sku | type) == "string" then .sku == $sku
+             elif (.sku | type) == "object" and (.sku.String != null) then .sku.String == $sku
+             else false end)
+          )
+        | .id' \
     | head -n1
 }
 
@@ -85,9 +93,9 @@ create_accessory_product() {
   local name="$2"
   local description="$3"
 
-  local resp
+  local resp http_code
   resp="$(
-    curl -sS -X POST "${API_BASE_URL}/v1/products" \
+    curl -sS -w "\n%{http_code}" -X POST "${API_BASE_URL}/v1/products" \
       -H "Content-Type: application/json" \
       -d @- <<JSON
 {
@@ -101,6 +109,12 @@ create_accessory_product() {
 }
 JSON
   )"
+  http_code="$(echo "${resp}" | tail -n1)"
+  resp="$(echo "${resp}" | sed '$d')"
+  if [ "${http_code}" != "200" ]; then
+    echo "   ERROR: POST /v1/products failed HTTP ${http_code} body: ${resp}" >&2
+    return 1
+  fi
 
   echo "$resp" | jq -r '.id'
 }
@@ -127,7 +141,10 @@ find_variant_id() {
   local label="$2"
 
   curl -sS "${API_BASE_URL}/v1/product_variants?product_id=${product_id}&limit=500&offset=0" \
-    | jq -r --arg label "$label" '.[] | select(.label == $label) | .id' \
+    | jq -r --arg label "$label" '
+        if type == "array" then
+          .[] | select(.label == $label) | .id
+        else empty end' \
     | head -n1
 }
 
@@ -136,9 +153,9 @@ create_variant() {
   local label="$2"
   local attributes_json="$3"
 
-  local resp
+  local resp http_code
   resp="$(
-    curl -sS -X POST "${API_BASE_URL}/v1/product_variants" \
+    curl -sS -w "\n%{http_code}" -X POST "${API_BASE_URL}/v1/product_variants" \
       -H "Content-Type: application/json" \
       -d @- <<JSON
 {
@@ -149,6 +166,12 @@ create_variant() {
 }
 JSON
   )"
+  http_code="$(echo "${resp}" | tail -n1)"
+  resp="$(echo "${resp}" | sed '$d')"
+  if [ "${http_code}" != "200" ]; then
+    echo "   ERROR: POST /v1/product_variants failed HTTP ${http_code} body: ${resp}" >&2
+    return 1
+  fi
 
   echo "$resp" | jq -r '.id'
 }
@@ -221,16 +244,20 @@ upload_variant_images_once() {
   shift
   local image_paths=("$@")
 
-  local existing_json existing_count has_broken_urls
+  local existing_json existing_count has_broken_urls has_placeholder_urls
   existing_json="$(curl -sS "${API_BASE_URL}/v1/product_variants/${variant_id}/images")"
   existing_count="$(echo "${existing_json}" | jq 'length')"
   has_broken_urls="$(
     echo "${existing_json}" | jq -r 'any(.[]; (.url | contains("/accessory-variants/")))'
   )"
+  # dev_seed_product_variant_images.sh used to TRUNCATE all rows; accessories then had bike placeholders
+  has_placeholder_urls="$(
+    echo "${existing_json}" | jq -r 'any(.[]; (.url | contains("placeholders")))'
+  )"
 
   if [ "${existing_count}" -gt 0 ]; then
-    if [ "${has_broken_urls}" = "true" ]; then
-      echo "      existing dev-uploaded image URLs detected, resetting variant ${variant_id} images"
+    if [ "${has_broken_urls}" = "true" ] || [ "${has_placeholder_urls}" = "true" ]; then
+      echo "      resetting variant ${variant_id} images (legacy upload path or placeholder URLs)"
       echo "${existing_json}" | jq -r '.[].id' | while read -r image_id; do
         curl -sS -X DELETE "${API_BASE_URL}/v1/product_variants/${variant_id}/images/${image_id}" >/dev/null
       done
@@ -312,10 +339,15 @@ seed_accessory_product() {
   local product_id
   product_id="$(find_accessory_product_id_by_sku "$sku")"
   if [ -z "${product_id}" ]; then
-    product_id="$(create_accessory_product "$sku" "$name" "$short_description")"
+    product_id="$(create_accessory_product "$sku" "$name" "$short_description")" || exit 1
     echo "   created accessory product id=${product_id}"
   else
     echo "   accessory product exists id=${product_id}"
+  fi
+
+  if [ -z "${product_id}" ] || ! [[ "${product_id}" =~ ^[0-9]+$ ]]; then
+    echo "   FATAL: invalid product_id '${product_id}' for ${sku}" >&2
+    exit 1
   fi
 
   upsert_product_translation_en "${product_id}" "${name}" "${short_description}" "${detailed_description}"
@@ -363,7 +395,7 @@ seed_accessory_product() {
     local variant_id
     variant_id="$(find_variant_id "${product_id}" "${label}")"
     if [ -z "${variant_id}" ]; then
-      variant_id="$(create_variant "${product_id}" "${label}" "${attr_json}")"
+      variant_id="$(create_variant "${product_id}" "${label}" "${attr_json}")" || exit 1
       echo "   created variant '${label}' id=${variant_id}"
     else
       echo "   variant '${label}' exists id=${variant_id}"
