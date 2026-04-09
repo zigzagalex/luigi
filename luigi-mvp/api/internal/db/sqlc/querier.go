@@ -30,17 +30,13 @@ type Querier interface {
 	//   - in non-expired holds
 	CountAvailableInventoryForRange(ctx context.Context, arg *CountAvailableInventoryForRangeParams) (int32, error)
 	CountCartItems(ctx context.Context, cartID int64) (int64, error)
-	CreateAccessory(ctx context.Context, arg *CreateAccessoryParams) (Accessory, error)
-	CreateAccessoryInventoryItem(ctx context.Context, arg *CreateAccessoryInventoryItemParams) (AccessoryInventoryItem, error)
-	CreateAccessoryVariant(ctx context.Context, arg *CreateAccessoryVariantParams) (AccessoryVariant, error)
-	CreateAccessoryVariantImage(ctx context.Context, arg *CreateAccessoryVariantImageParams) (AccessoryVariantImage, error)
 	CreateCartForCustomer(ctx context.Context, arg *CreateCartForCustomerParams) (Cart, error)
 	CreateCartForSession(ctx context.Context, arg *CreateCartForSessionParams) (Cart, error)
 	CreateCartItem(ctx context.Context, arg *CreateCartItemParams) (CartItem, error)
 	CreateCustomer(ctx context.Context, arg *CreateCustomerParams) (Customer, error)
 	CreateHoldForCartItem(ctx context.Context, arg *CreateHoldForCartItemParams) (Hold, error)
 	CreateInventoryItem(ctx context.Context, arg *CreateInventoryItemParams) (InventoryItem, error)
-	CreateProduct(ctx context.Context, arg *CreateProductParams) (Product, error)
+	CreateProduct(ctx context.Context, arg *CreateProductParams) (CreateProductRow, error)
 	CreateProductCategory(ctx context.Context, arg *CreateProductCategoryParams) (ProductCategory, error)
 	CreateProductVariant(ctx context.Context, arg *CreateProductVariantParams) (ProductVariant, error)
 	CreateProductVariantImage(ctx context.Context, arg *CreateProductVariantImageParams) (ProductVariantImage, error)
@@ -48,17 +44,12 @@ type Querier interface {
 	CreateStore(ctx context.Context, arg *CreateStoreParams) (Store, error)
 	CreateUser(ctx context.Context, arg *CreateUserParams) (User, error)
 	DeactivateReservationItems(ctx context.Context, reservationID int64) error
-	DeleteAccessory(ctx context.Context, id int64) (Accessory, error)
-	DeleteAccessoryInventoryItem(ctx context.Context, id int64) (AccessoryInventoryItem, error)
-	DeleteAccessoryTranslation(ctx context.Context, arg *DeleteAccessoryTranslationParams) error
-	DeleteAccessoryVariant(ctx context.Context, id int64) (AccessoryVariant, error)
-	DeleteAccessoryVariantImage(ctx context.Context, id int64) error
 	DeleteCartItem(ctx context.Context, cartItemID int64) error
 	DeleteCustomer(ctx context.Context, id int64) (Customer, error)
 	DeleteHoldsByCartItem(ctx context.Context, cartItemID int64) error
 	DeleteInventoryItem(ctx context.Context, id int64) (InventoryItem, error)
 	DeletePricePoint(ctx context.Context, arg *DeletePricePointParams) error
-	DeleteProduct(ctx context.Context, id int64) (Product, error)
+	DeleteProduct(ctx context.Context, id int64) (DeleteProductRow, error)
 	DeleteProductCategory(ctx context.Context, id int64) (ProductCategory, error)
 	DeleteProductTranslation(ctx context.Context, arg *DeleteProductTranslationParams) error
 	DeleteProductVariant(ctx context.Context, id int64) (ProductVariant, error)
@@ -66,10 +57,6 @@ type Querier interface {
 	DeleteStore(ctx context.Context, id int64) (Store, error)
 	DeleteUser(ctx context.Context, id int64) (User, error)
 	ExpireOpenCarts(ctx context.Context) error
-	GetAccessory(ctx context.Context, arg *GetAccessoryParams) (GetAccessoryRow, error)
-	GetAccessoryTranslations(ctx context.Context, accessoryID int64) ([]AccessoryTranslation, error)
-	GetAccessoryVariantByID(ctx context.Context, id int64) (AccessoryVariant, error)
-	GetAccessoryVariantImage(ctx context.Context, id int64) (AccessoryVariantImage, error)
 	GetCartByID(ctx context.Context, cartID int64) (Cart, error)
 	GetCartItemByID(ctx context.Context, cartItemID int64) (CartItem, error)
 	GetCartItemWithCart(ctx context.Context, cartItemID int64) (GetCartItemWithCartRow, error)
@@ -79,7 +66,6 @@ type Querier interface {
 	GetOpenCartBySessionID(ctx context.Context, arg *GetOpenCartBySessionIDParams) (Cart, error)
 	GetPriceCategoryForVariant(ctx context.Context, productVariantID int64) (string, error)
 	GetPricePoint(ctx context.Context, arg *GetPricePointParams) (PricePoint, error)
-	GetPrimaryImageByAccessoryVariantID(ctx context.Context, accessoryVariantID int64) (AccessoryVariantImage, error)
 	GetPrimaryImageByVariantID(ctx context.Context, productVariantID int64) (ProductVariantImage, error)
 	GetProduct(ctx context.Context, arg *GetProductParams) (GetProductRow, error)
 	GetProductCategory(ctx context.Context, id int64) (ProductCategory, error)
@@ -97,9 +83,6 @@ type Querier interface {
 	//   - holds.hold_range where expires_at > now()
 	//
 	IsInventoryItemAvailableForRange(ctx context.Context, arg *IsInventoryItemAvailableForRangeParams) (sql.NullBool, error)
-	ListAccessories(ctx context.Context, arg *ListAccessoriesParams) ([]ListAccessoriesRow, error)
-	ListAccessoryInventoryItems(ctx context.Context, arg *ListAccessoryInventoryItemsParams) ([]AccessoryInventoryItem, error)
-	ListAccessoryVariants(ctx context.Context, arg *ListAccessoryVariantsParams) ([]AccessoryVariant, error)
 	// List active inventory items for a given variant+store.
 	ListActiveInventoryForVariantStore(ctx context.Context, arg *ListActiveInventoryForVariantStoreParams) ([]InventoryItem, error)
 	// -------------------------------------------------------
@@ -111,7 +94,6 @@ type Querier interface {
 	ListCustomers(ctx context.Context, arg *ListCustomersParams) ([]ListCustomersRow, error)
 	ListDescendantCategoryIDs(ctx context.Context, arg *ListDescendantCategoryIDsParams) ([]int64, error)
 	ListHoldsByCartItem(ctx context.Context, cartItemID sql.NullInt64) ([]Hold, error)
-	ListImagesByAccessoryVariantID(ctx context.Context, accessoryVariantID int64) ([]AccessoryVariantImage, error)
 	ListImagesByVariantID(ctx context.Context, productVariantID int64) ([]ProductVariantImage, error)
 	ListInventoryItems(ctx context.Context, arg *ListInventoryItemsParams) ([]InventoryItem, error)
 	ListMyReservations(ctx context.Context, arg *ListMyReservationsParams) ([]Reservation, error)
@@ -136,9 +118,6 @@ type Querier interface {
 	// Returns one row per (product, variant, store) that has COUNT(*) >= quantity.
 	SearchAvailableVariants(ctx context.Context, arg *SearchAvailableVariantsParams) ([]SearchAvailableVariantsRow, error)
 	TouchCartUpdatedAt(ctx context.Context, cartID int64) error
-	UpdateAccessory(ctx context.Context, arg *UpdateAccessoryParams) (Accessory, error)
-	UpdateAccessoryInventoryItem(ctx context.Context, arg *UpdateAccessoryInventoryItemParams) (AccessoryInventoryItem, error)
-	UpdateAccessoryVariant(ctx context.Context, arg *UpdateAccessoryVariantParams) (AccessoryVariant, error)
 	UpdateCartItemCore(ctx context.Context, arg *UpdateCartItemCoreParams) error
 	UpdateCartStatus(ctx context.Context, arg *UpdateCartStatusParams) error
 	UpdateCartStore(ctx context.Context, arg *UpdateCartStoreParams) error
@@ -146,13 +125,12 @@ type Querier interface {
 	UpdateCustomer(ctx context.Context, arg *UpdateCustomerParams) (Customer, error)
 	UpdateInventoryItem(ctx context.Context, arg *UpdateInventoryItemParams) (InventoryItem, error)
 	UpdateMyReservationDetails(ctx context.Context, arg *UpdateMyReservationDetailsParams) (Reservation, error)
-	UpdateProduct(ctx context.Context, arg *UpdateProductParams) (Product, error)
+	UpdateProduct(ctx context.Context, arg *UpdateProductParams) (UpdateProductRow, error)
 	UpdateProductCategory(ctx context.Context, arg *UpdateProductCategoryParams) (ProductCategory, error)
 	UpdateProductVariant(ctx context.Context, arg *UpdateProductVariantParams) (ProductVariant, error)
 	UpdateShop(ctx context.Context, arg *UpdateShopParams) (Shop, error)
 	UpdateStore(ctx context.Context, arg *UpdateStoreParams) (Store, error)
 	UpdateUser(ctx context.Context, arg *UpdateUserParams) (User, error)
-	UpsertAccessoryTranslation(ctx context.Context, arg *UpsertAccessoryTranslationParams) (AccessoryTranslation, error)
 	UpsertPricePoint(ctx context.Context, arg *UpsertPricePointParams) (PricePoint, error)
 	UpsertProductTranslation(ctx context.Context, arg *UpsertProductTranslationParams) (ProductTranslation, error)
 }

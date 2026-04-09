@@ -249,4 +249,55 @@ echo "Created subcategory: Electric (Road)"
 echo "${ROAD_E_JSON}" | jq .
 export CAT_ROAD_E_ID="$(echo "${ROAD_E_JSON}" | jq -r '.id')"
 
+########################################
+# Accessories (for add-on products; children match dev_seed_accessories SKUs)
+########################################
+
+echo "-> Creating Accessories root category..."
+ACC_ROOT_JSON="$(
+  curl -sS -X POST "${BASE}/v1/categories" \
+    -H "Content-Type: application/json" \
+    -d @- <<JSON
+{
+  "shop_id": ${SHOP_ID},
+  "slug": "accessories",
+  "name": "Accessories",
+  "description": "Helmets, shoes, tools, and other add-ons.",
+  "is_active": true
+}
+JSON
+)"
+echo "${ACC_ROOT_JSON}" | jq .
+export CAT_ACC_ID="$(echo "${ACC_ROOT_JSON}" | jq -r '.id')"
+
+for pair in \
+  "acc-shoes:Shoes:Cycling shoes" \
+  "acc-helmets:Helmets:Helmets and head protection" \
+  "acc-pedals:Pedals:Platform and clip-in pedals" \
+  "acc-navigation:Navigation:Mounts and navigation accessories" \
+  "acc-tools:Tools:Tool kits and ride essentials" \
+  "acc-kids:Kids:Youth protection and starter gear" \
+  "acc-general:General:Miscellaneous accessories"; do
+  slug="${pair%%:*}"
+  rest="${pair#*:}"
+  name="${rest%%:*}"
+  desc="${rest#*:}"
+  echo "-> Creating accessory subcategory: ${name}..."
+  sub_json="$(
+    curl -sS -X POST "${BASE}/v1/categories" \
+      -H "Content-Type: application/json" \
+      -d @- <<JSON
+{
+  "shop_id": ${SHOP_ID},
+  "parent_id": ${CAT_ACC_ID},
+  "slug": "${slug}",
+  "name": "${name}",
+  "description": "${desc}",
+  "is_active": true
+}
+JSON
+  )"
+  echo "${sub_json}" | jq .
+done
+
 echo "==> Category seeding finished 🎉"

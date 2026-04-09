@@ -113,12 +113,15 @@ export default async function CategoryPage({
       typeof node.description === "string" && node.description.trim()
         ? node.description.trim()
         : null;
+    const accessoryBranch =
+      node.slug === "accessories" || node.slug.startsWith("acc-");
     try {
       products = await fetchProducts({
         shop_id: DEFAULT_SHOP_ID,
         category_id: node.id,
         limit: 200,
         locale,
+        is_accessory: accessoryBranch,
       });
     } catch (err) {
       console.error("Failed to fetch category products:", err);
@@ -134,6 +137,7 @@ export default async function CategoryPage({
         shop_id: DEFAULT_SHOP_ID,
         limit: 200,
         locale,
+        is_accessory: false,
       });
     } catch (err) {
       console.error("Failed to fetch all bikes for top category:", err);

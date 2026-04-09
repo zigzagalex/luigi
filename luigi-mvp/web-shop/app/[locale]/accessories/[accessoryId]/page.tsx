@@ -42,9 +42,10 @@ export default async function AccessoryDetailPage({
     images: imagesPerVariant[idx]?.length ? imagesPerVariant[idx] : allImages,
   }));
 
+  const variantIds = variants.map((v) => v.id);
   const [stores, inventory] = await Promise.all([
     fetchStores(accessory.shop_id),
-    fetchAccessoryInventory(accessory.shop_id),
+    fetchAccessoryInventory(accessory.shop_id, variantIds),
   ]);
 
   return (

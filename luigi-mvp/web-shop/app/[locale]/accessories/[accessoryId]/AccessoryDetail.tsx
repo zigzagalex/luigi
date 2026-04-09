@@ -18,7 +18,7 @@ type AccessoryImage = {
 
 type AccessoryVariantWithImages = {
   id: number;
-  accessory_id: number;
+  product_id: number;
   label: string;
   attributes: Record<string, unknown> | null;
   is_active: boolean | null;
@@ -59,7 +59,7 @@ export default function AccessoryDetail({ accessory, variants, stores, inventory
     for (const item of inventory) {
       if (item.is_active === false) continue;
       if (item.status && item.status !== "active") continue;
-      const key = `${item.accessory_variant_id}:${item.store_id}`;
+      const key = `${item.product_variant_id}:${item.store_id}`;
       map.set(key, (map.get(key) ?? 0) + 1);
     }
     return map;

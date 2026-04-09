@@ -3,9 +3,8 @@ import AccessoryGrid from "@/[locale]/components/accessories/AccessoryGrid";
 import pageShell from "../PageShell.module.css";
 import styles from "./page.module.css";
 import {
+  attachPrimaryImagesToAccessories,
   fetchAccessories,
-  fetchImagesForAccessoryVariant,
-  fetchVariantsForAccessory,
   type Accessory,
 } from "@/../utils/accessories";
 
@@ -29,24 +28,7 @@ export default async function AccessoriesPage({
     accessories = [];
   }
 
-  const accessoriesWithImages: Accessory[] = await Promise.all(
-    accessories.map(async (accessory) => {
-      try {
-        const variants = await fetchVariantsForAccessory(accessory.id);
-        if (!variants.length) return accessory;
-        const firstVariant = variants[0];
-        const images = await fetchImagesForAccessoryVariant(firstVariant.id);
-        if (!images.length) return accessory;
-        const primary = images.find((img) => img.is_primary) ?? images[0];
-        return {
-          ...accessory,
-          primary_image_url: primary.url,
-        };
-      } catch {
-        return accessory;
-      }
-    }),
-  );
+  const accessoriesWithImages = await attachPrimaryImagesToAccessories(accessories);
 
   return (
     <main className={pageShell.page}>

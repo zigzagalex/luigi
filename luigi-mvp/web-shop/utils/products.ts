@@ -16,6 +16,8 @@ export interface Product {
   description: string | null;
   detailed_description?: string | null;
   price_category: string;
+  /** When true, this row is an add-on/accessory product (same API as bikes). */
+  is_accessory?: boolean;
   is_active: boolean | null;
 
   created_at: string; // ISO timestamp
@@ -86,7 +88,7 @@ export async function fetchVariantsForProduct(productId: number): Promise<Produc
 // GET /v1/product_variants/:variantId/images
 // IF you expose this route; otherwise use your existing API path:
 export async function fetchImagesForVariant(variantId: number): Promise<ProductVariantImage[]> {
-  const res = await fetchApi(`/v1/product_variant_images?variant_id=${variantId}`);
+  const res = await fetchApi(`/v1/product_variants/${variantId}/images`);
   return parseJSON<ProductVariantImage[]>(res);
 }
 

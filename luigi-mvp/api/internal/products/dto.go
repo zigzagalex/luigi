@@ -20,6 +20,7 @@ type ProductDTO struct {
 	Description         *string                 `json:"description,omitempty"`
 	DetailedDescription *string                 `json:"detailed_description,omitempty"`
 	PriceCategory       string                  `json:"price_category"`
+	IsAccessory         bool                    `json:"is_accessory"`
 	IsActive            bool                    `json:"is_active"`
 	PrimaryImageURL     *string                 `json:"primary_image_url,omitempty"`
 	Categories          []ProductCategoryDTO    `json:"categories,omitempty"`
@@ -57,6 +58,7 @@ func RowToDTO(row db.ListProductsWithPrimaryImageRow, mediaBaseURL string) Produ
 		Description:         toStringPtr(row.Description),
 		DetailedDescription: toStringPtr(row.DetailedDescription),
 		PriceCategory:       row.PriceCategory,
+		IsAccessory:         row.IsAccessory,
 		IsActive:            row.IsActive,
 		PrimaryImageURL:     primaryURL,
 		Categories:          nil,

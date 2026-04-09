@@ -111,6 +111,7 @@ WITH candidate_items AS (
     -- only active inventory
     ii.is_active = TRUE
     AND (ii.status IS NULL OR ii.status = 'active')
+    AND NOT p.is_accessory
 
     -- optional filters
     AND (

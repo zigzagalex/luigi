@@ -10,12 +10,12 @@ import (
 )
 
 type productQuerier interface {
-	CreateProduct(ctx context.Context, arg *db.CreateProductParams) (db.Product, error)
+	CreateProduct(ctx context.Context, arg *db.CreateProductParams) (db.CreateProductRow, error)
 	ListProducts(ctx context.Context, arg *db.ListProductsParams) ([]db.ListProductsRow, error)
 	ListProductsWithPrimaryImage(ctx context.Context, arg *db.ListProductsWithPrimaryImageParams) ([]db.ListProductsWithPrimaryImageRow, error)
 	ListDescendantCategoryIDs(ctx context.Context, arg *db.ListDescendantCategoryIDsParams) ([]int64, error)
-	UpdateProduct(ctx context.Context, arg *db.UpdateProductParams) (db.Product, error)
-	DeleteProduct(ctx context.Context, id int64) (db.Product, error)
+	UpdateProduct(ctx context.Context, arg *db.UpdateProductParams) (db.UpdateProductRow, error)
+	DeleteProduct(ctx context.Context, id int64) (db.DeleteProductRow, error)
 	ListCategoriesForProduct(ctx context.Context, productID int64) ([]db.ProductCategory, error)
 
 	GetProduct(ctx context.Context, arg *db.GetProductParams) (db.GetProductRow, error)
@@ -34,10 +34,11 @@ func NewService(q db.Querier) *Service { return &Service{q: q} }
 var ErrNotFound = sql.ErrNoRows
 
 type ListInput struct {
-	ShopID *int64
-	Locale string
-	Limit  int32
-	Offset int32
+	ShopID      *int64
+	Locale      string
+	IsAccessory *bool
+	Limit       int32
+	Offset      int32
 }
 
 func (s *Service) List(ctx context.Context, in ListInput) ([]db.ListProductsRow, error) {
@@ -50,6 +51,7 @@ func (s *Service) List(ctx context.Context, in ListInput) ([]db.ListProductsRow,
 
 	return s.q.ListProducts(ctx, &db.ListProductsParams{
 		ShopID:          u.ToNullInt64(in.ShopID),
+		IsAccessory:     u.ToNullBool(in.IsAccessory),
 		RequestedLocale: in.Locale,
 		PageOffset:      in.Offset,
 		PageLimit:       in.Limit,
@@ -69,10 +71,11 @@ type CreateInput struct {
 	Name          string
 	Description   *string
 	PriceCategory string
+	IsAccessory   *bool
 	IsActive      *bool
 }
 
-func (s *Service) Create(ctx context.Context, in CreateInput) (db.Product, error) {
+func (s *Service) Create(ctx context.Context, in CreateInput) (db.CreateProductRow, error) {
 	name := strings.TrimSpace(in.Name)
 	priceCat := strings.TrimSpace(in.PriceCategory)
 
@@ -82,6 +85,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (db.Product, error
 		Name:          name,
 		Description:   u.ToNullString(in.Description),
 		PriceCategory: priceCat,
+		IsAccessory:   u.ToNullBool(in.IsAccessory),
 		IsActive:      u.ToNullBool(in.IsActive),
 	})
 }
@@ -92,21 +96,23 @@ type UpdateInput struct {
 	Name          *string
 	Description   *string
 	PriceCategory *string
+	IsAccessory   *bool
 	IsActive      *bool
 }
 
-func (s *Service) Update(ctx context.Context, in UpdateInput) (db.Product, error) {
+func (s *Service) Update(ctx context.Context, in UpdateInput) (db.UpdateProductRow, error) {
 	return s.q.UpdateProduct(ctx, &db.UpdateProductParams{
 		Sku:           u.ToNullString(in.SKU),
 		Name:          u.ToNullString(in.Name),
 		Description:   u.ToNullString(in.Description),
 		PriceCategory: u.ToNullString(in.PriceCategory),
+		IsAccessory:   u.ToNullBool(in.IsAccessory),
 		IsActive:      u.ToNullBool(in.IsActive),
 		ID:            in.ID,
 	})
 }
 
-func (s *Service) Delete(ctx context.Context, id int64) (db.Product, error) {
+func (s *Service) Delete(ctx context.Context, id int64) (db.DeleteProductRow, error) {
 	return s.q.DeleteProduct(ctx, id)
 }
 
@@ -114,6 +120,8 @@ type ListWithImageInput struct {
 	ShopID *int64
 	Locale string
 	Ids    []int64
+	// IsAccessory: nil = no filter, true/false = restrict catalog rows
+	IsAccessory *bool
 	// CategoryRootID, when set, keeps only products assigned to this category or any descendant.
 	CategoryRootID      *int64
 	IncludeTranslations bool
@@ -145,6 +153,7 @@ func (s *Service) ListWithPrimaryImage(ctx context.Context, in ListWithImageInpu
 		ShopID:          u.ToNullInt64(in.ShopID),
 		RequestedLocale: in.Locale,
 		Ids:             in.Ids,
+		IsAccessory:     u.ToNullBool(in.IsAccessory),
 		CategoryIds:     categoryIDs,
 		PageOffset:      in.Offset,
 		PageLimit:       in.Limit,
@@ -192,6 +201,7 @@ func (s *Service) GetDTO(ctx context.Context, id int64, locale string, includeTr
 		Description:         toStringPtr(p.Description),
 		DetailedDescription: toStringPtr(p.DetailedDescription),
 		PriceCategory:       p.PriceCategory,
+		IsAccessory:         p.IsAccessory,
 		IsActive:            p.IsActive,
 		Categories:          nil,
 		Translations:        nil,
