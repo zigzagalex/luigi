@@ -424,7 +424,13 @@
     "variant": "Variant",
     "pickupLocation": "Pick-up location",
     "availableNow": "{count} available now",
-    "thumbnail": "Image {index} of {total}"
+    "thumbnail": "Image {index} of {total}",
+    "breadcrumbAria": "Breadcrumb",
+    "breadcrumbHome": "Home",
+    "breadcrumbAccessories": "Accessories",
+    "backToAccessories": "Back to accessories",
+    "detailsTitle": "Details",
+    "detailsFallback": "Accessory details will appear here."
   },
   "categoryRow": {
     "scrollLeft": "Scroll left",

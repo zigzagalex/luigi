@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"path/filepath"
+	"strings"
 
 	"github.com/google/uuid"
 
@@ -131,8 +132,15 @@ func (s *Service) UploadAccessoryVariantImage(
 	file io.Reader,
 	filename string,
 	contentType string,
+	objectKeyOverride *string,
 ) (ImageDTO, error) {
 	key := s.objectKeyForAccessoryVariant(variantID, filename)
+	if objectKeyOverride != nil {
+		v := filepath.Clean(strings.TrimSpace(*objectKeyOverride))
+		if v != "" && v != "." {
+			key = v
+		}
+	}
 
 	if err := s.storage.Upload(ctx, key, file, contentType); err != nil {
 		return ImageDTO{}, err

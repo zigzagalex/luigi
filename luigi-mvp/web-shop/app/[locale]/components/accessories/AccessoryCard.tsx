@@ -14,12 +14,13 @@ const FALLBACK_IMAGE =
 
 export default function AccessoryCard({ accessory }: Props) {
   const t = useTranslations("accessoryCard");
+  const imageUrl = accessory.primary_image_url ?? FALLBACK_IMAGE;
   return (
     <Link href={`/accessories/${accessory.id}`} className={styles.card}>
       <div className={styles.imageWrapper}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img
-          src={FALLBACK_IMAGE}
+          src={imageUrl}
           alt={accessory.name}
           className={styles.image}
           loading="lazy"

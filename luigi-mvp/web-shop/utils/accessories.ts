@@ -7,6 +7,7 @@ export interface Accessory {
   name: string;
   description: string | null;
   detailed_description?: string | null;
+  primary_image_url?: string | null;
   is_active: boolean | null;
   created_at: string;
   updated_at: string;
