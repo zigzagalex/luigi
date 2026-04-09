@@ -9,7 +9,7 @@ ACCESSORY_ITEMS_PER_VARIANT_PER_STORE="${ACCESSORY_ITEMS_PER_VARIANT_PER_STORE:-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MEDIA_ROOT="${MEDIA_ROOT:-${SCRIPT_DIR}/../../web-shop/public/media/Accessories}"
 
-echo "==> Seeding accessories + accessory variants"
+echo "==> Seeding accessory catalog as products (is_accessory=true) + variants + inventory"
 echo "    API: ${API_BASE_URL}"
 echo "    SHOP_ID: ${SHOP_ID}"
 echo "    MEDIA_ROOT: ${MEDIA_ROOT}"
@@ -44,21 +44,50 @@ json_escape() {
   jq -Rn --arg v "$1" '$v'
 }
 
-find_accessory_id_by_sku() {
+CATS_JSON=""
+fetch_categories_if_needed() {
+  if [ -z "${CATS_JSON}" ]; then
+    CATS_JSON="$(curl -sS "${API_BASE_URL}/v1/categories?shop_id=${SHOP_ID}")"
+  fi
+}
+
+get_cat_id_by_slug() {
+  local slug="$1"
+  fetch_categories_if_needed
+  echo "${CATS_JSON}" | jq -r --arg slug "$slug" '.[] | select(.slug == $slug) | .id' | head -n1
+}
+
+assign_product_categories() {
+  local product_id="$1"
+  local cat_ids_json="$2"
+
+  HTTP_CODE="$(
+    curl -sS -o /dev/null -w "%{http_code}" \
+      -X PUT "${API_BASE_URL}/v1/products/${product_id}/categories" \
+      -H "Content-Type: application/json" \
+      -d "{\"category_ids\": ${cat_ids_json}}"
+  )"
+
+  if [ "${HTTP_CODE}" != "204" ]; then
+    echo "   WARN: category assign for product ${product_id} returned ${HTTP_CODE} (expected 204); continuing"
+  fi
+}
+
+find_accessory_product_id_by_sku() {
   local sku="$1"
-  curl -sS "${API_BASE_URL}/v1/accessories?shop_id=${SHOP_ID}&limit=500&offset=0" \
+  curl -sS "${API_BASE_URL}/v1/products?shop_id=${SHOP_ID}&is_accessory=true&limit=500&offset=0" \
     | jq -r --arg sku "$sku" '.[] | select(.sku == $sku) | .id' \
     | head -n1
 }
 
-create_accessory() {
+create_accessory_product() {
   local sku="$1"
   local name="$2"
   local description="$3"
 
   local resp
   resp="$(
-    curl -sS -X POST "${API_BASE_URL}/v1/accessories" \
+    curl -sS -X POST "${API_BASE_URL}/v1/products" \
       -H "Content-Type: application/json" \
       -d @- <<JSON
 {
@@ -66,6 +95,8 @@ create_accessory() {
   "sku": $(json_escape "$sku"),
   "name": $(json_escape "$name"),
   "description": $(json_escape "$description"),
+  "price_category": "standard",
+  "is_accessory": true,
   "is_active": true
 }
 JSON
@@ -74,13 +105,13 @@ JSON
   echo "$resp" | jq -r '.id'
 }
 
-upsert_accessory_translation_en() {
-  local accessory_id="$1"
+upsert_product_translation_en() {
+  local product_id="$1"
   local name="$2"
   local description="$3"
   local detailed_description="$4"
 
-  curl -sS -X PUT "${API_BASE_URL}/v1/accessories/${accessory_id}/translations/en" \
+  curl -sS -X PUT "${API_BASE_URL}/v1/products/${product_id}/translations/en" \
     -H "Content-Type: application/json" \
     -d @- <<JSON >/dev/null
 {
@@ -92,26 +123,26 @@ JSON
 }
 
 find_variant_id() {
-  local accessory_id="$1"
+  local product_id="$1"
   local label="$2"
 
-  curl -sS "${API_BASE_URL}/v1/accessory_variants?accessory_id=${accessory_id}&limit=500&offset=0" \
+  curl -sS "${API_BASE_URL}/v1/product_variants?product_id=${product_id}&limit=500&offset=0" \
     | jq -r --arg label "$label" '.[] | select(.label == $label) | .id' \
     | head -n1
 }
 
 create_variant() {
-  local accessory_id="$1"
+  local product_id="$1"
   local label="$2"
   local attributes_json="$3"
 
   local resp
   resp="$(
-    curl -sS -X POST "${API_BASE_URL}/v1/accessory_variants" \
+    curl -sS -X POST "${API_BASE_URL}/v1/product_variants" \
       -H "Content-Type: application/json" \
       -d @- <<JSON
 {
-  "accessory_id": ${accessory_id},
+  "product_id": ${product_id},
   "label": $(json_escape "$label"),
   "attributes": ${attributes_json},
   "is_active": true
@@ -122,23 +153,23 @@ JSON
   echo "$resp" | jq -r '.id'
 }
 
-list_accessory_inventory_for_variant() {
+list_inventory_for_variant() {
   local variant_id="$1"
-  curl -sS "${API_BASE_URL}/v1/accessory_inventory_items?shop_id=${SHOP_ID}&accessory_variant_id=${variant_id}&limit=1000&offset=0"
+  curl -sS "${API_BASE_URL}/v1/inventory_items?shop_id=${SHOP_ID}&product_variant_id=${variant_id}&limit=1000&offset=0"
 }
 
-create_accessory_inventory_item() {
+create_inventory_item() {
   local variant_id="$1"
   local store_id="$2"
   local index="$3"
-  local tag_code="AS${store_id}-AV${variant_id}-${index}"
+  local tag_code="ACC${store_id}-PV${variant_id}-${index}"
 
-  curl -sS -X POST "${API_BASE_URL}/v1/accessory_inventory_items" \
+  curl -sS -X POST "${API_BASE_URL}/v1/inventory_items" \
     -H "Content-Type: application/json" \
     -d @- <<JSON >/dev/null
 {
   "shop_id": ${SHOP_ID},
-  "accessory_variant_id": ${variant_id},
+  "product_variant_id": ${variant_id},
   "store_id": ${store_id},
   "tag_code": $(json_escape "$tag_code"),
   "serial_number": null,
@@ -150,10 +181,10 @@ create_accessory_inventory_item() {
 JSON
 }
 
-seed_accessory_inventory_for_variant() {
+seed_inventory_for_variant() {
   local variant_id="$1"
   local variant_inventory_json
-  variant_inventory_json="$(list_accessory_inventory_for_variant "${variant_id}")"
+  variant_inventory_json="$(list_inventory_for_variant "${variant_id}")"
 
   local store_id
   IFS=',' read -ra store_ids <<< "${ACCESSORY_STORE_IDS}"
@@ -179,7 +210,7 @@ seed_accessory_inventory_for_variant() {
     idx=$((existing_count + 1))
     while [ "${idx}" -le "${target_count}" ]; do
       echo "      create inventory -> variant ${variant_id}, store ${store_id}, item ${idx}/${target_count}"
-      create_accessory_inventory_item "${variant_id}" "${store_id}" "${idx}"
+      create_inventory_item "${variant_id}" "${store_id}" "${idx}"
       idx=$((idx + 1))
     done
   done
@@ -191,7 +222,7 @@ upload_variant_images_once() {
   local image_paths=("$@")
 
   local existing_json existing_count has_broken_urls
-  existing_json="$(curl -sS "${API_BASE_URL}/v1/accessory_variants/${variant_id}/images")"
+  existing_json="$(curl -sS "${API_BASE_URL}/v1/product_variants/${variant_id}/images")"
   existing_count="$(echo "${existing_json}" | jq 'length')"
   has_broken_urls="$(
     echo "${existing_json}" | jq -r 'any(.[]; (.url | contains("/accessory-variants/")))'
@@ -201,7 +232,7 @@ upload_variant_images_once() {
     if [ "${has_broken_urls}" = "true" ]; then
       echo "      existing dev-uploaded image URLs detected, resetting variant ${variant_id} images"
       echo "${existing_json}" | jq -r '.[].id' | while read -r image_id; do
-        curl -sS -X DELETE "${API_BASE_URL}/v1/accessory_variants/${variant_id}/images/${image_id}" >/dev/null
+        curl -sS -X DELETE "${API_BASE_URL}/v1/product_variants/${variant_id}/images/${image_id}" >/dev/null
       done
       existing_count=0
     else
@@ -222,14 +253,52 @@ upload_variant_images_once() {
       rel_path="${path#${MEDIA_ROOT}/}"
       object_key="media/Accessories/${rel_path}"
       echo "      upload image -> $(basename "${path}")"
-      curl -sS -X POST "${API_BASE_URL}/v1/accessory_variants/${variant_id}/images" \
+      curl -sS -X POST "${API_BASE_URL}/v1/product_variants/${variant_id}/images" \
         -F "file=@${path}" \
         -F "object_key=${object_key}" >/dev/null
     fi
   done
 }
 
-seed_accessory() {
+resolve_accessory_category_ids() {
+  local variant_mode="$1"
+  local sku="$2"
+
+  local acc_root
+  acc_root="$(get_cat_id_by_slug "accessories")"
+  if [ -z "${acc_root}" ] || [ "${acc_root}" = "null" ]; then
+    echo "   WARN: root category 'accessories' not found; skip category assignment" >&2
+    echo ""
+    return
+  fi
+
+  local sub_slug=""
+  case "${variant_mode}" in
+    shoes) sub_slug="acc-shoes" ;;
+    helmets) sub_slug="acc-helmets" ;;
+    default)
+      case "${sku}" in
+        ACC-PEDAL-*) sub_slug="acc-pedals" ;;
+        ACC-NAV-*) sub_slug="acc-navigation" ;;
+        ACC-TOOLS-*) sub_slug="acc-tools" ;;
+        ACC-KIDS-*) sub_slug="acc-kids" ;;
+        *) sub_slug="acc-general" ;;
+      esac
+      ;;
+  esac
+
+  local sub_id
+  sub_id="$(get_cat_id_by_slug "${sub_slug}")"
+  if [ -z "${sub_id}" ] || [ "${sub_id}" = "null" ]; then
+    echo "   WARN: subcategory '${sub_slug}' not found; assigning root accessories only" >&2
+    echo "[${acc_root}]"
+    return
+  fi
+
+  echo "[${acc_root}, ${sub_id}]"
+}
+
+seed_accessory_product() {
   local sku="$1"
   local name="$2"
   local short_description="$3"
@@ -240,16 +309,23 @@ seed_accessory() {
 
   echo "-> ${name} (${sku})"
 
-  local accessory_id
-  accessory_id="$(find_accessory_id_by_sku "$sku")"
-  if [ -z "${accessory_id}" ]; then
-    accessory_id="$(create_accessory "$sku" "$name" "$short_description")"
-    echo "   created accessory id=${accessory_id}"
+  local product_id
+  product_id="$(find_accessory_product_id_by_sku "$sku")"
+  if [ -z "${product_id}" ]; then
+    product_id="$(create_accessory_product "$sku" "$name" "$short_description")"
+    echo "   created accessory product id=${product_id}"
   else
-    echo "   accessory exists id=${accessory_id}"
+    echo "   accessory product exists id=${product_id}"
   fi
 
-  upsert_accessory_translation_en "${accessory_id}" "${name}" "${short_description}" "${detailed_description}"
+  upsert_product_translation_en "${product_id}" "${name}" "${short_description}" "${detailed_description}"
+
+  local cat_ids_json
+  cat_ids_json="$(resolve_accessory_category_ids "${variant_mode}" "${sku}")"
+  if [ -n "${cat_ids_json}" ]; then
+    echo "   assign categories ${cat_ids_json}"
+    assign_product_categories "${product_id}" "${cat_ids_json}"
+  fi
 
   local labels=()
   local attrs=()
@@ -285,23 +361,23 @@ seed_accessory() {
     local attr_json="${attrs[$i]}"
 
     local variant_id
-    variant_id="$(find_variant_id "${accessory_id}" "${label}")"
+    variant_id="$(find_variant_id "${product_id}" "${label}")"
     if [ -z "${variant_id}" ]; then
-      variant_id="$(create_variant "${accessory_id}" "${label}" "${attr_json}")"
+      variant_id="$(create_variant "${product_id}" "${label}" "${attr_json}")"
       echo "   created variant '${label}' id=${variant_id}"
     else
       echo "   variant '${label}' exists id=${variant_id}"
     fi
 
     upload_variant_images_once "${variant_id}" "${image_paths[@]}"
-    seed_accessory_inventory_for_variant "${variant_id}"
+    seed_inventory_for_variant "${variant_id}"
   done
 }
 
 # Accessories inferred from folder + filename tokens in:
 # web-shop/public/media/Accessories/{Shoes,Helmets,Pedals,Navigation,Tools,Kids}
 
-seed_accessory \
+seed_accessory_product \
   "ACC-SHOE-RECON-30" \
   "Recon 3.0 MTB Shoes" \
   "Trail-focused cycling shoes with stable power transfer and all-day comfort." \
@@ -310,7 +386,7 @@ seed_accessory \
   "${MEDIA_ROOT}/Shoes/61524-3042_SHOE_24_RECON_30_Black_HERO.webp" \
   "${MEDIA_ROOT}/Shoes/61524-3042_SHOE_24_RECON_30_Black_PAIR.webp"
 
-seed_accessory \
+seed_accessory_product \
   "ACC-SHOE-TORCH-RD" \
   "Torch Road Shoes" \
   "Performance road cycling shoes built for efficient pedaling and secure fit." \
@@ -319,7 +395,7 @@ seed_accessory \
   "${MEDIA_ROOT}/Shoes/61026-003_SHOE_SW-TORCH-RD-SHOE-FRYRED-BLK_HERO-PDP.webp" \
   "${MEDIA_ROOT}/Shoes/61026-003_SHOE_SW-TORCH-RD-SHOE-FRYRED-BLK_PAIR.webp"
 
-seed_accessory \
+seed_accessory_product \
   "ACC-SHOE-RIME-MTB" \
   "Rime 2.0 MTB Shoes" \
   "All-mountain shoes that balance pedaling efficiency and walkable grip." \
@@ -328,7 +404,7 @@ seed_accessory \
   "${MEDIA_ROOT}/Shoes/61119-734_SHOE_RIME-20-MTB_BLK_HERO.webp" \
   "${MEDIA_ROOT}/Shoes/61119-734_SHOE_RIME-20-MTB_BLK_PAIR.webp"
 
-seed_accessory \
+seed_accessory_product \
   "ACC-HLMT-MIO-2" \
   "Mio 2 Helmet" \
   "Lightweight youth-oriented helmet focused on comfort and everyday protection." \
@@ -336,7 +412,7 @@ seed_accessory \
   "helmets" \
   "${MEDIA_ROOT}/Helmets/60025-441_HLMT_MIO-2-HLMT-CE-DUNEWHTOIS_HERO-PDP.webp"
 
-seed_accessory \
+seed_accessory_product \
   "ACC-HLMT-PREVAIL-3" \
   "S-Works Prevail 3 Helmet" \
   "High-ventilation performance helmet optimized for warm conditions and hard efforts." \
@@ -344,7 +420,7 @@ seed_accessory \
   "helmets" \
   "${MEDIA_ROOT}/Helmets/60923-100_HLMT_SW-PREVAIL-3-HLMT-CE-BLK-M_HERO.webp"
 
-seed_accessory \
+seed_accessory_product \
   "ACC-HLMT-TRAIL-65" \
   "Trail 65 Helmet" \
   "Versatile trail helmet with extended coverage for off-road confidence." \
@@ -352,7 +428,7 @@ seed_accessory \
   "helmets" \
   "${MEDIA_ROOT}/Helmets/60222-193_HLMT_65-TRAIL-HLMT-CE-COLOR-3-M_HERO.webp"
 
-seed_accessory \
+seed_accessory_product \
   "ACC-HLMT-CHAMONIX-3" \
   "Chamonix 3 Helmet" \
   "Comfort-first all-round helmet suitable for commuting and leisure rides." \
@@ -360,7 +436,7 @@ seed_accessory \
   "helmets" \
   "${MEDIA_ROOT}/Helmets/60125-180_HLMT_CHAMONIX-3-HLMT_VISOR-CE-HYPERVIZ-ROUND_HERO (1).webp"
 
-seed_accessory \
+seed_accessory_product \
   "ACC-PEDAL-TRAIL-FLAT" \
   "Trail Flat Pedals" \
   "Wide-platform pedals with consistent grip for control on technical terrain." \
@@ -370,7 +446,7 @@ seed_accessory \
   "${MEDIA_ROOT}/Pedals/62270f66-461c-49b4-9383-d713794c664a.jpeg" \
   "${MEDIA_ROOT}/Pedals/a225b095-6b37-4e6b-b26e-f01d7a62a84f.jpeg"
 
-seed_accessory \
+seed_accessory_product \
   "ACC-NAV-HANDLEBAR-MOUNT" \
   "Handlebar Navigation Mount" \
   "Compact cockpit mount for phones and GPS units on road or gravel bikes." \
@@ -378,7 +454,7 @@ seed_accessory \
   "default" \
   "${MEDIA_ROOT}/Navigation/6eeff327-5350-4348-9116-4884806dfd2f.jpeg"
 
-seed_accessory \
+seed_accessory_product \
   "ACC-TOOLS-ESSENTIAL-KIT" \
   "Essential Ride Tool Kit" \
   "Portable tool bundle for roadside adjustments and common bike fixes." \
@@ -387,7 +463,7 @@ seed_accessory \
   "${MEDIA_ROOT}/Tools/ce5e7c87-2b6e-4a40-8431-f4c4c2bcf6ff.jpeg" \
   "${MEDIA_ROOT}/Tools/5ec91be9-a75e-411b-bfa5-c335a44b0bf9.jpeg"
 
-seed_accessory \
+seed_accessory_product \
   "ACC-KIDS-STARTER-PROTECTION" \
   "Kids Starter Protection Set" \
   "Beginner-friendly protective accessory set sized for young riders." \
@@ -395,5 +471,5 @@ seed_accessory \
   "default" \
   "${MEDIA_ROOT}/Kids/a4b29729-4287-4b43-b6fd-b72d8b95253a.jpeg"
 
-echo "==> Accessory + variant + inventory seeding finished 🎉"
-echo "    Note: no product-accessory links were created."
+echo "==> Accessory-as-product seeding finished 🎉"
+echo "    Note: no product_accessory links were created."

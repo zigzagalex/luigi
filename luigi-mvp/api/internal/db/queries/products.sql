@@ -7,6 +7,7 @@ SELECT
   COALESCE(pt.description, p.description) AS description,
   pt.detailed_description,
   p.price_category,
+  p.is_accessory,
   p.is_active,
   p.created_at,
   p.updated_at
@@ -16,6 +17,10 @@ LEFT JOIN product_translations pt
 WHERE (
   sqlc.narg(shop_id)::bigint IS NULL
   OR p.shop_id = sqlc.narg(shop_id)::bigint
+)
+AND (
+  sqlc.narg(is_accessory)::boolean IS NULL
+  OR p.is_accessory = sqlc.narg(is_accessory)::boolean
 )
 ORDER BY p.id
 LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
@@ -28,6 +33,7 @@ INSERT INTO products (
   name,
   description,
   price_category,
+  is_accessory,
   is_active
 ) VALUES (
   sqlc.arg(shop_id),
@@ -35,6 +41,7 @@ INSERT INTO products (
   sqlc.arg(name),
   sqlc.narg(description)::text,
   sqlc.arg(price_category),
+  COALESCE(sqlc.narg(is_accessory)::bool, FALSE),
   sqlc.narg(is_active)::bool
 )
 RETURNING
@@ -44,6 +51,7 @@ RETURNING
   name,
   description,
   price_category,
+  is_accessory,
   is_active,
   created_at,
   updated_at;
@@ -56,6 +64,7 @@ SET
   name           = COALESCE(sqlc.narg(name)::text,  name),
   description    = COALESCE(sqlc.narg(description)::text,  description),
   price_category = COALESCE(sqlc.narg(price_category)::text,  price_category),
+  is_accessory   = COALESCE(sqlc.narg(is_accessory)::bool,  is_accessory),
   is_active      = COALESCE(sqlc.narg(is_active)::bool,  is_active),
   updated_at     = now()
 WHERE id = sqlc.arg(id)
@@ -66,6 +75,7 @@ RETURNING
   name,
   description,
   price_category,
+  is_accessory,
   is_active,
   created_at,
   updated_at;
@@ -80,6 +90,7 @@ RETURNING
   name,
   description,
   price_category,
+  is_accessory,
   is_active,
   created_at,
   updated_at;
@@ -93,6 +104,7 @@ SELECT
   COALESCE(pt.description, p.description) AS description,
   pt.detailed_description,
   p.price_category,
+  p.is_accessory,
   p.is_active,
   p.created_at,
   p.updated_at,
@@ -114,6 +126,10 @@ WHERE
   (sqlc.narg(shop_id)::bigint IS NULL OR p.shop_id = sqlc.narg(shop_id)::bigint)
   AND (sqlc.narg(ids)::bigint[] IS NULL OR p.id = ANY(sqlc.narg(ids)))
   AND (
+    sqlc.narg(is_accessory)::boolean IS NULL
+    OR p.is_accessory = sqlc.narg(is_accessory)::boolean
+  )
+  AND (
     sqlc.narg(category_ids)::bigint[] IS NULL
     OR EXISTS (
       SELECT 1
@@ -134,6 +150,7 @@ SELECT
   COALESCE(pt.description, p.description) AS description,
   pt.detailed_description,
   p.price_category,
+  p.is_accessory,
   p.is_active,
   p.created_at,
   p.updated_at

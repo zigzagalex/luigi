@@ -76,12 +76,19 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 			categoryRootIDPtr = &v
 		}
 
+		isAccessoryPtr, err := parseOptionalBoolQuery(r, "is_accessory")
+		if err != nil {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_is_accessory", err.Error())
+			return
+		}
+
 		items, err := svc.ListWithPrimaryImageDTO(
 			r.Context(),
 			productsvc.ListWithImageInput{
 				ShopID:              shopIDPtr,
 				Locale:              locale,
 				Ids:                 ids,
+				IsAccessory:         isAccessoryPtr,
 				CategoryRootID:      categoryRootIDPtr,
 				IncludeTranslations: includeTranslations,
 				Limit:               int32(limit),
@@ -225,6 +232,7 @@ type createReq struct {
 	Name          string  `json:"name"`
 	Description   *string `json:"description"`
 	PriceCategory string  `json:"price_category"`
+	IsAccessory   *bool   `json:"is_accessory"`
 	IsActive      *bool   `json:"is_active"`
 }
 
@@ -245,7 +253,11 @@ func createHandler(svc *productsvc.Service) http.HandlerFunc {
 			httpx.Fail(w, http.StatusBadRequest, "name_required", nil)
 			return
 		}
+		isAccessory := req.IsAccessory != nil && *req.IsAccessory
 		priceCat := strings.TrimSpace(req.PriceCategory)
+		if priceCat == "" && isAccessory {
+			priceCat = "standard"
+		}
 		if priceCat == "" {
 			httpx.Fail(w, http.StatusBadRequest, "price_category_required", nil)
 			return
@@ -257,6 +269,7 @@ func createHandler(svc *productsvc.Service) http.HandlerFunc {
 			Name:          name,
 			Description:   u.TrimOrNil(req.Description),
 			PriceCategory: priceCat,
+			IsAccessory:   req.IsAccessory,
 			IsActive:      req.IsActive,
 		})
 		if err != nil {
@@ -272,6 +285,7 @@ type updateReq struct {
 	Name          *string `json:"name"`
 	Description   *string `json:"description"`
 	PriceCategory *string `json:"price_category"`
+	IsAccessory   *bool   `json:"is_accessory"`
 	IsActive      *bool   `json:"is_active"`
 }
 
@@ -295,6 +309,7 @@ func updateHandler(svc *productsvc.Service) http.HandlerFunc {
 			Name:          u.TrimOrNil(req.Name),
 			Description:   u.TrimOrNil(req.Description),
 			PriceCategory: u.TrimOrNil(req.PriceCategory),
+			IsAccessory:   req.IsAccessory,
 			IsActive:      req.IsActive,
 		})
 		if err != nil {
@@ -372,4 +387,16 @@ func parseBoolQuery(r *http.Request, key string) bool {
 		return false
 	}
 	return ok
+}
+
+func parseOptionalBoolQuery(r *http.Request, key string) (*bool, error) {
+	v := strings.TrimSpace(r.URL.Query().Get(key))
+	if v == "" {
+		return nil, nil
+	}
+	ok, err := strconv.ParseBool(v)
+	if err != nil {
+		return nil, err
+	}
+	return &ok, nil
 }

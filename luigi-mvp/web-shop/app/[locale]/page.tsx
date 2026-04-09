@@ -1,3 +1,4 @@
+import AccessoryRow from "@/[locale]/components/accessories/AccessoryRow";
 import RentalTrustBanner from "@/[locale]/components/home/RentalTrustBanner";
 import CategoryRow from "@/[locale]/components/products/CategoryRow";
 import FeaturedProductsSlider from "@/[locale]/components/products/FeaturedProductsSlider";
@@ -6,6 +7,11 @@ import {
   groupProductsByMainCategory,
   type Product,
 } from "@/../utils/products";
+import {
+  attachPrimaryImagesToAccessories,
+  fetchAccessories,
+  type Accessory,
+} from "@/../utils/accessories";
 import { fetchApi } from "@/../utils/fetchAPI";
 import { getTranslations } from "next-intl/server";
 import styles from "./PageShell.module.css";
@@ -76,6 +82,7 @@ export default async function HomePage({
       shop_id: DEFAULT_SHOP_ID,
       limit: 32,
       locale,
+      is_accessory: false,
     });
   } catch (err) {
     console.error("Failed to fetch products for homepage:", err);
@@ -97,6 +104,19 @@ export default async function HomePage({
 
   const featured = products.slice(0, 8);
   const rows = groupProductsByMainCategory(products);
+
+  let homeAccessories: Accessory[] = [];
+  try {
+    const raw = await fetchAccessories({
+      shop_id: DEFAULT_SHOP_ID,
+      limit: 12,
+      locale,
+    });
+    homeAccessories = await attachPrimaryImagesToAccessories(raw);
+  } catch (err) {
+    console.error("Failed to fetch accessories for homepage:", err);
+    homeAccessories = [];
+  }
 
   return (
     <main className={styles.page}>
@@ -130,6 +150,15 @@ export default async function HomePage({
         {rows.length > 0 && (
           <section className={styles.section}>
             <RentalTrustBanner />
+          </section>
+        )}
+
+        {homeAccessories.length > 0 && (
+          <section className={styles.section}>
+            <AccessoryRow
+              accessories={homeAccessories}
+              viewAllHref={`/${locale}/accessories`}
+            />
           </section>
         )}
 

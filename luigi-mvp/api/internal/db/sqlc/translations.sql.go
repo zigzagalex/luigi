@@ -10,21 +10,6 @@ import (
 	"database/sql"
 )
 
-const deleteAccessoryTranslation = `-- name: DeleteAccessoryTranslation :exec
-DELETE FROM accessory_translations
-WHERE accessory_id = $1 AND locale = $2
-`
-
-type DeleteAccessoryTranslationParams struct {
-	AccessoryID int64  `json:"accessory_id"`
-	Locale      string `json:"locale"`
-}
-
-func (q *Queries) DeleteAccessoryTranslation(ctx context.Context, arg *DeleteAccessoryTranslationParams) error {
-	_, err := q.db.ExecContext(ctx, deleteAccessoryTranslation, arg.AccessoryID, arg.Locale)
-	return err
-}
-
 const deleteProductTranslation = `-- name: DeleteProductTranslation :exec
 DELETE FROM product_translations 
 WHERE product_id = $1 AND locale = $2
@@ -38,43 +23,6 @@ type DeleteProductTranslationParams struct {
 func (q *Queries) DeleteProductTranslation(ctx context.Context, arg *DeleteProductTranslationParams) error {
 	_, err := q.db.ExecContext(ctx, deleteProductTranslation, arg.ProductID, arg.Locale)
 	return err
-}
-
-const getAccessoryTranslations = `-- name: GetAccessoryTranslations :many
-SELECT accessory_id, locale, name, description, detailed_description, created_at, updated_at FROM accessory_translations 
-WHERE accessory_id = $1
-ORDER BY locale
-`
-
-func (q *Queries) GetAccessoryTranslations(ctx context.Context, accessoryID int64) ([]AccessoryTranslation, error) {
-	rows, err := q.db.QueryContext(ctx, getAccessoryTranslations, accessoryID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []AccessoryTranslation
-	for rows.Next() {
-		var i AccessoryTranslation
-		if err := rows.Scan(
-			&i.AccessoryID,
-			&i.Locale,
-			&i.Name,
-			&i.Description,
-			&i.DetailedDescription,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }
 
 const getProductTranslations = `-- name: GetProductTranslations :many
@@ -112,54 +60,6 @@ func (q *Queries) GetProductTranslations(ctx context.Context, productID int64) (
 		return nil, err
 	}
 	return items, nil
-}
-
-const upsertAccessoryTranslation = `-- name: UpsertAccessoryTranslation :one
-INSERT INTO accessory_translations (
-    accessory_id, locale, name, description, detailed_description, updated_at
-) VALUES (
-    $1,
-    $2,
-    $3,
-    $4,
-    $5,
-    now()
-)
-ON CONFLICT (accessory_id, locale) DO UPDATE SET
-    name = EXCLUDED.name,
-    description = EXCLUDED.description,
-    detailed_description = EXCLUDED.detailed_description,
-    updated_at = now()
-RETURNING accessory_id, locale, name, description, detailed_description, created_at, updated_at
-`
-
-type UpsertAccessoryTranslationParams struct {
-	AccessoryID         int64          `json:"accessory_id"`
-	Locale              string         `json:"locale"`
-	Name                string         `json:"name"`
-	Description         sql.NullString `json:"description"`
-	DetailedDescription sql.NullString `json:"detailed_description"`
-}
-
-func (q *Queries) UpsertAccessoryTranslation(ctx context.Context, arg *UpsertAccessoryTranslationParams) (AccessoryTranslation, error) {
-	row := q.db.QueryRowContext(ctx, upsertAccessoryTranslation,
-		arg.AccessoryID,
-		arg.Locale,
-		arg.Name,
-		arg.Description,
-		arg.DetailedDescription,
-	)
-	var i AccessoryTranslation
-	err := row.Scan(
-		&i.AccessoryID,
-		&i.Locale,
-		&i.Name,
-		&i.Description,
-		&i.DetailedDescription,
-		&i.CreatedAt,
-		&i.UpdatedAt,
-	)
-	return i, err
 }
 
 const upsertProductTranslation = `-- name: UpsertProductTranslation :one

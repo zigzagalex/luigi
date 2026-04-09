@@ -20,6 +20,7 @@ INSERT INTO products (
   name,
   description,
   price_category,
+  is_accessory,
   is_active
 ) VALUES (
   $1,
@@ -27,7 +28,8 @@ INSERT INTO products (
   $3,
   $4::text,
   $5,
-  $6::bool
+  COALESCE($6::bool, FALSE),
+  $7::bool
 )
 RETURNING
   id,
@@ -36,6 +38,7 @@ RETURNING
   name,
   description,
   price_category,
+  is_accessory,
   is_active,
   created_at,
   updated_at
@@ -47,19 +50,34 @@ type CreateProductParams struct {
 	Name          string         `json:"name"`
 	Description   sql.NullString `json:"description"`
 	PriceCategory string         `json:"price_category"`
+	IsAccessory   sql.NullBool   `json:"is_accessory"`
 	IsActive      sql.NullBool   `json:"is_active"`
 }
 
-func (q *Queries) CreateProduct(ctx context.Context, arg *CreateProductParams) (Product, error) {
+type CreateProductRow struct {
+	ID            int64          `json:"id"`
+	ShopID        int64          `json:"shop_id"`
+	Sku           sql.NullString `json:"sku"`
+	Name          string         `json:"name"`
+	Description   sql.NullString `json:"description"`
+	PriceCategory string         `json:"price_category"`
+	IsAccessory   bool           `json:"is_accessory"`
+	IsActive      bool           `json:"is_active"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+}
+
+func (q *Queries) CreateProduct(ctx context.Context, arg *CreateProductParams) (CreateProductRow, error) {
 	row := q.db.QueryRowContext(ctx, createProduct,
 		arg.ShopID,
 		arg.Sku,
 		arg.Name,
 		arg.Description,
 		arg.PriceCategory,
+		arg.IsAccessory,
 		arg.IsActive,
 	)
-	var i Product
+	var i CreateProductRow
 	err := row.Scan(
 		&i.ID,
 		&i.ShopID,
@@ -67,6 +85,7 @@ func (q *Queries) CreateProduct(ctx context.Context, arg *CreateProductParams) (
 		&i.Name,
 		&i.Description,
 		&i.PriceCategory,
+		&i.IsAccessory,
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -84,14 +103,28 @@ RETURNING
   name,
   description,
   price_category,
+  is_accessory,
   is_active,
   created_at,
   updated_at
 `
 
-func (q *Queries) DeleteProduct(ctx context.Context, id int64) (Product, error) {
+type DeleteProductRow struct {
+	ID            int64          `json:"id"`
+	ShopID        int64          `json:"shop_id"`
+	Sku           sql.NullString `json:"sku"`
+	Name          string         `json:"name"`
+	Description   sql.NullString `json:"description"`
+	PriceCategory string         `json:"price_category"`
+	IsAccessory   bool           `json:"is_accessory"`
+	IsActive      bool           `json:"is_active"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+}
+
+func (q *Queries) DeleteProduct(ctx context.Context, id int64) (DeleteProductRow, error) {
 	row := q.db.QueryRowContext(ctx, deleteProduct, id)
-	var i Product
+	var i DeleteProductRow
 	err := row.Scan(
 		&i.ID,
 		&i.ShopID,
@@ -99,6 +132,7 @@ func (q *Queries) DeleteProduct(ctx context.Context, id int64) (Product, error) 
 		&i.Name,
 		&i.Description,
 		&i.PriceCategory,
+		&i.IsAccessory,
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -115,6 +149,7 @@ SELECT
   COALESCE(pt.description, p.description) AS description,
   pt.detailed_description,
   p.price_category,
+  p.is_accessory,
   p.is_active,
   p.created_at,
   p.updated_at
@@ -137,6 +172,7 @@ type GetProductRow struct {
 	Description         sql.NullString `json:"description"`
 	DetailedDescription sql.NullString `json:"detailed_description"`
 	PriceCategory       string         `json:"price_category"`
+	IsAccessory         bool           `json:"is_accessory"`
 	IsActive            bool           `json:"is_active"`
 	CreatedAt           time.Time      `json:"created_at"`
 	UpdatedAt           time.Time      `json:"updated_at"`
@@ -153,6 +189,7 @@ func (q *Queries) GetProduct(ctx context.Context, arg *GetProductParams) (GetPro
 		&i.Description,
 		&i.DetailedDescription,
 		&i.PriceCategory,
+		&i.IsAccessory,
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
@@ -169,6 +206,7 @@ SELECT
   COALESCE(pt.description, p.description) AS description,
   pt.detailed_description,
   p.price_category,
+  p.is_accessory,
   p.is_active,
   p.created_at,
   p.updated_at
@@ -179,13 +217,18 @@ WHERE (
   $2::bigint IS NULL
   OR p.shop_id = $2::bigint
 )
+AND (
+  $3::boolean IS NULL
+  OR p.is_accessory = $3::boolean
+)
 ORDER BY p.id
-LIMIT $4 OFFSET $3
+LIMIT $5 OFFSET $4
 `
 
 type ListProductsParams struct {
 	RequestedLocale string        `json:"requested_locale"`
 	ShopID          sql.NullInt64 `json:"shop_id"`
+	IsAccessory     sql.NullBool  `json:"is_accessory"`
 	PageOffset      int32         `json:"page_offset"`
 	PageLimit       int32         `json:"page_limit"`
 }
@@ -198,6 +241,7 @@ type ListProductsRow struct {
 	Description         sql.NullString `json:"description"`
 	DetailedDescription sql.NullString `json:"detailed_description"`
 	PriceCategory       string         `json:"price_category"`
+	IsAccessory         bool           `json:"is_accessory"`
 	IsActive            bool           `json:"is_active"`
 	CreatedAt           time.Time      `json:"created_at"`
 	UpdatedAt           time.Time      `json:"updated_at"`
@@ -207,6 +251,7 @@ func (q *Queries) ListProducts(ctx context.Context, arg *ListProductsParams) ([]
 	rows, err := q.db.QueryContext(ctx, listProducts,
 		arg.RequestedLocale,
 		arg.ShopID,
+		arg.IsAccessory,
 		arg.PageOffset,
 		arg.PageLimit,
 	)
@@ -225,6 +270,7 @@ func (q *Queries) ListProducts(ctx context.Context, arg *ListProductsParams) ([]
 			&i.Description,
 			&i.DetailedDescription,
 			&i.PriceCategory,
+			&i.IsAccessory,
 			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -251,6 +297,7 @@ SELECT
   COALESCE(pt.description, p.description) AS description,
   pt.detailed_description,
   p.price_category,
+  p.is_accessory,
   p.is_active,
   p.created_at,
   p.updated_at,
@@ -272,22 +319,27 @@ WHERE
   ($2::bigint IS NULL OR p.shop_id = $2::bigint)
   AND ($3::bigint[] IS NULL OR p.id = ANY($3))
   AND (
-    $4::bigint[] IS NULL
+    $4::boolean IS NULL
+    OR p.is_accessory = $4::boolean
+  )
+  AND (
+    $5::bigint[] IS NULL
     OR EXISTS (
       SELECT 1
       FROM product_category_assignments pca
       WHERE pca.product_id = p.id
-        AND pca.category_id = ANY($4::bigint[])
+        AND pca.category_id = ANY($5::bigint[])
     )
   )
 ORDER BY p.id
-LIMIT $6 OFFSET $5
+LIMIT $7 OFFSET $6
 `
 
 type ListProductsWithPrimaryImageParams struct {
 	RequestedLocale string        `json:"requested_locale"`
 	ShopID          sql.NullInt64 `json:"shop_id"`
 	Ids             []int64       `json:"ids"`
+	IsAccessory     sql.NullBool  `json:"is_accessory"`
 	CategoryIds     []int64       `json:"category_ids"`
 	PageOffset      int32         `json:"page_offset"`
 	PageLimit       int32         `json:"page_limit"`
@@ -301,6 +353,7 @@ type ListProductsWithPrimaryImageRow struct {
 	Description           sql.NullString `json:"description"`
 	DetailedDescription   sql.NullString `json:"detailed_description"`
 	PriceCategory         string         `json:"price_category"`
+	IsAccessory           bool           `json:"is_accessory"`
 	IsActive              bool           `json:"is_active"`
 	CreatedAt             time.Time      `json:"created_at"`
 	UpdatedAt             time.Time      `json:"updated_at"`
@@ -312,6 +365,7 @@ func (q *Queries) ListProductsWithPrimaryImage(ctx context.Context, arg *ListPro
 		arg.RequestedLocale,
 		arg.ShopID,
 		pq.Array(arg.Ids),
+		arg.IsAccessory,
 		pq.Array(arg.CategoryIds),
 		arg.PageOffset,
 		arg.PageLimit,
@@ -331,6 +385,7 @@ func (q *Queries) ListProductsWithPrimaryImage(ctx context.Context, arg *ListPro
 			&i.Description,
 			&i.DetailedDescription,
 			&i.PriceCategory,
+			&i.IsAccessory,
 			&i.IsActive,
 			&i.CreatedAt,
 			&i.UpdatedAt,
@@ -356,9 +411,10 @@ SET
   name           = COALESCE($2::text,  name),
   description    = COALESCE($3::text,  description),
   price_category = COALESCE($4::text,  price_category),
-  is_active      = COALESCE($5::bool,  is_active),
+  is_accessory   = COALESCE($5::bool,  is_accessory),
+  is_active      = COALESCE($6::bool,  is_active),
   updated_at     = now()
-WHERE id = $6
+WHERE id = $7
 RETURNING
   id,
   shop_id,
@@ -366,6 +422,7 @@ RETURNING
   name,
   description,
   price_category,
+  is_accessory,
   is_active,
   created_at,
   updated_at
@@ -376,20 +433,35 @@ type UpdateProductParams struct {
 	Name          sql.NullString `json:"name"`
 	Description   sql.NullString `json:"description"`
 	PriceCategory sql.NullString `json:"price_category"`
+	IsAccessory   sql.NullBool   `json:"is_accessory"`
 	IsActive      sql.NullBool   `json:"is_active"`
 	ID            int64          `json:"id"`
 }
 
-func (q *Queries) UpdateProduct(ctx context.Context, arg *UpdateProductParams) (Product, error) {
+type UpdateProductRow struct {
+	ID            int64          `json:"id"`
+	ShopID        int64          `json:"shop_id"`
+	Sku           sql.NullString `json:"sku"`
+	Name          string         `json:"name"`
+	Description   sql.NullString `json:"description"`
+	PriceCategory string         `json:"price_category"`
+	IsAccessory   bool           `json:"is_accessory"`
+	IsActive      bool           `json:"is_active"`
+	CreatedAt     time.Time      `json:"created_at"`
+	UpdatedAt     time.Time      `json:"updated_at"`
+}
+
+func (q *Queries) UpdateProduct(ctx context.Context, arg *UpdateProductParams) (UpdateProductRow, error) {
 	row := q.db.QueryRowContext(ctx, updateProduct,
 		arg.Sku,
 		arg.Name,
 		arg.Description,
 		arg.PriceCategory,
+		arg.IsAccessory,
 		arg.IsActive,
 		arg.ID,
 	)
-	var i Product
+	var i UpdateProductRow
 	err := row.Scan(
 		&i.ID,
 		&i.ShopID,
@@ -397,6 +469,7 @@ func (q *Queries) UpdateProduct(ctx context.Context, arg *UpdateProductParams) (
 		&i.Name,
 		&i.Description,
 		&i.PriceCategory,
+		&i.IsAccessory,
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,

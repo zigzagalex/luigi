@@ -169,6 +169,7 @@ export default async function SearchPage({ searchParams, params }: SearchPagePro
             shop_id: shopId,
             ids: productIds.join(","),
             locale,
+            is_accessory: false,
           });
         }
       }

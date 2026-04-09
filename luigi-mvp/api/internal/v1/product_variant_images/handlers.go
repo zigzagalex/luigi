@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -50,7 +51,12 @@ func (h *ProductVariantImageHandler) Upload(w http.ResponseWriter, r *http.Reque
 
 	contentType := header.Header.Get("Content-Type")
 
-	img, err := h.svc.UploadVariantImage(r.Context(), variantID, file, header.Filename, contentType)
+	var objectKeyOverride *string
+	if v := strings.TrimSpace(r.FormValue("object_key")); v != "" {
+		objectKeyOverride = &v
+	}
+
+	img, err := h.svc.UploadVariantImage(r.Context(), variantID, file, header.Filename, contentType, objectKeyOverride)
 	if err != nil {
 		httpx.Fail(w, http.StatusInternalServerError, "failed to upload image", err.Error())
 		return

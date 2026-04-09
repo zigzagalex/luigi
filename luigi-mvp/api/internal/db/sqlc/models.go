@@ -11,65 +11,6 @@ import (
 	"github.com/sqlc-dev/pqtype"
 )
 
-type Accessory struct {
-	ID          int64          `json:"id"`
-	ShopID      int64          `json:"shop_id"`
-	Sku         sql.NullString `json:"sku"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	IsActive    bool           `json:"is_active"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-}
-
-type AccessoryInventoryItem struct {
-	ID                   int64          `json:"id"`
-	ShopID               int64          `json:"shop_id"`
-	AccessoryVariantID   int64          `json:"accessory_variant_id"`
-	StoreID              int64          `json:"store_id"`
-	TagCode              sql.NullString `json:"tag_code"`
-	SerialNumber         sql.NullString `json:"serial_number"`
-	Status               string         `json:"status"`
-	ServicePaddingBefore string         `json:"service_padding_before"`
-	ServicePaddingAfter  string         `json:"service_padding_after"`
-	IsActive             bool           `json:"is_active"`
-	CreatedAt            time.Time      `json:"created_at"`
-	UpdatedAt            time.Time      `json:"updated_at"`
-}
-
-type AccessoryTranslation struct {
-	AccessoryID         int64          `json:"accessory_id"`
-	Locale              string         `json:"locale"`
-	Name                string         `json:"name"`
-	Description         sql.NullString `json:"description"`
-	DetailedDescription sql.NullString `json:"detailed_description"`
-	CreatedAt           time.Time      `json:"created_at"`
-	UpdatedAt           time.Time      `json:"updated_at"`
-}
-
-type AccessoryVariant struct {
-	ID          int64                 `json:"id"`
-	AccessoryID int64                 `json:"accessory_id"`
-	Label       string                `json:"label"`
-	Attributes  pqtype.NullRawMessage `json:"attributes"`
-	IsActive    bool                  `json:"is_active"`
-	CreatedAt   time.Time             `json:"created_at"`
-	UpdatedAt   time.Time             `json:"updated_at"`
-}
-
-type AccessoryVariantImage struct {
-	ID                 int64          `json:"id"`
-	AccessoryVariantID int64          `json:"accessory_variant_id"`
-	ObjectKey          string         `json:"object_key"`
-	SortOrder          int32          `json:"sort_order"`
-	IsPrimary          bool           `json:"is_primary"`
-	AltText            sql.NullString `json:"alt_text"`
-	WidthPx            sql.NullInt32  `json:"width_px"`
-	HeightPx           sql.NullInt32  `json:"height_px"`
-	CreatedAt          time.Time      `json:"created_at"`
-	UpdatedAt          time.Time      `json:"updated_at"`
-}
-
 type Cart struct {
 	ID         int64          `json:"id"`
 	ShopID     int64          `json:"shop_id"`
@@ -191,6 +132,7 @@ type Product struct {
 	IsActive      bool           `json:"is_active"`
 	CreatedAt     time.Time      `json:"created_at"`
 	UpdatedAt     time.Time      `json:"updated_at"`
+	IsAccessory   bool           `json:"is_accessory"`
 }
 
 type ProductAccessory struct {
