@@ -324,6 +324,20 @@ type CheckoutInput struct {
 	PickupPersonEmail *string
 }
 
+// postRentalMaintenanceRange returns [start, end) for the full calendar day after the
+// reservation's end date in Europe/Zurich (matches cart / public booking date semantics).
+func postRentalMaintenanceRange(reservationEndAt time.Time) (start time.Time, end time.Time) {
+	loc, err := time.LoadLocation("Europe/Zurich")
+	if err != nil {
+		loc = time.UTC
+	}
+	e := reservationEndAt.In(loc)
+	endDay := time.Date(e.Year(), e.Month(), e.Day(), 0, 0, 0, 0, loc)
+	start = endDay.AddDate(0, 0, 1)
+	end = start.AddDate(0, 0, 1)
+	return start, end
+}
+
 func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]ReservationView, error) {
 	if in.ShopID <= 0 || in.StoreID <= 0 || in.CustomerID <= 0 {
 		return nil, fmt.Errorf("invalid checkout input: shop/store/customer required")
@@ -417,6 +431,15 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 			if isExclusionViolation(err) {
 				return nil, ErrNotAvailableForDates
 			}
+			return nil, err
+		}
+
+		maintStart, maintEnd := postRentalMaintenanceRange(endAt)
+		if err := qtx.InsertPostRentalMaintenanceWindows(ctx, &db.InsertPostRentalMaintenanceWindowsParams{
+			ReservationID: res.ID,
+			MaintStart:    maintStart,
+			MaintEnd:      maintEnd,
+		}); err != nil {
 			return nil, err
 		}
 
@@ -605,6 +628,10 @@ func (s *Service) CancelMyReservation(ctx context.Context, in CancelInput) (Rese
 		return ReservationView{}, err
 	}
 
+	if err := qtx.DeleteMaintenanceWindowsByReservationID(ctx, r.ID); err != nil {
+		return ReservationView{}, err
+	}
+
 	itemRows, err := qtx.ListReservationItemsByReservationIDs(ctx, []int64{r.ID})
 	if err != nil {
 		return ReservationView{}, err
@@ -688,6 +715,15 @@ func (s *Service) RescheduleMyReservation(ctx context.Context, in RescheduleInpu
 		if isExclusionViolation(err) {
 			return ReservationView{}, ErrNotAvailableForDates
 		}
+		return ReservationView{}, err
+	}
+
+	maintStart, maintEnd := postRentalMaintenanceRange(r.EndAt)
+	if err := qtx.UpdatePostRentalMaintenanceWindowsRange(ctx, &db.UpdatePostRentalMaintenanceWindowsRangeParams{
+		MaintStart:    maintStart,
+		MaintEnd:      maintEnd,
+		ReservationID: r.ID,
+	}); err != nil {
 		return ReservationView{}, err
 	}
 
@@ -893,6 +929,13 @@ func (s *Service) CancelMyReservationItem(ctx context.Context, in CancelItemInpu
 		if errors.Is(err, sql.ErrNoRows) {
 			return ReservationView{}, ErrOptimisticLock
 		}
+		return ReservationView{}, err
+	}
+
+	if err := qtx.DeleteMaintenanceWindowForReservationItem(ctx, &db.DeleteMaintenanceWindowForReservationItemParams{
+		ReservationItemID: in.ReservationItemID,
+		ReservationID:       in.ReservationID,
+	}); err != nil {
 		return ReservationView{}, err
 	}
 

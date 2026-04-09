@@ -36,7 +36,7 @@ type Querier interface {
 	CreateCustomer(ctx context.Context, arg *CreateCustomerParams) (Customer, error)
 	CreateHoldForCartItem(ctx context.Context, arg *CreateHoldForCartItemParams) (Hold, error)
 	CreateInventoryItem(ctx context.Context, arg *CreateInventoryItemParams) (InventoryItem, error)
-	CreateProduct(ctx context.Context, arg *CreateProductParams) (CreateProductRow, error)
+	CreateProduct(ctx context.Context, arg *CreateProductParams) (Product, error)
 	CreateProductCategory(ctx context.Context, arg *CreateProductCategoryParams) (ProductCategory, error)
 	CreateProductVariant(ctx context.Context, arg *CreateProductVariantParams) (ProductVariant, error)
 	CreateProductVariantImage(ctx context.Context, arg *CreateProductVariantImageParams) (ProductVariantImage, error)
@@ -48,8 +48,10 @@ type Querier interface {
 	DeleteCustomer(ctx context.Context, id int64) (Customer, error)
 	DeleteHoldsByCartItem(ctx context.Context, cartItemID int64) error
 	DeleteInventoryItem(ctx context.Context, id int64) (InventoryItem, error)
+	DeleteMaintenanceWindowForReservationItem(ctx context.Context, arg *DeleteMaintenanceWindowForReservationItemParams) error
+	DeleteMaintenanceWindowsByReservationID(ctx context.Context, reservationID int64) error
 	DeletePricePoint(ctx context.Context, arg *DeletePricePointParams) error
-	DeleteProduct(ctx context.Context, id int64) (DeleteProductRow, error)
+	DeleteProduct(ctx context.Context, id int64) (Product, error)
 	DeleteProductCategory(ctx context.Context, id int64) (ProductCategory, error)
 	DeleteProductTranslation(ctx context.Context, arg *DeleteProductTranslationParams) error
 	DeleteProductVariant(ctx context.Context, id int64) (ProductVariant, error)
@@ -74,6 +76,9 @@ type Querier interface {
 	GetProductVariantImage(ctx context.Context, id int64) (ProductVariantImage, error)
 	GetStoreById(ctx context.Context, storeID int64) (Store, error)
 	GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (User, error)
+	// One full calendar day after reservation end (Europe/Zurich), per active line item.
+	// Idempotent: skips rows already linked for this reservation + inventory item.
+	InsertPostRentalMaintenanceWindows(ctx context.Context, arg *InsertPostRentalMaintenanceWindowsParams) error
 	// Check whether a specific inventory item is available for a requested time range.
 	//
 	// Requested range is built as [start_at, end_at)
@@ -125,7 +130,8 @@ type Querier interface {
 	UpdateCustomer(ctx context.Context, arg *UpdateCustomerParams) (Customer, error)
 	UpdateInventoryItem(ctx context.Context, arg *UpdateInventoryItemParams) (InventoryItem, error)
 	UpdateMyReservationDetails(ctx context.Context, arg *UpdateMyReservationDetailsParams) (Reservation, error)
-	UpdateProduct(ctx context.Context, arg *UpdateProductParams) (UpdateProductRow, error)
+	UpdatePostRentalMaintenanceWindowsRange(ctx context.Context, arg *UpdatePostRentalMaintenanceWindowsRangeParams) error
+	UpdateProduct(ctx context.Context, arg *UpdateProductParams) (Product, error)
 	UpdateProductCategory(ctx context.Context, arg *UpdateProductCategoryParams) (ProductCategory, error)
 	UpdateProductVariant(ctx context.Context, arg *UpdateProductVariantParams) (ProductVariant, error)
 	UpdateShop(ctx context.Context, arg *UpdateShopParams) (Shop, error)

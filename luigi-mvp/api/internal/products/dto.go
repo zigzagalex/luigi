@@ -50,7 +50,7 @@ type ProductWriteResponse struct {
 	UpdatedAt     time.Time `json:"updated_at"`
 }
 
-func NewProductWriteResponseFromCreate(row db.CreateProductRow) ProductWriteResponse {
+func NewProductWriteResponseFromCreate(row db.Product) ProductWriteResponse {
 	return ProductWriteResponse{
 		ID:            row.ID,
 		ShopID:        row.ShopID,
@@ -65,7 +65,7 @@ func NewProductWriteResponseFromCreate(row db.CreateProductRow) ProductWriteResp
 	}
 }
 
-func NewProductWriteResponseFromUpdate(row db.UpdateProductRow) ProductWriteResponse {
+func NewProductWriteResponseFromUpdate(row db.Product) ProductWriteResponse {
 	return ProductWriteResponse{
 		ID:            row.ID,
 		ShopID:        row.ShopID,
@@ -80,7 +80,7 @@ func NewProductWriteResponseFromUpdate(row db.UpdateProductRow) ProductWriteResp
 	}
 }
 
-func NewProductWriteResponseFromDelete(row db.DeleteProductRow) ProductWriteResponse {
+func NewProductWriteResponseFromDelete(row db.Product) ProductWriteResponse {
 	return ProductWriteResponse{
 		ID:            row.ID,
 		ShopID:        row.ShopID,

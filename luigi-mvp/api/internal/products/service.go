@@ -10,12 +10,12 @@ import (
 )
 
 type productQuerier interface {
-	CreateProduct(ctx context.Context, arg *db.CreateProductParams) (db.CreateProductRow, error)
+	CreateProduct(ctx context.Context, arg *db.CreateProductParams) (db.Product, error)
 	ListProducts(ctx context.Context, arg *db.ListProductsParams) ([]db.ListProductsRow, error)
 	ListProductsWithPrimaryImage(ctx context.Context, arg *db.ListProductsWithPrimaryImageParams) ([]db.ListProductsWithPrimaryImageRow, error)
 	ListDescendantCategoryIDs(ctx context.Context, arg *db.ListDescendantCategoryIDsParams) ([]int64, error)
-	UpdateProduct(ctx context.Context, arg *db.UpdateProductParams) (db.UpdateProductRow, error)
-	DeleteProduct(ctx context.Context, id int64) (db.DeleteProductRow, error)
+	UpdateProduct(ctx context.Context, arg *db.UpdateProductParams) (db.Product, error)
+	DeleteProduct(ctx context.Context, id int64) (db.Product, error)
 	ListCategoriesForProduct(ctx context.Context, productID int64) ([]db.ProductCategory, error)
 
 	GetProduct(ctx context.Context, arg *db.GetProductParams) (db.GetProductRow, error)
@@ -75,7 +75,7 @@ type CreateInput struct {
 	IsActive      *bool
 }
 
-func (s *Service) Create(ctx context.Context, in CreateInput) (db.CreateProductRow, error) {
+func (s *Service) Create(ctx context.Context, in CreateInput) (db.Product, error) {
 	name := strings.TrimSpace(in.Name)
 	priceCat := strings.TrimSpace(in.PriceCategory)
 
@@ -100,7 +100,7 @@ type UpdateInput struct {
 	IsActive      *bool
 }
 
-func (s *Service) Update(ctx context.Context, in UpdateInput) (db.UpdateProductRow, error) {
+func (s *Service) Update(ctx context.Context, in UpdateInput) (db.Product, error) {
 	return s.q.UpdateProduct(ctx, &db.UpdateProductParams{
 		Sku:           u.ToNullString(in.SKU),
 		Name:          u.ToNullString(in.Name),
@@ -112,7 +112,7 @@ func (s *Service) Update(ctx context.Context, in UpdateInput) (db.UpdateProductR
 	})
 }
 
-func (s *Service) Delete(ctx context.Context, id int64) (db.DeleteProductRow, error) {
+func (s *Service) Delete(ctx context.Context, id int64) (db.Product, error) {
 	return s.q.DeleteProduct(ctx, id)
 }
 
