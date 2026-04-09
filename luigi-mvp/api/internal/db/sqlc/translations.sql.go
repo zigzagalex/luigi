@@ -10,6 +10,21 @@ import (
 	"database/sql"
 )
 
+const deleteAccessoryTranslation = `-- name: DeleteAccessoryTranslation :exec
+DELETE FROM accessory_translations
+WHERE accessory_id = $1 AND locale = $2
+`
+
+type DeleteAccessoryTranslationParams struct {
+	AccessoryID int64  `json:"accessory_id"`
+	Locale      string `json:"locale"`
+}
+
+func (q *Queries) DeleteAccessoryTranslation(ctx context.Context, arg *DeleteAccessoryTranslationParams) error {
+	_, err := q.db.ExecContext(ctx, deleteAccessoryTranslation, arg.AccessoryID, arg.Locale)
+	return err
+}
+
 const deleteProductTranslation = `-- name: DeleteProductTranslation :exec
 DELETE FROM product_translations 
 WHERE product_id = $1 AND locale = $2
@@ -28,6 +43,7 @@ func (q *Queries) DeleteProductTranslation(ctx context.Context, arg *DeleteProdu
 const getAccessoryTranslations = `-- name: GetAccessoryTranslations :many
 SELECT accessory_id, locale, name, description, detailed_description, created_at, updated_at FROM accessory_translations 
 WHERE accessory_id = $1
+ORDER BY locale
 `
 
 func (q *Queries) GetAccessoryTranslations(ctx context.Context, accessoryID int64) ([]AccessoryTranslation, error) {
@@ -100,26 +116,29 @@ func (q *Queries) GetProductTranslations(ctx context.Context, productID int64) (
 
 const upsertAccessoryTranslation = `-- name: UpsertAccessoryTranslation :one
 INSERT INTO accessory_translations (
-    accessory_id, locale, name, description, updated_at
+    accessory_id, locale, name, description, detailed_description, updated_at
 ) VALUES (
     $1,
     $2,
     $3,
     $4,
+    $5,
     now()
 )
 ON CONFLICT (accessory_id, locale) DO UPDATE SET
     name = EXCLUDED.name,
     description = EXCLUDED.description,
+    detailed_description = EXCLUDED.detailed_description,
     updated_at = now()
 RETURNING accessory_id, locale, name, description, detailed_description, created_at, updated_at
 `
 
 type UpsertAccessoryTranslationParams struct {
-	AccessoryID int64          `json:"accessory_id"`
-	Locale      string         `json:"locale"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
+	AccessoryID         int64          `json:"accessory_id"`
+	Locale              string         `json:"locale"`
+	Name                string         `json:"name"`
+	Description         sql.NullString `json:"description"`
+	DetailedDescription sql.NullString `json:"detailed_description"`
 }
 
 func (q *Queries) UpsertAccessoryTranslation(ctx context.Context, arg *UpsertAccessoryTranslationParams) (AccessoryTranslation, error) {
@@ -128,6 +147,7 @@ func (q *Queries) UpsertAccessoryTranslation(ctx context.Context, arg *UpsertAcc
 		arg.Locale,
 		arg.Name,
 		arg.Description,
+		arg.DetailedDescription,
 	)
 	var i AccessoryTranslation
 	err := row.Scan(

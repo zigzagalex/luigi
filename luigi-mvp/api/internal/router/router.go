@@ -12,12 +12,14 @@ import (
 	avSvc "github.com/zigzagalex/luigi/api/internal/availability"
 	cartsvc "github.com/zigzagalex/luigi/api/internal/cart"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
+	imagesvc "github.com/zigzagalex/luigi/api/internal/images"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	"github.com/zigzagalex/luigi/api/internal/storage"
 	stSvc "github.com/zigzagalex/luigi/api/internal/stores"
 	usersvc "github.com/zigzagalex/luigi/api/internal/users"
-	imagesvc "github.com/zigzagalex/luigi/api/internal/images"
 
+	v1accessories "github.com/zigzagalex/luigi/api/internal/v1/accessories"
+	v1accessoryvariants "github.com/zigzagalex/luigi/api/internal/v1/accessory_variants"
 	v1auth "github.com/zigzagalex/luigi/api/internal/v1/auth"
 	v1availability "github.com/zigzagalex/luigi/api/internal/v1/availability"
 	v1cart "github.com/zigzagalex/luigi/api/internal/v1/cart"
@@ -78,6 +80,8 @@ func New(d Deps) http.Handler {
 		v1shops.RegisterRoutes(r, d.Q)
 		v1stores.RegisterRoutes(r, d.Q)
 		v1products.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
+		v1accessories.RegisterRoutes(r, d.Q)
+		v1accessoryvariants.RegisterRoutes(r, d.Q)
 		v1product_variants.RegisterRoutes(r, d.Q)
 		v1categories.RegisterRoutes(r, d.Q)
 		v1availability.RegisterRoutes(r, d.Q)

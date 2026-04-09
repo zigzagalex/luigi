@@ -30,6 +30,8 @@ type Querier interface {
 	//   - in non-expired holds
 	CountAvailableInventoryForRange(ctx context.Context, arg *CountAvailableInventoryForRangeParams) (int32, error)
 	CountCartItems(ctx context.Context, cartID int64) (int64, error)
+	CreateAccessory(ctx context.Context, arg *CreateAccessoryParams) (Accessory, error)
+	CreateAccessoryVariant(ctx context.Context, arg *CreateAccessoryVariantParams) (AccessoryVariant, error)
 	CreateCartForCustomer(ctx context.Context, arg *CreateCartForCustomerParams) (Cart, error)
 	CreateCartForSession(ctx context.Context, arg *CreateCartForSessionParams) (Cart, error)
 	CreateCartItem(ctx context.Context, arg *CreateCartItemParams) (CartItem, error)
@@ -44,6 +46,9 @@ type Querier interface {
 	CreateStore(ctx context.Context, arg *CreateStoreParams) (Store, error)
 	CreateUser(ctx context.Context, arg *CreateUserParams) (User, error)
 	DeactivateReservationItems(ctx context.Context, reservationID int64) error
+	DeleteAccessory(ctx context.Context, id int64) (Accessory, error)
+	DeleteAccessoryTranslation(ctx context.Context, arg *DeleteAccessoryTranslationParams) error
+	DeleteAccessoryVariant(ctx context.Context, id int64) (AccessoryVariant, error)
 	DeleteCartItem(ctx context.Context, cartItemID int64) error
 	DeleteCustomer(ctx context.Context, id int64) (Customer, error)
 	DeleteHoldsByCartItem(ctx context.Context, cartItemID int64) error
@@ -57,7 +62,9 @@ type Querier interface {
 	DeleteStore(ctx context.Context, id int64) (Store, error)
 	DeleteUser(ctx context.Context, id int64) (User, error)
 	ExpireOpenCarts(ctx context.Context) error
+	GetAccessory(ctx context.Context, arg *GetAccessoryParams) (GetAccessoryRow, error)
 	GetAccessoryTranslations(ctx context.Context, accessoryID int64) ([]AccessoryTranslation, error)
+	GetAccessoryVariantByID(ctx context.Context, id int64) (AccessoryVariant, error)
 	GetCartByID(ctx context.Context, cartID int64) (Cart, error)
 	GetCartItemByID(ctx context.Context, cartItemID int64) (CartItem, error)
 	GetCartItemWithCart(ctx context.Context, cartItemID int64) (GetCartItemWithCartRow, error)
@@ -84,6 +91,8 @@ type Querier interface {
 	//   - holds.hold_range where expires_at > now()
 	//
 	IsInventoryItemAvailableForRange(ctx context.Context, arg *IsInventoryItemAvailableForRangeParams) (sql.NullBool, error)
+	ListAccessories(ctx context.Context, arg *ListAccessoriesParams) ([]ListAccessoriesRow, error)
+	ListAccessoryVariants(ctx context.Context, arg *ListAccessoryVariantsParams) ([]AccessoryVariant, error)
 	// List active inventory items for a given variant+store.
 	ListActiveInventoryForVariantStore(ctx context.Context, arg *ListActiveInventoryForVariantStoreParams) ([]InventoryItem, error)
 	// -------------------------------------------------------
@@ -119,6 +128,8 @@ type Querier interface {
 	// Returns one row per (product, variant, store) that has COUNT(*) >= quantity.
 	SearchAvailableVariants(ctx context.Context, arg *SearchAvailableVariantsParams) ([]SearchAvailableVariantsRow, error)
 	TouchCartUpdatedAt(ctx context.Context, cartID int64) error
+	UpdateAccessory(ctx context.Context, arg *UpdateAccessoryParams) (Accessory, error)
+	UpdateAccessoryVariant(ctx context.Context, arg *UpdateAccessoryVariantParams) (AccessoryVariant, error)
 	UpdateCartItemCore(ctx context.Context, arg *UpdateCartItemCoreParams) error
 	UpdateCartStatus(ctx context.Context, arg *UpdateCartStatusParams) error
 	UpdateCartStore(ctx context.Context, arg *UpdateCartStoreParams) error
