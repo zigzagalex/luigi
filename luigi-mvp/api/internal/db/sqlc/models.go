@@ -22,6 +22,21 @@ type Accessory struct {
 	UpdatedAt   time.Time      `json:"updated_at"`
 }
 
+type AccessoryInventoryItem struct {
+	ID                   int64          `json:"id"`
+	ShopID               int64          `json:"shop_id"`
+	AccessoryVariantID   int64          `json:"accessory_variant_id"`
+	StoreID              int64          `json:"store_id"`
+	TagCode              sql.NullString `json:"tag_code"`
+	SerialNumber         sql.NullString `json:"serial_number"`
+	Status               string         `json:"status"`
+	ServicePaddingBefore string         `json:"service_padding_before"`
+	ServicePaddingAfter  string         `json:"service_padding_after"`
+	IsActive             bool           `json:"is_active"`
+	CreatedAt            time.Time      `json:"created_at"`
+	UpdatedAt            time.Time      `json:"updated_at"`
+}
+
 type AccessoryTranslation struct {
 	AccessoryID         int64          `json:"accessory_id"`
 	Locale              string         `json:"locale"`

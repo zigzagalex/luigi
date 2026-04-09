@@ -31,6 +31,7 @@ type Querier interface {
 	CountAvailableInventoryForRange(ctx context.Context, arg *CountAvailableInventoryForRangeParams) (int32, error)
 	CountCartItems(ctx context.Context, cartID int64) (int64, error)
 	CreateAccessory(ctx context.Context, arg *CreateAccessoryParams) (Accessory, error)
+	CreateAccessoryInventoryItem(ctx context.Context, arg *CreateAccessoryInventoryItemParams) (AccessoryInventoryItem, error)
 	CreateAccessoryVariant(ctx context.Context, arg *CreateAccessoryVariantParams) (AccessoryVariant, error)
 	CreateAccessoryVariantImage(ctx context.Context, arg *CreateAccessoryVariantImageParams) (AccessoryVariantImage, error)
 	CreateCartForCustomer(ctx context.Context, arg *CreateCartForCustomerParams) (Cart, error)
@@ -48,6 +49,7 @@ type Querier interface {
 	CreateUser(ctx context.Context, arg *CreateUserParams) (User, error)
 	DeactivateReservationItems(ctx context.Context, reservationID int64) error
 	DeleteAccessory(ctx context.Context, id int64) (Accessory, error)
+	DeleteAccessoryInventoryItem(ctx context.Context, id int64) (AccessoryInventoryItem, error)
 	DeleteAccessoryTranslation(ctx context.Context, arg *DeleteAccessoryTranslationParams) error
 	DeleteAccessoryVariant(ctx context.Context, id int64) (AccessoryVariant, error)
 	DeleteAccessoryVariantImage(ctx context.Context, id int64) error
@@ -96,6 +98,7 @@ type Querier interface {
 	//
 	IsInventoryItemAvailableForRange(ctx context.Context, arg *IsInventoryItemAvailableForRangeParams) (sql.NullBool, error)
 	ListAccessories(ctx context.Context, arg *ListAccessoriesParams) ([]ListAccessoriesRow, error)
+	ListAccessoryInventoryItems(ctx context.Context, arg *ListAccessoryInventoryItemsParams) ([]AccessoryInventoryItem, error)
 	ListAccessoryVariants(ctx context.Context, arg *ListAccessoryVariantsParams) ([]AccessoryVariant, error)
 	// List active inventory items for a given variant+store.
 	ListActiveInventoryForVariantStore(ctx context.Context, arg *ListActiveInventoryForVariantStoreParams) ([]InventoryItem, error)
@@ -134,6 +137,7 @@ type Querier interface {
 	SearchAvailableVariants(ctx context.Context, arg *SearchAvailableVariantsParams) ([]SearchAvailableVariantsRow, error)
 	TouchCartUpdatedAt(ctx context.Context, cartID int64) error
 	UpdateAccessory(ctx context.Context, arg *UpdateAccessoryParams) (Accessory, error)
+	UpdateAccessoryInventoryItem(ctx context.Context, arg *UpdateAccessoryInventoryItemParams) (AccessoryInventoryItem, error)
 	UpdateAccessoryVariant(ctx context.Context, arg *UpdateAccessoryVariantParams) (AccessoryVariant, error)
 	UpdateCartItemCore(ctx context.Context, arg *UpdateCartItemCoreParams) error
 	UpdateCartStatus(ctx context.Context, arg *UpdateCartStatusParams) error
