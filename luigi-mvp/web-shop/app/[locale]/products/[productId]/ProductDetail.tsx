@@ -308,8 +308,8 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
     inventory.forEach((item) => {
       // Skip inactive items
       if (item.is_active === false) return;
-      // Skip items not in active status (if status exists)
-      if (item.status && item.status !== "active") return;
+      const statusRaw = unwrapDbString(item.status as unknown);
+      if (statusRaw && statusRaw !== "active") return;
 
       const key = `${item.product_variant_id}:${item.store_id}`;
       map.set(key, (map.get(key) ?? 0) + 1);

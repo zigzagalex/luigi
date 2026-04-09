@@ -30,8 +30,11 @@ type ListInput struct {
 }
 
 func (s *Service) List(ctx context.Context, in ListInput) ([]db.InventoryItem, error) {
-	if in.Limit <= 0 || in.Limit > 200 {
+	const maxLimit int32 = 10000
+	if in.Limit <= 0 {
 		in.Limit = 50
+	} else if in.Limit > maxLimit {
+		in.Limit = maxLimit
 	}
 	if in.Offset < 0 {
 		in.Offset = 0
