@@ -3,6 +3,8 @@
 import Link from "next/link";
 import { useLocale, useTranslations } from "next-intl";
 import { IconWarning } from "@/[locale]/components/icons";
+import { useAuth } from "@/[locale]/components/auth/AuthContext";
+import { useAuthModal } from "@/[locale]/components/auth/AuthModalContext";
 import { useCart } from "@/[locale]/components/cart/CartContext";
 import styles from "./CartPage.module.css";
 
@@ -10,6 +12,8 @@ export default function CartPage() {
   const t = useTranslations("cartPage");
   const tPd = useTranslations("productDetail");
   const locale = useLocale();
+  const { me, loading: authLoading } = useAuth();
+  const { openAuthModal } = useAuthModal();
   const {
     cart,
     loading,
@@ -158,9 +162,19 @@ export default function CartPage() {
                 <strong>{formatMoney(cart?.subtotal_cents ?? 0, locale, cartCurrency)}</strong>
               </div>
               {canCheckout ? (
-                <Link href="/checkout" className={styles.checkout}>
-                  {t("checkout")}
-                </Link>
+                authLoading ? (
+                  <button type="button" className={styles.checkout} disabled>
+                    {t("checkout")}
+                  </button>
+                ) : me ? (
+                  <Link href="/checkout" className={styles.checkout}>
+                    {t("checkout")}
+                  </Link>
+                ) : (
+                  <button type="button" className={styles.checkout} onClick={() => openAuthModal()}>
+                    {t("checkout")}
+                  </button>
+                )
               ) : (
                 <button type="button" className={styles.checkout} disabled>
                   {t("checkout")}
