@@ -32,6 +32,16 @@ type AccessoryTranslation struct {
 	UpdatedAt           time.Time      `json:"updated_at"`
 }
 
+type AccessoryVariant struct {
+	ID          int64                 `json:"id"`
+	AccessoryID int64                 `json:"accessory_id"`
+	Label       string                `json:"label"`
+	Attributes  pqtype.NullRawMessage `json:"attributes"`
+	IsActive    bool                  `json:"is_active"`
+	CreatedAt   time.Time             `json:"created_at"`
+	UpdatedAt   time.Time             `json:"updated_at"`
+}
+
 type Cart struct {
 	ID         int64          `json:"id"`
 	ShopID     int64          `json:"shop_id"`
