@@ -85,7 +85,10 @@ func base(env, port, url string) Config {
 	} else {
 		// DEV
 		gcsBucket = get("GCS_BUCKET_NAME", "")
-		mediaBaseURL = get("MEDIA_BASE_URL", "http://localhost:8080/media")
+		// Object keys in DB already start with "media/..." (see seed scripts). Base URL
+		// must be the public origin that serves web-shop/public (Next dev server default).
+		// Do not append "/media" here or URLs become ".../media/media/..." and 404.
+		mediaBaseURL = get("MEDIA_BASE_URL", "http://localhost:3000")
 		firebaseProdjectId = must("FIREBASE_PROJECT_ID")
 	}
 

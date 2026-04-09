@@ -276,7 +276,7 @@ func createHandler(svc *productsvc.Service) http.HandlerFunc {
 			httpx.Fail(w, http.StatusInternalServerError, "create_product_failed", err.Error())
 			return
 		}
-		httpx.JSON(w, http.StatusOK, item)
+		httpx.JSON(w, http.StatusOK, productsvc.NewProductWriteResponseFromCreate(item))
 	}
 }
 
@@ -321,7 +321,7 @@ func updateHandler(svc *productsvc.Service) http.HandlerFunc {
 			httpx.Fail(w, http.StatusInternalServerError, "update_product_failed", err.Error())
 			return
 		}
-		httpx.JSON(w, http.StatusOK, item)
+		httpx.JSON(w, http.StatusOK, productsvc.NewProductWriteResponseFromUpdate(item))
 	}
 }
 
@@ -343,7 +343,7 @@ func deleteHandler(svc *productsvc.Service) http.HandlerFunc {
 			httpx.Fail(w, http.StatusInternalServerError, "delete_product_failed", err.Error())
 			return
 		}
-		httpx.JSON(w, http.StatusOK, item)
+		httpx.JSON(w, http.StatusOK, productsvc.NewProductWriteResponseFromDelete(item))
 	}
 }
 
