@@ -3,6 +3,8 @@ set -euo pipefail
 
 API_BASE_URL="${API_BASE_URL:-http://localhost:8080}"
 SHOP_ID="${SHOP_ID:-1}"
+ACCESSORY_STORE_IDS="${ACCESSORY_STORE_IDS:-1,2,3}"
+ACCESSORY_ITEMS_PER_VARIANT_PER_STORE="${ACCESSORY_ITEMS_PER_VARIANT_PER_STORE:-1}"
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 MEDIA_ROOT="${MEDIA_ROOT:-${SCRIPT_DIR}/../../web-shop/public/media/Accessories}"
@@ -11,6 +13,8 @@ echo "==> Seeding accessories + accessory variants"
 echo "    API: ${API_BASE_URL}"
 echo "    SHOP_ID: ${SHOP_ID}"
 echo "    MEDIA_ROOT: ${MEDIA_ROOT}"
+echo "    ACCESSORY_STORE_IDS: ${ACCESSORY_STORE_IDS}"
+echo "    ACCESSORY_ITEMS_PER_VARIANT_PER_STORE: ${ACCESSORY_ITEMS_PER_VARIANT_PER_STORE}"
 
 require_cmd() {
   if ! command -v "$1" >/dev/null 2>&1; then
@@ -118,6 +122,69 @@ JSON
   echo "$resp" | jq -r '.id'
 }
 
+list_accessory_inventory_for_variant() {
+  local variant_id="$1"
+  curl -sS "${API_BASE_URL}/v1/accessory_inventory_items?shop_id=${SHOP_ID}&accessory_variant_id=${variant_id}&limit=1000&offset=0"
+}
+
+create_accessory_inventory_item() {
+  local variant_id="$1"
+  local store_id="$2"
+  local index="$3"
+  local tag_code="AS${store_id}-AV${variant_id}-${index}"
+
+  curl -sS -X POST "${API_BASE_URL}/v1/accessory_inventory_items" \
+    -H "Content-Type: application/json" \
+    -d @- <<JSON >/dev/null
+{
+  "shop_id": ${SHOP_ID},
+  "accessory_variant_id": ${variant_id},
+  "store_id": ${store_id},
+  "tag_code": $(json_escape "$tag_code"),
+  "serial_number": null,
+  "status": "active",
+  "service_padding_before": null,
+  "service_padding_after": null,
+  "is_active": true
+}
+JSON
+}
+
+seed_accessory_inventory_for_variant() {
+  local variant_id="$1"
+  local variant_inventory_json
+  variant_inventory_json="$(list_accessory_inventory_for_variant "${variant_id}")"
+
+  local store_id
+  IFS=',' read -ra store_ids <<< "${ACCESSORY_STORE_IDS}"
+  for store_id in "${store_ids[@]}"; do
+    store_id="$(echo "${store_id}" | xargs)"
+    if [ -z "${store_id}" ]; then
+      continue
+    fi
+
+    local existing_count
+    existing_count="$(
+      echo "${variant_inventory_json}" \
+        | jq --argjson store_id "${store_id}" '[.[] | select(.store_id == $store_id)] | length'
+    )"
+
+    local target_count="${ACCESSORY_ITEMS_PER_VARIANT_PER_STORE}"
+    if [ "${existing_count}" -ge "${target_count}" ]; then
+      echo "      inventory exists for variant ${variant_id} in store ${store_id} (${existing_count}/${target_count})"
+      continue
+    fi
+
+    local idx
+    idx=$((existing_count + 1))
+    while [ "${idx}" -le "${target_count}" ]; do
+      echo "      create inventory -> variant ${variant_id}, store ${store_id}, item ${idx}/${target_count}"
+      create_accessory_inventory_item "${variant_id}" "${store_id}" "${idx}"
+      idx=$((idx + 1))
+    done
+  done
+}
+
 upload_variant_images_once() {
   local variant_id="$1"
   shift
@@ -213,6 +280,7 @@ seed_accessory() {
     fi
 
     upload_variant_images_once "${variant_id}" "${image_paths[@]}"
+    seed_accessory_inventory_for_variant "${variant_id}"
   done
 }
 
@@ -313,5 +381,5 @@ seed_accessory \
   "default" \
   "${MEDIA_ROOT}/Kids/a4b29729-4287-4b43-b6fd-b72d8b95253a.jpeg"
 
-echo "==> Accessory + variant seeding finished 🎉"
+echo "==> Accessory + variant + inventory seeding finished 🎉"
 echo "    Note: no product-accessory links were created."
