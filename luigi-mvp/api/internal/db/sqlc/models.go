@@ -23,12 +23,13 @@ type Accessory struct {
 }
 
 type AccessoryTranslation struct {
-	AccessoryID int64          `json:"accessory_id"`
-	Locale      string         `json:"locale"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	AccessoryID         int64          `json:"accessory_id"`
+	Locale              string         `json:"locale"`
+	Name                string         `json:"name"`
+	Description         sql.NullString `json:"description"`
+	DetailedDescription sql.NullString `json:"detailed_description"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           time.Time      `json:"updated_at"`
 }
 
 type Cart struct {
@@ -178,12 +179,13 @@ type ProductCategoryAssignment struct {
 }
 
 type ProductTranslation struct {
-	ProductID   int64          `json:"product_id"`
-	Locale      string         `json:"locale"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
+	ProductID           int64          `json:"product_id"`
+	Locale              string         `json:"locale"`
+	Name                string         `json:"name"`
+	Description         sql.NullString `json:"description"`
+	DetailedDescription sql.NullString `json:"detailed_description"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           time.Time      `json:"updated_at"`
 }
 
 type ProductVariant struct {

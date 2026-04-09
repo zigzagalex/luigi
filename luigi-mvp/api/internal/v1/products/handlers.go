@@ -34,6 +34,9 @@ func RegisterRoutes(r chi.Router, q db.Querier, store storage.Client, mediaBaseU
 		r.Get("/{productID}", getHandler(svc))
 		r.Put("/{productID}", updateHandler(svc))
 		r.Delete("/{productID}", deleteHandler(svc))
+		r.Get("/{productID}/translations", listTranslationsHandler(svc))
+		r.Put("/{productID}/translations/{locale}", upsertTranslationHandler(svc))
+		r.Delete("/{productID}/translations/{locale}", deleteTranslationHandler(svc))
 	})
 }
 
@@ -42,6 +45,7 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 		limit, _ := strconv.Atoi(r.URL.Query().Get("limit"))
 		offset, _ := strconv.Atoi(r.URL.Query().Get("offset"))
 		locale := u.GetLocale(r)
+		includeTranslations := parseBoolQuery(r, "include_translations")
 
 		// shop_id optional
 		var shopIDPtr *int64
@@ -75,12 +79,13 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 		items, err := svc.ListWithPrimaryImageDTO(
 			r.Context(),
 			productsvc.ListWithImageInput{
-				ShopID:         shopIDPtr,
-				Locale:         locale,
-				Ids:            ids,
-				CategoryRootID: categoryRootIDPtr,
-				Limit:          int32(limit),
-				Offset:         int32(offset),
+				ShopID:              shopIDPtr,
+				Locale:              locale,
+				Ids:                 ids,
+				CategoryRootID:      categoryRootIDPtr,
+				IncludeTranslations: includeTranslations,
+				Limit:               int32(limit),
+				Offset:              int32(offset),
 			},
 			mediaBaseURL,
 		)
@@ -104,8 +109,9 @@ func getHandler(svc *productsvc.Service) http.HandlerFunc {
 			return
 		}
 		locale := u.GetLocale(r)
+		includeTranslations := parseBoolQuery(r, "include_translations")
 
-		dto, err := svc.GetDTO(r.Context(), id, locale)
+		dto, err := svc.GetDTO(r.Context(), id, locale, includeTranslations)
 		if err != nil {
 			if err == productsvc.ErrNotFound {
 				httpx.Fail(w, http.StatusNotFound, "product_not_found", nil)
@@ -117,6 +123,99 @@ func getHandler(svc *productsvc.Service) http.HandlerFunc {
 		}
 
 		httpx.JSON(w, http.StatusOK, dto)
+	}
+}
+
+type upsertTranslationReq struct {
+	Name                string  `json:"name"`
+	Description         *string `json:"description"`
+	DetailedDescription *string `json:"detailed_description"`
+}
+
+func listTranslationsHandler(svc *productsvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		productID, err := strconv.ParseInt(chi.URLParam(r, "productID"), 10, 64)
+		if err != nil || productID <= 0 {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_product_id", nil)
+			return
+		}
+
+		items, err := svc.ListTranslations(r.Context(), productID)
+		if err != nil {
+			log.Printf("list_product_translations_failed product_id=%d: %v", productID, err)
+			httpx.Fail(w, http.StatusInternalServerError, "list_product_translations_failed", err.Error())
+			return
+		}
+		if items == nil {
+			items = []productsvc.ProductTranslationDTO{}
+		}
+		httpx.JSON(w, http.StatusOK, items)
+	}
+}
+
+func upsertTranslationHandler(svc *productsvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		productID, err := strconv.ParseInt(chi.URLParam(r, "productID"), 10, 64)
+		if err != nil || productID <= 0 {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_product_id", nil)
+			return
+		}
+
+		locale := strings.TrimSpace(chi.URLParam(r, "locale"))
+		if locale == "" {
+			httpx.Fail(w, http.StatusBadRequest, "locale_required", nil)
+			return
+		}
+
+		var req upsertTranslationReq
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_json", nil)
+			return
+		}
+
+		name := strings.TrimSpace(req.Name)
+		if name == "" {
+			httpx.Fail(w, http.StatusBadRequest, "name_required", nil)
+			return
+		}
+
+		item, err := svc.UpsertTranslation(r.Context(), productsvc.TranslationInput{
+			ProductID:           productID,
+			Locale:              locale,
+			Name:                name,
+			Description:         u.TrimOrNil(req.Description),
+			DetailedDescription: u.TrimOrNil(req.DetailedDescription),
+		})
+		if err != nil {
+			log.Printf("upsert_product_translation_failed product_id=%d locale=%s: %v", productID, locale, err)
+			httpx.Fail(w, http.StatusInternalServerError, "upsert_product_translation_failed", err.Error())
+			return
+		}
+
+		httpx.JSON(w, http.StatusOK, item)
+	}
+}
+
+func deleteTranslationHandler(svc *productsvc.Service) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		productID, err := strconv.ParseInt(chi.URLParam(r, "productID"), 10, 64)
+		if err != nil || productID <= 0 {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_product_id", nil)
+			return
+		}
+
+		locale := strings.TrimSpace(chi.URLParam(r, "locale"))
+		if locale == "" {
+			httpx.Fail(w, http.StatusBadRequest, "locale_required", nil)
+			return
+		}
+
+		if err := svc.DeleteTranslation(r.Context(), productID, locale); err != nil {
+			log.Printf("delete_product_translation_failed product_id=%d locale=%s: %v", productID, locale, err)
+			httpx.Fail(w, http.StatusInternalServerError, "delete_product_translation_failed", err.Error())
+			return
+		}
+		w.WriteHeader(http.StatusNoContent)
 	}
 }
 
@@ -261,4 +360,16 @@ func parseInt64CSV(s string) ([]int64, error) {
 	}
 
 	return out, nil
+}
+
+func parseBoolQuery(r *http.Request, key string) bool {
+	v := strings.TrimSpace(r.URL.Query().Get(key))
+	if v == "" {
+		return false
+	}
+	ok, err := strconv.ParseBool(v)
+	if err != nil {
+		return false
+	}
+	return ok
 }

@@ -113,6 +113,7 @@ SELECT
   p.sku,
   COALESCE(pt.name, p.name) AS name,
   COALESCE(pt.description, p.description) AS description,
+  pt.detailed_description,
   p.price_category,
   p.is_active,
   p.created_at,
@@ -129,15 +130,16 @@ type GetProductParams struct {
 }
 
 type GetProductRow struct {
-	ID            int64          `json:"id"`
-	ShopID        int64          `json:"shop_id"`
-	Sku           sql.NullString `json:"sku"`
-	Name          string         `json:"name"`
-	Description   sql.NullString `json:"description"`
-	PriceCategory string         `json:"price_category"`
-	IsActive      bool           `json:"is_active"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
+	ID                  int64          `json:"id"`
+	ShopID              int64          `json:"shop_id"`
+	Sku                 sql.NullString `json:"sku"`
+	Name                string         `json:"name"`
+	Description         sql.NullString `json:"description"`
+	DetailedDescription sql.NullString `json:"detailed_description"`
+	PriceCategory       string         `json:"price_category"`
+	IsActive            bool           `json:"is_active"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           time.Time      `json:"updated_at"`
 }
 
 func (q *Queries) GetProduct(ctx context.Context, arg *GetProductParams) (GetProductRow, error) {
@@ -149,6 +151,7 @@ func (q *Queries) GetProduct(ctx context.Context, arg *GetProductParams) (GetPro
 		&i.Sku,
 		&i.Name,
 		&i.Description,
+		&i.DetailedDescription,
 		&i.PriceCategory,
 		&i.IsActive,
 		&i.CreatedAt,
@@ -164,6 +167,7 @@ SELECT
   p.sku,
   COALESCE(pt.name, p.name) AS name,
   COALESCE(pt.description, p.description) AS description,
+  pt.detailed_description,
   p.price_category,
   p.is_active,
   p.created_at,
@@ -187,15 +191,16 @@ type ListProductsParams struct {
 }
 
 type ListProductsRow struct {
-	ID            int64          `json:"id"`
-	ShopID        int64          `json:"shop_id"`
-	Sku           sql.NullString `json:"sku"`
-	Name          string         `json:"name"`
-	Description   sql.NullString `json:"description"`
-	PriceCategory string         `json:"price_category"`
-	IsActive      bool           `json:"is_active"`
-	CreatedAt     time.Time      `json:"created_at"`
-	UpdatedAt     time.Time      `json:"updated_at"`
+	ID                  int64          `json:"id"`
+	ShopID              int64          `json:"shop_id"`
+	Sku                 sql.NullString `json:"sku"`
+	Name                string         `json:"name"`
+	Description         sql.NullString `json:"description"`
+	DetailedDescription sql.NullString `json:"detailed_description"`
+	PriceCategory       string         `json:"price_category"`
+	IsActive            bool           `json:"is_active"`
+	CreatedAt           time.Time      `json:"created_at"`
+	UpdatedAt           time.Time      `json:"updated_at"`
 }
 
 func (q *Queries) ListProducts(ctx context.Context, arg *ListProductsParams) ([]ListProductsRow, error) {
@@ -218,6 +223,7 @@ func (q *Queries) ListProducts(ctx context.Context, arg *ListProductsParams) ([]
 			&i.Sku,
 			&i.Name,
 			&i.Description,
+			&i.DetailedDescription,
 			&i.PriceCategory,
 			&i.IsActive,
 			&i.CreatedAt,
@@ -243,6 +249,7 @@ SELECT
   p.sku,
   COALESCE(pt.name, p.name) AS name,
   COALESCE(pt.description, p.description) AS description,
+  pt.detailed_description,
   p.price_category,
   p.is_active,
   p.created_at,
@@ -292,6 +299,7 @@ type ListProductsWithPrimaryImageRow struct {
 	Sku                   sql.NullString `json:"sku"`
 	Name                  string         `json:"name"`
 	Description           sql.NullString `json:"description"`
+	DetailedDescription   sql.NullString `json:"detailed_description"`
 	PriceCategory         string         `json:"price_category"`
 	IsActive              bool           `json:"is_active"`
 	CreatedAt             time.Time      `json:"created_at"`
@@ -321,6 +329,7 @@ func (q *Queries) ListProductsWithPrimaryImage(ctx context.Context, arg *ListPro
 			&i.Sku,
 			&i.Name,
 			&i.Description,
+			&i.DetailedDescription,
 			&i.PriceCategory,
 			&i.IsActive,
 			&i.CreatedAt,

@@ -4,6 +4,7 @@ CREATE TABLE accessory_translations (
   locale       TEXT   NOT NULL, -- 'en', 'de', 'fr', 'it'
   name         TEXT   NOT NULL,
   description  TEXT,
+  detailed_description TEXT,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (accessory_id, locale)
