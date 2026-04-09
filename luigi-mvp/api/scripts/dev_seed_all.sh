@@ -8,6 +8,7 @@ SCRIPTS_IN_ORDER=(
   "dev_seed_shop.sh"
   "dev_seed_categories.sh"
   "dev_seed_products.sh"
+  "dev_seed_product_translations.sh"
   "dev_seed_product_variants.sh"
   "dev_seed_assign_categories.sh"
   "dev_seed_inventory.sh"

@@ -26,7 +26,7 @@ func (q *Queries) DeleteProductTranslation(ctx context.Context, arg *DeleteProdu
 }
 
 const getAccessoryTranslations = `-- name: GetAccessoryTranslations :many
-SELECT accessory_id, locale, name, description, created_at, updated_at FROM accessory_translations 
+SELECT accessory_id, locale, name, description, detailed_description, created_at, updated_at FROM accessory_translations 
 WHERE accessory_id = $1
 `
 
@@ -44,6 +44,7 @@ func (q *Queries) GetAccessoryTranslations(ctx context.Context, accessoryID int6
 			&i.Locale,
 			&i.Name,
 			&i.Description,
+			&i.DetailedDescription,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -61,8 +62,9 @@ func (q *Queries) GetAccessoryTranslations(ctx context.Context, accessoryID int6
 }
 
 const getProductTranslations = `-- name: GetProductTranslations :many
-SELECT product_id, locale, name, description, created_at, updated_at FROM product_translations 
+SELECT product_id, locale, name, description, detailed_description, created_at, updated_at FROM product_translations 
 WHERE product_id = $1
+ORDER BY locale
 `
 
 func (q *Queries) GetProductTranslations(ctx context.Context, productID int64) ([]ProductTranslation, error) {
@@ -79,6 +81,7 @@ func (q *Queries) GetProductTranslations(ctx context.Context, productID int64) (
 			&i.Locale,
 			&i.Name,
 			&i.Description,
+			&i.DetailedDescription,
 			&i.CreatedAt,
 			&i.UpdatedAt,
 		); err != nil {
@@ -109,7 +112,7 @@ ON CONFLICT (accessory_id, locale) DO UPDATE SET
     name = EXCLUDED.name,
     description = EXCLUDED.description,
     updated_at = now()
-RETURNING accessory_id, locale, name, description, created_at, updated_at
+RETURNING accessory_id, locale, name, description, detailed_description, created_at, updated_at
 `
 
 type UpsertAccessoryTranslationParams struct {
@@ -132,6 +135,7 @@ func (q *Queries) UpsertAccessoryTranslation(ctx context.Context, arg *UpsertAcc
 		&i.Locale,
 		&i.Name,
 		&i.Description,
+		&i.DetailedDescription,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)
@@ -140,26 +144,29 @@ func (q *Queries) UpsertAccessoryTranslation(ctx context.Context, arg *UpsertAcc
 
 const upsertProductTranslation = `-- name: UpsertProductTranslation :one
 INSERT INTO product_translations (
-    product_id, locale, name, description, updated_at
+    product_id, locale, name, description, detailed_description, updated_at
 ) VALUES (
     $1,
     $2,
     $3,
     $4,
+    $5,
     now()
 )
 ON CONFLICT (product_id, locale) DO UPDATE SET
     name = EXCLUDED.name,
     description = EXCLUDED.description,
+    detailed_description = EXCLUDED.detailed_description,
     updated_at = now()
-RETURNING product_id, locale, name, description, created_at, updated_at
+RETURNING product_id, locale, name, description, detailed_description, created_at, updated_at
 `
 
 type UpsertProductTranslationParams struct {
-	ProductID   int64          `json:"product_id"`
-	Locale      string         `json:"locale"`
-	Name        string         `json:"name"`
-	Description sql.NullString `json:"description"`
+	ProductID           int64          `json:"product_id"`
+	Locale              string         `json:"locale"`
+	Name                string         `json:"name"`
+	Description         sql.NullString `json:"description"`
+	DetailedDescription sql.NullString `json:"detailed_description"`
 }
 
 func (q *Queries) UpsertProductTranslation(ctx context.Context, arg *UpsertProductTranslationParams) (ProductTranslation, error) {
@@ -168,6 +175,7 @@ func (q *Queries) UpsertProductTranslation(ctx context.Context, arg *UpsertProdu
 		arg.Locale,
 		arg.Name,
 		arg.Description,
+		arg.DetailedDescription,
 	)
 	var i ProductTranslation
 	err := row.Scan(
@@ -175,6 +183,7 @@ func (q *Queries) UpsertProductTranslation(ctx context.Context, arg *UpsertProdu
 		&i.Locale,
 		&i.Name,
 		&i.Description,
+		&i.DetailedDescription,
 		&i.CreatedAt,
 		&i.UpdatedAt,
 	)

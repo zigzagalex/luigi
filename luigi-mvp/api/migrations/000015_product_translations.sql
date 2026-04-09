@@ -4,6 +4,7 @@ CREATE TABLE product_translations (
   locale       TEXT   NOT NULL, -- 'en', 'de', 'fr', 'it'
   name         TEXT   NOT NULL,
   description  TEXT,
+  detailed_description TEXT,
   created_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   updated_at   TIMESTAMPTZ NOT NULL DEFAULT now(),
   PRIMARY KEY (product_id, locale)

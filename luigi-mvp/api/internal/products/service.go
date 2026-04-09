@@ -21,6 +21,8 @@ type productQuerier interface {
 	GetProduct(ctx context.Context, arg *db.GetProductParams) (db.GetProductRow, error)
 
 	UpsertProductTranslation(ctx context.Context, arg *db.UpsertProductTranslationParams) (db.ProductTranslation, error)
+	GetProductTranslations(ctx context.Context, productID int64) ([]db.ProductTranslation, error)
+	DeleteProductTranslation(ctx context.Context, arg *db.DeleteProductTranslationParams) error
 }
 
 type Service struct {
@@ -113,9 +115,10 @@ type ListWithImageInput struct {
 	Locale string
 	Ids    []int64
 	// CategoryRootID, when set, keeps only products assigned to this category or any descendant.
-	CategoryRootID *int64
-	Limit          int32
-	Offset         int32
+	CategoryRootID      *int64
+	IncludeTranslations bool
+	Limit               int32
+	Offset              int32
 }
 
 func (s *Service) ListWithPrimaryImage(ctx context.Context, in ListWithImageInput) ([]db.ListProductsWithPrimaryImageRow, error) {
@@ -164,31 +167,43 @@ func (s *Service) ListWithPrimaryImageDTO(
 		if err := s.attachCategories(ctx, &dto); err != nil {
 			return nil, err
 		}
+		if in.IncludeTranslations {
+			if err := s.attachTranslations(ctx, &dto); err != nil {
+				return nil, err
+			}
+		}
 		out = append(out, dto)
 	}
 
 	return out, nil
 }
 
-func (s *Service) GetDTO(ctx context.Context, id int64, locale string) (ProductDTO, error) {
+func (s *Service) GetDTO(ctx context.Context, id int64, locale string, includeTranslations bool) (ProductDTO, error) {
 	p, err := s.Get(ctx, id, locale)
 	if err != nil {
 		return ProductDTO{}, err
 	}
 
 	dto := ProductDTO{
-		ID:            p.ID,
-		ShopID:        p.ShopID,
-		SKU:           toStringPtr(p.Sku),
-		Name:          p.Name,
-		Description:   toStringPtr(p.Description),
-		PriceCategory: p.PriceCategory,
-		IsActive:      p.IsActive,
-		Categories:    nil,
+		ID:                  p.ID,
+		ShopID:              p.ShopID,
+		SKU:                 toStringPtr(p.Sku),
+		Name:                p.Name,
+		Description:         toStringPtr(p.Description),
+		DetailedDescription: toStringPtr(p.DetailedDescription),
+		PriceCategory:       p.PriceCategory,
+		IsActive:            p.IsActive,
+		Categories:          nil,
+		Translations:        nil,
 	}
 
 	if err := s.attachCategories(ctx, &dto); err != nil {
 		return ProductDTO{}, err
+	}
+	if includeTranslations {
+		if err := s.attachTranslations(ctx, &dto); err != nil {
+			return ProductDTO{}, err
+		}
 	}
 
 	return dto, nil
@@ -212,18 +227,64 @@ func (s *Service) attachCategories(ctx context.Context, dto *ProductDTO) error {
 	return nil
 }
 
+func (s *Service) attachTranslations(ctx context.Context, dto *ProductDTO) error {
+	trs, err := s.q.GetProductTranslations(ctx, dto.ID)
+	if err != nil {
+		return err
+	}
+
+	out := make([]ProductTranslationDTO, 0, len(trs))
+	for _, tr := range trs {
+		out = append(out, ProductTranslationDTO{
+			Locale:              tr.Locale,
+			Name:                tr.Name,
+			Description:         toStringPtr(tr.Description),
+			DetailedDescription: toStringPtr(tr.DetailedDescription),
+		})
+	}
+	dto.Translations = out
+	return nil
+}
+
 type TranslationInput struct {
-	ProductID   int64
-	Locale      string
-	Name        string
-	Description *string
+	ProductID           int64
+	Locale              string
+	Name                string
+	Description         *string
+	DetailedDescription *string
 }
 
 func (s *Service) UpsertTranslation(ctx context.Context, in TranslationInput) (db.ProductTranslation, error) {
 	return s.q.UpsertProductTranslation(ctx, &db.UpsertProductTranslationParams{
-		ProductID:   in.ProductID,
-		Locale:      in.Locale,
-		Name:        strings.TrimSpace(in.Name),
-		Description: u.ToNullString(in.Description),
+		ProductID:           in.ProductID,
+		Locale:              in.Locale,
+		Name:                strings.TrimSpace(in.Name),
+		Description:         u.ToNullString(in.Description),
+		DetailedDescription: u.ToNullString(in.DetailedDescription),
+	})
+}
+
+func (s *Service) ListTranslations(ctx context.Context, productID int64) ([]ProductTranslationDTO, error) {
+	rows, err := s.q.GetProductTranslations(ctx, productID)
+	if err != nil {
+		return nil, err
+	}
+
+	out := make([]ProductTranslationDTO, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, ProductTranslationDTO{
+			Locale:              row.Locale,
+			Name:                row.Name,
+			Description:         toStringPtr(row.Description),
+			DetailedDescription: toStringPtr(row.DetailedDescription),
+		})
+	}
+	return out, nil
+}
+
+func (s *Service) DeleteTranslation(ctx context.Context, productID int64, locale string) error {
+	return s.q.DeleteProductTranslation(ctx, &db.DeleteProductTranslationParams{
+		ProductID: productID,
+		Locale:    locale,
 	})
 }

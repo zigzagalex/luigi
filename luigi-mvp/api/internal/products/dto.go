@@ -13,15 +13,24 @@ type ProductCategoryDTO struct {
 }
 
 type ProductDTO struct {
-	ID              int64                `json:"id"`
-	ShopID          int64                `json:"shop_id"`
-	SKU             *string              `json:"sku,omitempty"`
-	Name            string               `json:"name"`
-	Description     *string              `json:"description,omitempty"`
-	PriceCategory   string               `json:"price_category"`
-	IsActive        bool                 `json:"is_active"`
-	PrimaryImageURL *string              `json:"primary_image_url,omitempty"`
-	Categories      []ProductCategoryDTO `json:"categories,omitempty"`
+	ID                  int64                   `json:"id"`
+	ShopID              int64                   `json:"shop_id"`
+	SKU                 *string                 `json:"sku,omitempty"`
+	Name                string                  `json:"name"`
+	Description         *string                 `json:"description,omitempty"`
+	DetailedDescription *string                 `json:"detailed_description,omitempty"`
+	PriceCategory       string                  `json:"price_category"`
+	IsActive            bool                    `json:"is_active"`
+	PrimaryImageURL     *string                 `json:"primary_image_url,omitempty"`
+	Categories          []ProductCategoryDTO    `json:"categories,omitempty"`
+	Translations        []ProductTranslationDTO `json:"translations,omitempty"`
+}
+
+type ProductTranslationDTO struct {
+	Locale              string  `json:"locale"`
+	Name                string  `json:"name"`
+	Description         *string `json:"description,omitempty"`
+	DetailedDescription *string `json:"detailed_description,omitempty"`
 }
 
 func toStringPtr(ns sql.NullString) *string {
@@ -41,14 +50,16 @@ func RowToDTO(row db.ListProductsWithPrimaryImageRow, mediaBaseURL string) Produ
 	}
 
 	return ProductDTO{
-		ID:              row.ID,
-		ShopID:          row.ShopID,
-		SKU:             toStringPtr(row.Sku),
-		Name:            row.Name,
-		Description:     toStringPtr(row.Description),
-		PriceCategory:   row.PriceCategory,
-		IsActive:        row.IsActive,
-		PrimaryImageURL: primaryURL,
-		Categories:      nil,
+		ID:                  row.ID,
+		ShopID:              row.ShopID,
+		SKU:                 toStringPtr(row.Sku),
+		Name:                row.Name,
+		Description:         toStringPtr(row.Description),
+		DetailedDescription: toStringPtr(row.DetailedDescription),
+		PriceCategory:       row.PriceCategory,
+		IsActive:            row.IsActive,
+		PrimaryImageURL:     primaryURL,
+		Categories:          nil,
+		Translations:        nil,
 	}
 }
