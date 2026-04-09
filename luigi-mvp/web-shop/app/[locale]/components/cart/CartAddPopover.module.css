@@ -71,20 +71,18 @@
 
   .upsellGrid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
-    gap: var(--space-3);
-  }
-
-  @media (max-width: 520px) {
-    .upsellGrid {
-      grid-template-columns: 1fr;
-    }
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-2);
+    align-items: stretch;
   }
 
   .upsellCell {
-    display: grid;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
     gap: var(--space-2);
     min-width: 0;
+    min-height: 0;
   }
 
   .upsellCategory {
@@ -93,18 +91,27 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.02em;
+    text-align: center;
+    line-height: 1.2;
+    max-width: 100%;
+    align-self: center;
   }
 
   .upsellCard {
-    display: grid;
-    gap: var(--space-2);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: var(--space-1);
+    width: 100%;
+    min-height: 0;
     text-decoration: none;
     color: inherit;
     border: 1px solid var(--color-border);
     border-radius: 12px;
     padding: var(--space-2);
     transition: background 0.15s ease;
-    min-width: 0;
+    box-sizing: border-box;
   }
 
   .upsellCard:hover {
@@ -113,6 +120,9 @@
 
   .upsellThumb {
     width: 100%;
+    max-width: 76px;
+    max-height: 76px;
+    flex-shrink: 0;
     aspect-ratio: 1;
     object-fit: cover;
     border-radius: 8px;
@@ -120,13 +130,62 @@
   }
 
   .upsellName {
+    margin-top: auto;
     font-size: var(--text-meta-size);
     font-weight: 600;
-    line-height: 1.3;
+    line-height: 1.25;
     display: -webkit-box;
     -webkit-line-clamp: 2;
     -webkit-box-orient: vertical;
     overflow: hidden;
+    text-align: center;
+    width: 100%;
+    min-height: calc(1.25em * 2);
+  }
+
+  @media (max-width: 520px) {
+    .backdrop {
+      padding: var(--space-3);
+    }
+
+    .upsellSection {
+      padding-left: var(--space-3);
+      padding-right: var(--space-3);
+    }
+
+    .upsellGrid {
+      gap: 6px;
+    }
+
+    .upsellCategory {
+      font-size: 0.62rem;
+      letter-spacing: 0.04em;
+      line-height: 1.2;
+      text-align: center;
+    }
+
+    .upsellCell {
+      gap: 4px;
+    }
+
+    .upsellCard {
+      padding: 6px 4px;
+      border-radius: 10px;
+      gap: 4px;
+    }
+
+    .upsellThumb {
+      max-width: 44px;
+      max-height: 44px;
+      border-radius: 6px;
+    }
+
+    .upsellName {
+      font-size: 0.65rem;
+      line-height: 1.25;
+      -webkit-line-clamp: 3;
+      min-height: calc(0.65rem * 1.25 * 3);
+    }
   }
 
   .upsellCta {
