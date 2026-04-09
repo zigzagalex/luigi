@@ -24,6 +24,7 @@ import {normalizeVariantAttributes} from "@/lib/variantsLabel"
 type CartItem = CartView["items"][number];
 
 type CartCtx = {
+  shopId: number;
   cart: CartView | null;
   loading: boolean;
   error: string | null;
@@ -75,7 +76,9 @@ export type LastAdded = {
   from?: string; // "YYYY-MM-DD"
   to?: string;
   quantity?: number;
-  priceLabel?: string; 
+  priceLabel?: string;
+  /** When true (bike PDP), popover may suggest matching accessories. */
+  suggestAccessories?: boolean;
 };
 const PLACEHOLDER = "/media/placeholders/blue/blue-1.png";
 
@@ -285,6 +288,7 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
 
   const value = useMemo(
     () => ({
+      shopId,
       cart,
       loading,
       error,
@@ -304,6 +308,7 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
       variantTextForCartItem,
     }),
     [
+      shopId,
       cart,
       loading,
       error,

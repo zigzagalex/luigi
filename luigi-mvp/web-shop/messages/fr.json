@@ -339,7 +339,12 @@
     "title": "Ajouté au panier",
     "closeAria": "Fermer",
     "continueShopping": "Continuer les achats",
-    "goToCart": "Aller au panier"
+    "goToCart": "Aller au panier",
+    "upsellHeading": "Complète ton équipement",
+    "upsellCategoryHelmet": "Casque",
+    "upsellCategoryNavigation": "Navigation",
+    "upsellCategoryShoes": "Chaussures",
+    "seeAccessories": "Voir les accessoires"
   },
   "storeConflictModal": {
     "title": "Lieu de retrait différent",

@@ -339,7 +339,12 @@
     "title": "Zum Warenkorb hinzugefügt",
     "closeAria": "Schliessen",
     "continueShopping": "Weiter einkaufen",
-    "goToCart": "Zum Warenkorb"
+    "goToCart": "Zum Warenkorb",
+    "upsellHeading": "Runde deine Ausstattung ab",
+    "upsellCategoryHelmet": "Helm",
+    "upsellCategoryNavigation": "Navigation",
+    "upsellCategoryShoes": "Schuhe",
+    "seeAccessories": "Zubehör ansehen"
   },
   "storeConflictModal": {
     "title": "Anderer Abholort",

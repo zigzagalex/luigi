@@ -550,6 +550,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
       priceLabel: quote
         ? `${quote.currency} ${(quote.totalPriceCents / 100).toFixed(2)}`
         : undefined,
+      suggestAccessories: true,
     });
   }, [
     canAddToCart,
