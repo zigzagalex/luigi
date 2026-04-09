@@ -1,17 +1,29 @@
 "use client";
 
-import { useEffect, useCallback } from "react";
+import { useEffect, useCallback, useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { useCart } from "@/[locale]/components/cart/CartContext";
+import type { CartUpsellAccessoryItem } from "@/../utils/cartAccessoryUpsell";
 import styles from "./CartAddPopover.module.css";
 
+/** Upsell payload returned by GET /api/cart-accessory-upsell (mirrors API JSON). */
+type UpsellProduct = NonNullable<CartUpsellAccessoryItem["product"]>;
+
+const ACCESSORY_PLACEHOLDER =
+    "https://images.pexels.com/photos/100582/pexels-photo-100582.jpeg?auto=compress&cs=tinysrgb&w=400";
 
 export function CartAddPopover() {
     const t = useTranslations("cartAddPopover");
     const router = useRouter();
+    const locale = useLocale();
 
-    const { isAddPopoverOpen, lastAdded, closeAddPopover } = useCart();
+    const { shopId, isAddPopoverOpen, lastAdded, closeAddPopover } = useCart();
+
+    const [upsellRows, setUpsellRows] = useState<CartUpsellAccessoryItem[] | null>(
+        null,
+    );
 
     const handleContinueShopping = useCallback(() => {
         closeAddPopover();
@@ -19,8 +31,13 @@ export function CartAddPopover() {
 
     const handleGoToCart = useCallback(() => {
         closeAddPopover();
-        router.push("/cart");
-    }, [closeAddPopover, router]);
+        router.push(`/${locale}/cart`);
+    }, [closeAddPopover, router, locale]);
+
+    const handleSeeAccessories = useCallback(() => {
+        closeAddPopover();
+        router.push(`/${locale}/accessories`);
+    }, [closeAddPopover, router, locale]);
 
     const handleBackdropMouseDown = useCallback(
         (e: React.MouseEvent<HTMLDivElement>) => {
@@ -40,6 +57,35 @@ export function CartAddPopover() {
         return () => window.removeEventListener("keydown", onKeyDown);
     }, [isAddPopoverOpen, closeAddPopover]);
 
+    useEffect(() => {
+        if (!isAddPopoverOpen || !lastAdded?.suggestAccessories) {
+            setUpsellRows(null);
+            return;
+        }
+        let cancelled = false;
+        setUpsellRows(null);
+        void (async () => {
+            try {
+                const qs = new URLSearchParams({
+                    shop_id: String(shopId),
+                    locale,
+                });
+                const res = await fetch(`/api/cart-accessory-upsell?${qs.toString()}`);
+                if (!res.ok) {
+                    if (!cancelled) setUpsellRows([]);
+                    return;
+                }
+                const rows = (await res.json()) as CartUpsellAccessoryItem[];
+                if (!cancelled) setUpsellRows(rows);
+            } catch {
+                if (!cancelled) setUpsellRows([]);
+            }
+        })();
+        return () => {
+            cancelled = true;
+        };
+    }, [isAddPopoverOpen, lastAdded?.suggestAccessories, shopId, locale]);
+
     if (!isAddPopoverOpen) return null;
 
     // Fallback UI if state is open but lastAdded is missing
@@ -50,6 +96,32 @@ export function CartAddPopover() {
         lastAdded?.from && lastAdded?.to ? t("dates", { from: lastAdded.from, to: lastAdded.to }) : null,
         typeof lastAdded?.quantity === "number" ? t("qty", { count: String(lastAdded.quantity) }) : null,
     ].filter(Boolean);
+
+    const showUpsell =
+        !!lastAdded?.suggestAccessories && upsellRows && upsellRows.some((r) => r.product);
+
+    const categoryLabel = (slug: CartUpsellAccessoryItem["categorySlug"]) => {
+        if (slug === "acc-helmets") return t("upsellCategoryHelmet");
+        if (slug === "acc-navigation") return t("upsellCategoryNavigation");
+        return t("upsellCategoryShoes");
+    };
+
+    const renderUpsellCard = (product: UpsellProduct) => (
+        <Link
+            key={product.id}
+            href={`/${locale}/accessories/${product.id}`}
+            className={styles.upsellCard}
+            onClick={closeAddPopover}
+        >
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+                src={product.primary_image_url ?? ACCESSORY_PLACEHOLDER}
+                alt=""
+                className={styles.upsellThumb}
+            />
+            <div className={styles.upsellName}>{product.name}</div>
+        </Link>
+    );
 
     return (
         <div
@@ -88,8 +160,8 @@ export function CartAddPopover() {
     
                 {subtitleParts.length > 0 && (
                   <div className={styles.subtitle}>
-                    {subtitleParts.map((t, i) => (
-                      <div key={i}>{t}</div>
+                    {subtitleParts.map((line, i) => (
+                      <div key={i}>{line}</div>
                     ))}
                   </div>
                 )}
@@ -99,6 +171,33 @@ export function CartAddPopover() {
                 )}
               </div>
             </div>
+
+            {lastAdded?.suggestAccessories ? (
+              <div className={styles.upsellSection}>
+                <div className={styles.upsellHeading}>{t("upsellHeading")}</div>
+                {showUpsell ? (
+                  <div className={styles.upsellGrid} role="list">
+                    {upsellRows!.map((row) =>
+                      row.product ? (
+                        <div key={row.categorySlug} className={styles.upsellCell} role="listitem">
+                          <div className={styles.upsellCategory}>
+                            {categoryLabel(row.categorySlug)}
+                          </div>
+                          {renderUpsellCard(row.product)}
+                        </div>
+                      ) : null,
+                    )}
+                  </div>
+                ) : null}
+                <button
+                  type="button"
+                  className={styles.upsellCta}
+                  onClick={handleSeeAccessories}
+                >
+                  {t("seeAccessories")}
+                </button>
+              </div>
+            ) : null}
     
             <div className={styles.actions}>
               <button

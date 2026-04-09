@@ -339,7 +339,12 @@
     "title": "Added to cart",
     "closeAria": "Close",
     "continueShopping": "Continue shopping",
-    "goToCart": "Go to cart"
+    "goToCart": "Go to cart",
+    "upsellHeading": "Complete your ride",
+    "upsellCategoryHelmet": "Helmet",
+    "upsellCategoryNavigation": "Navigation",
+    "upsellCategoryShoes": "Shoes",
+    "seeAccessories": "See accessories"
   },
   "storeConflictModal": {
     "title": "Different pickup location",

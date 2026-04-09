@@ -339,7 +339,12 @@
     "title": "Aggiunto al carrello",
     "closeAria": "Chiudi",
     "continueShopping": "Continua lo shopping",
-    "goToCart": "Vai al carrello"
+    "goToCart": "Vai al carrello",
+    "upsellHeading": "Completa la tua attrezzatura",
+    "upsellCategoryHelmet": "Casco",
+    "upsellCategoryNavigation": "Navigazione",
+    "upsellCategoryShoes": "Scarpe",
+    "seeAccessories": "Vedi accessori"
   },
   "storeConflictModal": {
     "title": "Luogo di ritiro diverso",
