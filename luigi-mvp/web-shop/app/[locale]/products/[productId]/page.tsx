@@ -95,7 +95,8 @@ async function fetchStores(shopId: number): Promise<Store[]> {
 }
 
 async function fetchInventory(shopId: number): Promise<InventoryItem[]> {
-  const res = await fetchApi(`/v1/inventory_items${buildQuery({ shop_id: shopId, limit: 500 })}`);
+  // API clamps to maxLimit (10k). Large enough so bike rows are not cut off after accessory inventory.
+  const res = await fetchApi(`/v1/inventory_items${buildQuery({ shop_id: shopId, limit: 8000 })}`);
   return parseJSON<InventoryItem[]>(res);
 }
 
@@ -137,10 +138,13 @@ export default async function ProductPage({
   });
 
   // 3) stores + inventory for that shop
-  const [stores, inventory] = await Promise.all([
+  const [stores, inventoryAll] = await Promise.all([
     fetchStores(product.shop_id),
     fetchInventory(product.shop_id),
   ]);
+
+  const variantIdSet = new Set(variants.map((v) => v.id));
+  const inventory = inventoryAll.filter((row) => variantIdSet.has(row.product_variant_id));
 
   return (
     <main className="page product-detail-page">
