@@ -2,12 +2,14 @@ package usersv1
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 	"strconv"
 	"strings"
 
 	fbauth "firebase.google.com/go/v4/auth"
+	"github.com/jackc/pgx/v5/pgconn"
 	"github.com/go-chi/chi/v5"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
@@ -83,7 +85,9 @@ func createHandler(svc *usersvc.Service, fb *fbauth.Client) http.HandlerFunc {
 		ctx := r.Context()
 		var firebaseUID *string
 
-		if req.Password != nil && strings.TrimSpace(*req.Password) != "" {
+		hasPassword := req.Password != nil && strings.TrimSpace(*req.Password) != ""
+
+		if hasPassword {
 			if fb == nil {
 				httpx.Fail(w, http.StatusServiceUnavailable, "firebase_not_configured", nil)
 				return
@@ -138,7 +142,13 @@ func createHandler(svc *usersvc.Service, fb *fbauth.Client) http.HandlerFunc {
 				httpx.Fail(w, http.StatusBadRequest, "firebase_create_failed", err.Error())
 				return
 			}
-			uidCopy := rec.UID
+			uid := strings.TrimSpace(rec.UID)
+			if uid == "" {
+				log.Printf("create user: firebase CreateUser returned empty UID (email=%q)", email)
+				httpx.Fail(w, http.StatusInternalServerError, "firebase_uid_missing", "Firebase user record had no UID after create")
+				return
+			}
+			uidCopy := uid
 			firebaseUID = &uidCopy
 
 			item, err := svc.Create(ctx, usersvc.CreateInput{
@@ -151,8 +161,17 @@ func createHandler(svc *usersvc.Service, fb *fbauth.Client) http.HandlerFunc {
 				IsActive:    req.IsActive,
 			})
 			if err != nil {
-				if delErr := fb.DeleteUser(ctx, rec.UID); delErr != nil {
-					log.Printf("rollback firebase user failed uid=%s: %v", rec.UID, delErr)
+				if delErr := fb.DeleteUser(ctx, uid); delErr != nil {
+					log.Printf("rollback firebase user failed uid=%s: %v", uid, delErr)
+				}
+				log.Printf("create user: postgres insert failed: %v", err)
+				if isPostgresFKViolation(err) {
+					httpx.Fail(w, http.StatusBadRequest, "shop_id_not_found", "insert rejected: shops row missing for shop_id (apply migrations, e.g. 000017_seed_default_shop)")
+					return
+				}
+				if isPostgresUniqueViolation(err) {
+					httpx.Fail(w, http.StatusConflict, "user_identifier_conflict", err.Error())
+					return
 				}
 				httpx.Fail(w, http.StatusInternalServerError, "create_user_failed", err.Error())
 				return
@@ -161,23 +180,43 @@ func createHandler(svc *usersvc.Service, fb *fbauth.Client) http.HandlerFunc {
 			return
 		}
 
-		// Manual path: existing Firebase account
+		// Manual path: link an existing Firebase account (firebase_uid is required — DB NOT NULL)
+		if provisionFieldsPresent(&req) && !hasPassword {
+			httpx.Fail(w, http.StatusBadRequest, "password_required", "include a non-empty password field to provision a new Firebase user from this endpoint")
+			return
+		}
+
 		if (req.Email == nil || strings.TrimSpace(*req.Email) == "") &&
 			(req.FirebaseUID == nil || strings.TrimSpace(*req.FirebaseUID) == "") {
 			httpx.Fail(w, http.StatusBadRequest, "email_or_firebase_uid_required", nil)
 			return
 		}
 
+		fu := u.TrimOrNil(req.FirebaseUID)
+		if fu == nil {
+			httpx.Fail(w, http.StatusBadRequest, "firebase_uid_required", "manual user creation requires firebase_uid (or use password + profile to provision)")
+			return
+		}
+
 		item, err := svc.Create(ctx, usersvc.CreateInput{
 			ShopID:      req.ShopID,
 			StoreID:     req.StoreID,
-			FirebaseUID: u.TrimOrNil(req.FirebaseUID),
+			FirebaseUID: fu,
 			Email:       u.TrimOrNil(req.Email),
 			DisplayName: u.TrimOrNil(req.DisplayName),
 			Role:        u.TrimOrNil(req.Role),
 			IsActive:    req.IsActive,
 		})
 		if err != nil {
+			log.Printf("create user (manual): postgres insert failed: %v", err)
+			if isPostgresFKViolation(err) {
+				httpx.Fail(w, http.StatusBadRequest, "shop_id_not_found", "insert rejected: shops row missing for shop_id")
+				return
+			}
+			if isPostgresUniqueViolation(err) {
+				httpx.Fail(w, http.StatusConflict, "user_identifier_conflict", err.Error())
+				return
+			}
 			httpx.Fail(w, http.StatusInternalServerError, "create_user_failed", err.Error())
 			return
 		}
@@ -190,6 +229,34 @@ func ptrStr(s *string) string {
 		return ""
 	}
 	return *s
+}
+
+// provisionFieldsPresent detects shop-style signup payload (first/last/phone) without a password.
+func provisionFieldsPresent(req *createReq) bool {
+	if req == nil {
+		return false
+	}
+	fn := strings.TrimSpace(ptrStr(req.FirstName))
+	ln := strings.TrimSpace(ptrStr(req.LastName))
+	ph := strings.TrimSpace(ptrStr(req.Phone))
+	return fn != "" || ln != "" || ph != ""
+}
+
+func isPostgresFKViolation(err error) bool {
+	var pg *pgconn.PgError
+	if errors.As(err, &pg) && pg.Code == "23503" {
+		return true
+	}
+	s := err.Error()
+	return strings.Contains(s, "23503") || strings.Contains(s, "foreign key constraint")
+}
+
+func isPostgresUniqueViolation(err error) bool {
+	var pg *pgconn.PgError
+	if errors.As(err, &pg) && pg.Code == "23505" {
+		return true
+	}
+	return strings.Contains(err.Error(), "23505") || strings.Contains(err.Error(), "unique constraint")
 }
 
 type updateReq struct {

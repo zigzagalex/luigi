@@ -1,0 +1,42 @@
+.phone {
+  width: 100%;
+  display: flex;
+  gap: var(--space-3);
+  align-items: center;
+}
+
+.phone :global(.PhoneInputCountry) {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 0 var(--space-3);
+  height: 46px;
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg-page);
+}
+
+.phone :global(.PhoneInputCountrySelect) {
+  border: 0;
+  background: transparent;
+  font: inherit;
+  outline: none;
+  cursor: pointer;
+}
+
+.phone :global(.PhoneInputInput) {
+  flex: 1;
+  height: 46px;
+  padding: 0 var(--space-4);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  background: var(--color-bg-page);
+  font: inherit;
+  outline: none;
+  color: var(--color-text-strong);
+}
+
+.phone :global(.PhoneInputInput:focus) {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px rgba(0, 145, 255, 0.15);
+}
