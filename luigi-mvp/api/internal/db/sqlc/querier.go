@@ -110,6 +110,7 @@ type Querier interface {
 	ListShops(ctx context.Context, arg *ListShopsParams) ([]Shop, error)
 	ListStores(ctx context.Context, arg *ListStoresParams) ([]Store, error)
 	ListUsers(ctx context.Context, arg *ListUsersParams) ([]User, error)
+	ListUsersStaffAdmin(ctx context.Context, arg *ListUsersStaffAdminParams) ([]User, error)
 	RescheduleMyReservation(ctx context.Context, arg *RescheduleMyReservationParams) (Reservation, error)
 	RescheduleMyReservationItems(ctx context.Context, arg *RescheduleMyReservationItemsParams) error
 	// Search available variants across products / stores for a given time range.

@@ -27,11 +27,16 @@ export function UsersPageClient() {
   const [rows, setRows] = useState<ApiUser[] | null>(null);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const [createMsg, setCreateMsg] = useState<string | null>(null);
+  const [createFeedback, setCreateFeedback] = useState<{
+    text: string;
+    ok: boolean;
+  } | null>(null);
 
   const [email, setEmail] = useState("");
-  const [displayName, setDisplayName] = useState("");
-  const [firebaseUid, setFirebaseUid] = useState("");
+  const [password, setPassword] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [phone, setPhone] = useState("");
   const [role, setRole] = useState<"staff" | "admin">("staff");
 
   const canManage = useMemo(() => isAdminRole(me?.role ?? null), [me?.role]);
@@ -67,31 +72,30 @@ export function UsersPageClient() {
 
   async function onCreate(e: React.FormEvent) {
     e.preventDefault();
-    setCreateMsg(null);
-    const uid = firebaseUid.trim();
-    if (!uid) {
-      setCreateMsg(t("firebaseUidRequired"));
-      return;
-    }
+    setCreateFeedback(null);
     setBusy(true);
     try {
       await createUser({
         shop_id: SHOP_ID,
         email: email.trim(),
-        firebase_uid: uid,
-        display_name: displayName.trim() || undefined,
+        password: password,
+        first_name: firstName.trim(),
+        last_name: lastName.trim(),
+        phone: phone.trim(),
         role,
       });
       setEmail("");
-      setDisplayName("");
-      setFirebaseUid("");
+      setPassword("");
+      setFirstName("");
+      setLastName("");
+      setPhone("");
       setRole("staff");
-      setCreateMsg(t("createSuccess"));
+      setCreateFeedback({ text: t("createSuccess"), ok: true });
       const data = await listUsers(SHOP_ID);
       setRows(data);
       router.refresh();
     } catch {
-      setCreateMsg(t("createError"));
+      setCreateFeedback({ text: t("createError"), ok: false });
     } finally {
       setBusy(false);
     }
@@ -118,34 +122,63 @@ export function UsersPageClient() {
           <p className={styles.hint}>{t("addUserHint")}</p>
           <div className={styles.grid}>
             <label className={styles.label}>
+              {t("firstName")}
+              <input
+                className={styles.input}
+                type="text"
+                required
+                autoComplete="given-name"
+                value={firstName}
+                onChange={(e) => setFirstName(e.target.value)}
+                disabled={busy}
+              />
+            </label>
+            <label className={styles.label}>
+              {t("lastName")}
+              <input
+                className={styles.input}
+                type="text"
+                required
+                autoComplete="family-name"
+                value={lastName}
+                onChange={(e) => setLastName(e.target.value)}
+                disabled={busy}
+              />
+            </label>
+            <label className={styles.label}>
+              {t("phone")}
+              <input
+                className={styles.input}
+                type="tel"
+                required
+                autoComplete="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                disabled={busy}
+              />
+            </label>
+            <label className={styles.label}>
               {t("email")}
               <input
                 className={styles.input}
                 type="email"
                 required
+                autoComplete="email"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 disabled={busy}
               />
             </label>
             <label className={styles.label}>
-              {t("displayName")}
+              {t("newUserPassword")}
               <input
                 className={styles.input}
-                type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                disabled={busy}
-              />
-            </label>
-            <label className={styles.label}>
-              {t("colUid")} *
-              <input
-                className={styles.input}
-                type="text"
+                type="password"
                 required
-                value={firebaseUid}
-                onChange={(e) => setFirebaseUid(e.target.value)}
+                autoComplete="new-password"
+                minLength={6}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
                 disabled={busy}
               />
             </label>
@@ -162,7 +195,11 @@ export function UsersPageClient() {
               </select>
             </label>
           </div>
-          {createMsg ? <p className={styles.msg}>{createMsg}</p> : null}
+          {createFeedback ? (
+            <p className={createFeedback.ok ? styles.msg : styles.error}>
+              {createFeedback.text}
+            </p>
+          ) : null}
           <button className={styles.submit} type="submit" disabled={busy}>
             {busy ? t("creating") : t("create")}
           </button>
@@ -185,24 +222,15 @@ export function UsersPageClient() {
               <th>{t("colName")}</th>
               <th>{t("colRole")}</th>
               <th>{t("colActive")}</th>
-              <th>{t("colUid")}</th>
             </tr>
           </thead>
           <tbody>
-            {(rows ?? [])
-              .filter((u) => {
-                const r = String(u.role ?? "")
-                  .toLowerCase()
-                  .trim();
-                return r === "admin" || r === "staff";
-              })
-              .map((u) => (
+            {(rows ?? []).map((u) => (
               <tr key={u.id}>
                 <td>{cell(u.email ?? null)}</td>
                 <td>{cell(u.display_name ?? null)}</td>
                 <td>{cell(u.role ?? null)}</td>
                 <td>{u.is_active ? t("yes") : t("no")}</td>
-                <td className={styles.mono}>{cell(u.firebase_uid ?? null)}</td>
               </tr>
             ))}
           </tbody>
