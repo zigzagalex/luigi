@@ -43,6 +43,31 @@ export async function exchangeIdTokenForSessionCookie(input?: Provisioning) {
   }
 }
 
+/** Go `sql.NullString` may JSON-encode as `{ String, Valid }` instead of a plain string. */
+export function normalizeSqlNullString(v: unknown): string | null {
+  if (v == null) return null;
+  if (typeof v === "string") return v;
+  if (typeof v === "object" && v !== null && "Valid" in v) {
+    const o = v as { String?: string; Valid?: boolean };
+    return o.Valid ? (o.String ?? null) : null;
+  }
+  return null;
+}
+
+/** @deprecated use normalizeSqlNullString */
+export const normalizeRoleField = normalizeSqlNullString;
+
+/** Go `sql.NullInt64` may JSON-encode as `{ Int64, Valid }`. */
+export function normalizeSqlNullInt64(v: unknown): number | null {
+  if (v == null) return null;
+  if (typeof v === "number" && Number.isFinite(v)) return v;
+  if (typeof v === "object" && v !== null && "Valid" in v) {
+    const o = v as { Int64?: number; Valid?: boolean };
+    return o.Valid && o.Int64 != null ? o.Int64 : null;
+  }
+  return null;
+}
+
 export async function fetchMe(): Promise<Me | null> {
   const res = await fetch(`${API_BASE}/v1/auth/me`, {
     method: "GET",
@@ -53,7 +78,15 @@ export async function fetchMe(): Promise<Me | null> {
   if (res.status === 401) return null;
   if (!res.ok) throw new Error(`/me failed: ${res.status} ${await res.text()}`);
 
-  return (await res.json()) as Me;
+  const raw = (await res.json()) as Record<string, unknown>;
+  return {
+    id: raw.id as number,
+    email: normalizeSqlNullString(raw.email),
+    display_name: normalizeSqlNullString(raw.display_name),
+    role: normalizeSqlNullString(raw.role),
+    shop_id: normalizeSqlNullInt64(raw.shop_id),
+    store_id: normalizeSqlNullInt64(raw.store_id),
+  };
 }
 
 export async function logoutSession(shopId: number) {

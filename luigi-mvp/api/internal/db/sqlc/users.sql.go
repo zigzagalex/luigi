@@ -151,6 +151,11 @@ FROM users
 WHERE (
     $1::bigint IS NULL
     OR shop_id = $1::bigint
+    OR (
+        $1::bigint IS NOT NULL
+        AND shop_id IS NULL
+        AND role IN ('admin', 'staff')
+    )
 )
 ORDER BY id 
 LIMIT $3 OFFSET $2

@@ -9,6 +9,8 @@
     "signingIn": "Wird angemeldet…",
     "loginError": "Anmeldung fehlgeschlagen.",
     "accessDenied": "Dieses Konto ist für die Admin-Konsole nicht berechtigt.",
+    "navSectionMain": "Hauptmenü",
+    "loginCardSubtitle": "Mit Personal- oder Admin-Konto anmelden.",
     "navUsers": "Benutzer",
     "logout": "Abmelden",
     "usersTitle": "Benutzer",

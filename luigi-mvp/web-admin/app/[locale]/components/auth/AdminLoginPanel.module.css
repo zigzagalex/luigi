@@ -1,0 +1,122 @@
+/* Derived from web-shop AuthModal — login-only admin page card */
+.page {
+  min-height: calc(100vh - var(--admin-topbar-height, 56px));
+  display: grid;
+  place-items: center;
+  padding: var(--space-8) var(--space-4);
+  background: var(--color-bg-page);
+}
+
+.card {
+  position: relative;
+  width: min(560px, 100%);
+  background: var(--color-bg-surface);
+  color: var(--color-bg-inverse);
+  border-radius: 20px;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.35);
+  padding: var(--space-8) var(--space-8) var(--space-6);
+}
+
+.title {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-h1-size);
+  letter-spacing: 0.02em;
+  font-weight: 800;
+}
+
+.subtitle {
+  margin: 0 0 var(--space-5);
+  color: rgba(11, 18, 32, 0.72);
+  line-height: 1.4;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.label {
+  font-size: var(--text-meta-size);
+  font-weight: 600;
+  color: rgba(11, 18, 32, 0.78);
+}
+
+.input {
+  height: 46px;
+  border-radius: 12px;
+  border: 1px solid rgba(11, 18, 32, 0.14);
+  padding: 0 var(--space-4);
+  font-size: 15px;
+  outline: none;
+  transition: border-color 140ms ease, box-shadow 140ms ease;
+}
+
+.input:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(255, 90, 0, 0.15);
+}
+
+.rowBetween {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: -6px;
+}
+
+.primary {
+  margin-top: var(--space-1);
+  height: 50px;
+  border: 0;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 15px;
+  cursor: pointer;
+  color: var(--color-bg-surface);
+  background: var(--color-primary);
+  box-shadow: 0 10px 22px rgba(0, 145, 255, 0.25);
+}
+
+.primary:hover:not(:disabled) {
+  filter: brightness(0.98);
+}
+
+.primary:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.link {
+  border: 0;
+  background: transparent;
+  padding: 0;
+  cursor: pointer;
+  color: var(--color-bg-inverse);
+  font-weight: 700;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+.status {
+  margin-top: var(--space-2);
+  font-size: var(--text-meta-size);
+  color: rgba(11, 18, 32, 0.75);
+}
+
+.statusError {
+  color: var(--color-accent-danger);
+}
+
+@media (max-width: 520px) {
+  .card {
+    padding: var(--space-6) var(--space-5) var(--space-5);
+    border-radius: 18px;
+  }
+  .title {
+    font-size: var(--text-h2-size);
+  }
+}

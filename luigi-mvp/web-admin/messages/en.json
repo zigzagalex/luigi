@@ -9,6 +9,8 @@
     "signingIn": "Signing in…",
     "loginError": "Sign-in failed.",
     "accessDenied": "This account is not authorized for the admin console.",
+    "navSectionMain": "Main",
+    "loginCardSubtitle": "Sign in with your staff or administrator account.",
     "navUsers": "Users",
     "logout": "Log out",
     "usersTitle": "Users",
