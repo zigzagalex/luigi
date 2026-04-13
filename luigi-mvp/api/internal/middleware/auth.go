@@ -25,6 +25,65 @@ func UserFromContext(ctx context.Context) (db.User, bool) {
 	return u, ok
 }
 
+func roleString(u db.User) string {
+	if !u.Role.Valid {
+		return ""
+	}
+	return strings.ToLower(strings.TrimSpace(u.Role.String))
+}
+
+// RequireStaffOrAdmin expects the authenticated user in context (e.g. after RequireSessionCookie).
+func RequireStaffOrAdmin() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			u, ok := UserFromContext(r.Context())
+			if !ok {
+				httpx.Fail(w, http.StatusUnauthorized, "not_authenticated", nil)
+				return
+			}
+			switch roleString(u) {
+			case "admin", "staff":
+				next.ServeHTTP(w, r)
+			default:
+				httpx.Fail(w, http.StatusForbidden, "staff_or_admin_required", nil)
+			}
+		})
+	}
+}
+
+// RequireAdmin expects the authenticated user in context.
+func RequireAdmin() func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			u, ok := UserFromContext(r.Context())
+			if !ok {
+				httpx.Fail(w, http.StatusUnauthorized, "not_authenticated", nil)
+				return
+			}
+			if roleString(u) != "admin" {
+				httpx.Fail(w, http.StatusForbidden, "admin_required", nil)
+				return
+			}
+			next.ServeHTTP(w, r)
+		})
+	}
+}
+
+// IsStaffOrAdmin reports whether the DB user may use management APIs.
+func IsStaffOrAdmin(u db.User) bool {
+	switch roleString(u) {
+	case "admin", "staff":
+		return true
+	default:
+		return false
+	}
+}
+
+// IsAdmin reports whether the DB user may perform destructive user management.
+func IsAdmin(u db.User) bool {
+	return roleString(u) == "admin"
+}
+
 func RequireSessionCookie(fb *fbauth.Client, users *usersvc.Service, cookieName string) func(http.Handler) http.Handler {
 	return func(next http.Handler) http.Handler {
 		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
