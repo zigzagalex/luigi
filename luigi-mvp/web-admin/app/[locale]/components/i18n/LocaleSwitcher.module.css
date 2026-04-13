@@ -1,0 +1,53 @@
+.wrap {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+}
+
+.wrap::after {
+  content: "";
+  position: absolute;
+  right: 0;
+  top: 50%;
+  width: 0.38rem;
+  height: 0.38rem;
+  border-right: 1px solid rgba(255, 255, 255, 0.82);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.82);
+  transform: translateY(-62%) rotate(45deg);
+  pointer-events: none;
+}
+  
+.select {
+  height: 32px;
+  min-height: 32px;
+  padding: 0 1rem 0 0;
+  border: none;
+  background: transparent;
+  color: var(--color-bg-surface);
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  text-align: center;
+  text-align-last: center;
+  line-height: 1;
+}
+  
+.select:focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.55);
+  outline-offset: 2px;
+}
+  
+.srOnly {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}

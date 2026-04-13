@@ -193,41 +193,43 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// 2b) Ensure customer exists for this user
-	_, err = cs.GetCustomerByUserID(ctx, user.ID)
-	if err != nil {
-		if err != customersvc.ErrNotFound {
-			httpx.Fail(w, http.StatusInternalServerError, "get_customer_failed", err.Error())
-			return
-		}
-
-		// provisioning customer profile (strict fields)
-		if shopID <= 0 ||
-			strings.TrimSpace(req.FirstName) == "" ||
-			strings.TrimSpace(req.LastName) == "" ||
-			strings.TrimSpace(req.Phone) == "" {
-			httpx.Fail(w, http.StatusBadRequest, "missing_profile_fields", map[string]any{
-				"shop_id":    shopID,
-				"first_name": req.FirstName,
-				"last_name":  req.LastName,
-				"phone":      req.Phone,
-			})
-			return
-		}
-
-		_, err = cs.Create(ctx, customersvc.CreateInput{
-			ShopID:    shopID,
-			UserID:    &user.ID,
-			Email:     emailPtr,
-			Phone:     ptr(strings.TrimSpace(req.Phone)),
-			FirstName: ptr(strings.TrimSpace(req.FirstName)),
-			LastName:  ptr(strings.TrimSpace(req.LastName)),
-			// address fields optional for now => leave nil
-			IsActive: ptrBool(true),
-		})
+	// 2b) Ensure customer exists for this user (shop customers; staff/admin skip — no shop customer row)
+	if !middleware.IsStaffOrAdmin(user) {
+		_, err = cs.GetCustomerByUserID(ctx, user.ID)
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "customer_autoprovision_failed", err.Error())
-			return
+			if err != customersvc.ErrNotFound {
+				httpx.Fail(w, http.StatusInternalServerError, "get_customer_failed", err.Error())
+				return
+			}
+
+			// provisioning customer profile (strict fields)
+			if shopID <= 0 ||
+				strings.TrimSpace(req.FirstName) == "" ||
+				strings.TrimSpace(req.LastName) == "" ||
+				strings.TrimSpace(req.Phone) == "" {
+				httpx.Fail(w, http.StatusBadRequest, "missing_profile_fields", map[string]any{
+					"shop_id":    shopID,
+					"first_name": req.FirstName,
+					"last_name":  req.LastName,
+					"phone":      req.Phone,
+				})
+				return
+			}
+
+			_, err = cs.Create(ctx, customersvc.CreateInput{
+				ShopID:    shopID,
+				UserID:    &user.ID,
+				Email:     emailPtr,
+				Phone:     ptr(strings.TrimSpace(req.Phone)),
+				FirstName: ptr(strings.TrimSpace(req.FirstName)),
+				LastName:  ptr(strings.TrimSpace(req.LastName)),
+				// address fields optional for now => leave nil
+				IsActive: ptrBool(true),
+			})
+			if err != nil {
+				httpx.Fail(w, http.StatusInternalServerError, "customer_autoprovision_failed", err.Error())
+				return
+			}
 		}
 	}
 

@@ -10,6 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
+	"github.com/zigzagalex/luigi/api/internal/middleware"
 	usersvc "github.com/zigzagalex/luigi/api/internal/users"
 	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
@@ -18,10 +19,10 @@ func RegisterRoutes(r chi.Router, q db.Querier) {
 	svc := usersvc.NewService(q)
 
 	r.Route("/users", func(r chi.Router) {
-		r.Get("/", listHandler(svc))              // GET /users?limit=&offset=&shop_id=
-		r.Post("/", createHandler(svc))           // POST /users
-		r.Put("/{userID}", updateHandler(svc))    // PUT /users/{userID}
-		r.Delete("/{userID}", deleteHandler(svc)) // DELETE /users/{userID}
+		r.Get("/", listHandler(svc)) // GET /users?limit=&offset=&shop_id=
+		r.With(middleware.RequireAdmin()).Post("/", createHandler(svc))
+		r.With(middleware.RequireAdmin()).Put("/{userID}", updateHandler(svc))
+		r.With(middleware.RequireAdmin()).Delete("/{userID}", deleteHandler(svc))
 	})
 }
 

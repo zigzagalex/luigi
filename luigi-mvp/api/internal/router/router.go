@@ -49,6 +49,7 @@ func New(d Deps) http.Handler {
 	c := cors.New(cors.Options{
 		AllowedOrigins: []string{
 			"http://localhost:3000",
+			"http://localhost:3001",
 		},
 		AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
@@ -93,10 +94,11 @@ func New(d Deps) http.Handler {
 			v1reservations.RegisterRoutes(r, d.Q, d.SQLDB, cartSvc, imageSvc)
 		})
 
-		// Protected routes (admin/management)
+		// Protected routes (admin/management): staff + admin only
 		r.Group(func(r chi.Router) {
 			us := usersvc.NewService(d.Q)
 			r.Use(middleware.RequireSessionCookie(d.FirebaseAuth, us, "luigi_session"))
+			r.Use(middleware.RequireStaffOrAdmin())
 
 			v1users.RegisterRoutes(r, d.Q)
 			v1customers.RegisterRoutes(r, d.Q)
