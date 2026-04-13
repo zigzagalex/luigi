@@ -24,6 +24,33 @@ ORDER BY id
 LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
 
 
+-- name: ListUsersStaffAdmin :many
+SELECT 
+    id,
+    shop_id,
+    store_id,
+    firebase_uid,
+    email,
+    display_name,
+    role,
+    is_active,
+    created_at,
+    updated_at
+FROM users
+WHERE (
+    sqlc.narg(shop_id)::bigint IS NULL
+    OR shop_id = sqlc.narg(shop_id)::bigint
+    OR (
+        sqlc.narg(shop_id)::bigint IS NOT NULL
+        AND shop_id IS NULL
+        AND role IN ('admin', 'staff')
+    )
+)
+AND role IN ('admin', 'staff')
+ORDER BY id 
+LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
+
+
 -- name: CreateUser :one
 INSERT INTO users (
     shop_id,

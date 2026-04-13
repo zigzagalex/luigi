@@ -201,6 +201,73 @@ func (q *Queries) ListUsers(ctx context.Context, arg *ListUsersParams) ([]User, 
 	return items, nil
 }
 
+const listUsersStaffAdmin = `-- name: ListUsersStaffAdmin :many
+SELECT 
+    id,
+    shop_id,
+    store_id,
+    firebase_uid,
+    email,
+    display_name,
+    role,
+    is_active,
+    created_at,
+    updated_at
+FROM users
+WHERE (
+    $1::bigint IS NULL
+    OR shop_id = $1::bigint
+    OR (
+        $1::bigint IS NOT NULL
+        AND shop_id IS NULL
+        AND role IN ('admin', 'staff')
+    )
+)
+AND role IN ('admin', 'staff')
+ORDER BY id 
+LIMIT $3 OFFSET $2
+`
+
+type ListUsersStaffAdminParams struct {
+	ShopID     sql.NullInt64 `json:"shop_id"`
+	PageOffset int32         `json:"page_offset"`
+	PageLimit  int32         `json:"page_limit"`
+}
+
+func (q *Queries) ListUsersStaffAdmin(ctx context.Context, arg *ListUsersStaffAdminParams) ([]User, error) {
+	rows, err := q.db.QueryContext(ctx, listUsersStaffAdmin, arg.ShopID, arg.PageOffset, arg.PageLimit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []User
+	for rows.Next() {
+		var i User
+		if err := rows.Scan(
+			&i.ID,
+			&i.ShopID,
+			&i.StoreID,
+			&i.FirebaseUid,
+			&i.Email,
+			&i.DisplayName,
+			&i.Role,
+			&i.IsActive,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET 

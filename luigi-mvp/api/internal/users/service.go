@@ -12,6 +12,7 @@ import (
 
 type userQuerier interface {
 	ListUsers(ctx context.Context, arg *db.ListUsersParams) ([]db.User, error)
+	ListUsersStaffAdmin(ctx context.Context, arg *db.ListUsersStaffAdminParams) ([]db.User, error)
 	CreateUser(ctx context.Context, arg *db.CreateUserParams) (db.User, error)
 	UpdateUser(ctx context.Context, arg *db.UpdateUserParams) (db.User, error)
 	DeleteUser(ctx context.Context, id int64) (db.User, error)
@@ -43,7 +44,7 @@ func (s *Service) List(ctx context.Context, in ListInput) ([]db.User, error) {
 	if in.ShopID != nil {
 		shopID = sql.NullInt64{Int64: *in.ShopID, Valid: true}
 	}
-	return s.q.ListUsers(ctx, &db.ListUsersParams{
+	return s.q.ListUsersStaffAdmin(ctx, &db.ListUsersStaffAdminParams{
 		ShopID:     shopID,
 		PageLimit:  in.Limit,
 		PageOffset: in.Offset,

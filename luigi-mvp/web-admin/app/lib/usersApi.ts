@@ -47,8 +47,10 @@ export async function listUsers(shopId: number): Promise<ApiUser[]> {
 export type CreateUserBody = {
   shop_id: number;
   email: string;
-  firebase_uid: string;
-  display_name?: string;
+  password: string;
+  first_name: string;
+  last_name: string;
+  phone: string;
   role: "admin" | "staff";
 };
 
@@ -60,8 +62,10 @@ export async function createUser(body: CreateUserBody): Promise<ApiUser> {
     body: JSON.stringify({
       shop_id: body.shop_id,
       email: body.email,
-      firebase_uid: body.firebase_uid,
-      display_name: body.display_name || undefined,
+      password: body.password,
+      first_name: body.first_name,
+      last_name: body.last_name,
+      phone: body.phone,
       role: body.role,
     }),
   });

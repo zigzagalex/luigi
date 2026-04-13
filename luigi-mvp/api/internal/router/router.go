@@ -100,7 +100,7 @@ func New(d Deps) http.Handler {
 			r.Use(middleware.RequireSessionCookie(d.FirebaseAuth, us, "luigi_session"))
 			r.Use(middleware.RequireStaffOrAdmin())
 
-			v1users.RegisterRoutes(r, d.Q)
+			v1users.RegisterRoutes(r, d.Q, d.FirebaseAuth)
 			v1customers.RegisterRoutes(r, d.Q)
 		})
 
