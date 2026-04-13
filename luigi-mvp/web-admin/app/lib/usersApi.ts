@@ -1,3 +1,8 @@
+import {
+  normalizeSqlNullInt64,
+  normalizeSqlNullString,
+} from "@/lib/AuthSession";
+
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 if (!API_BASE) throw new Error("NEXT_PUBLIC_API_BASE is not set");
 
@@ -14,13 +19,29 @@ export type ApiUser = {
   updated_at?: string;
 };
 
+function normalizeApiUser(raw: Record<string, unknown>): ApiUser {
+  return {
+    id: raw.id as number,
+    shop_id: normalizeSqlNullInt64(raw.shop_id),
+    store_id: normalizeSqlNullInt64(raw.store_id),
+    firebase_uid: normalizeSqlNullString(raw.firebase_uid),
+    email: normalizeSqlNullString(raw.email),
+    display_name: normalizeSqlNullString(raw.display_name),
+    role: normalizeSqlNullString(raw.role),
+    is_active: typeof raw.is_active === "boolean" ? raw.is_active : undefined,
+    created_at: typeof raw.created_at === "string" ? raw.created_at : undefined,
+    updated_at: typeof raw.updated_at === "string" ? raw.updated_at : undefined,
+  };
+}
+
 export async function listUsers(shopId: number): Promise<ApiUser[]> {
   const res = await fetch(
     `${API_BASE}/v1/users?shop_id=${encodeURIComponent(String(shopId))}&limit=200`,
     { credentials: "include", headers: { Accept: "application/json" } },
   );
   if (!res.ok) throw new Error(await res.text());
-  return (await res.json()) as ApiUser[];
+  const arr = (await res.json()) as Record<string, unknown>[];
+  return Array.isArray(arr) ? arr.map((row) => normalizeApiUser(row)) : [];
 }
 
 export type CreateUserBody = {
@@ -45,5 +66,6 @@ export async function createUser(body: CreateUserBody): Promise<ApiUser> {
     }),
   });
   if (!res.ok) throw new Error(await res.text());
-  return (await res.json()) as ApiUser;
+  const raw = (await res.json()) as Record<string, unknown>;
+  return normalizeApiUser(raw);
 }

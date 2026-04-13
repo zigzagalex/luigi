@@ -4,7 +4,7 @@ import { NextIntlClientProvider, hasLocale } from "next-intl";
 import { getMessages, setRequestLocale } from "next-intl/server";
 
 import { AdminAuthProvider } from "./components/auth/AdminAuthContext";
-import { AdminHeader } from "./components/admin/AdminHeader";
+import { AdminLayoutShell } from "./components/admin/AdminLayoutShell";
 
 const locales = ["en", "de", "fr", "it"] as const;
 
@@ -27,8 +27,7 @@ export default async function LocaleLayout({ children, params }: Props) {
   return (
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AdminAuthProvider>
-        <AdminHeader />
-        {children}
+        <AdminLayoutShell>{children}</AdminLayoutShell>
       </AdminAuthProvider>
     </NextIntlClientProvider>
   );

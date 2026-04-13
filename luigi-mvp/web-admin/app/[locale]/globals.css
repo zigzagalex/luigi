@@ -83,6 +83,10 @@
   --pill-selected-border: var(--color-primary);
   --pill-selected-text: var(--color-bg-surface);
   --pill-disabled-opacity: 0.45;
+
+  /* Admin shell */
+  --admin-topbar-height: 56px;
+  --admin-sidebar-width: 240px;
 }
 
 html,

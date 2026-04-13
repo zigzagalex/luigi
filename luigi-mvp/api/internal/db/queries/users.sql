@@ -14,6 +14,11 @@ FROM users
 WHERE (
     sqlc.narg(shop_id)::bigint IS NULL
     OR shop_id = sqlc.narg(shop_id)::bigint
+    OR (
+        sqlc.narg(shop_id)::bigint IS NOT NULL
+        AND shop_id IS NULL
+        AND role IN ('admin', 'staff')
+    )
 )
 ORDER BY id 
 LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);

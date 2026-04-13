@@ -21,7 +21,8 @@ import {
 type Ctx = {
   me: Me | null;
   loading: boolean;
-  refresh: () => Promise<void>;
+  /** Returns the loaded user (or null). Use after login to sync session into React state. */
+  refresh: () => Promise<Me | null>;
   logout: () => Promise<void>;
 };
 
@@ -31,7 +32,7 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
   const [me, setMe] = useState<Me | null>(null);
   const [loading, setLoading] = useState(true);
 
-  const refresh = useCallback(async () => {
+  const refresh = useCallback(async (): Promise<Me | null> => {
     setLoading(true);
     try {
       const data = await fetchMe();
@@ -39,11 +40,13 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
         await logoutSession(SHOP_ID);
         await signOut(auth);
         setMe(null);
-        return;
+        return null;
       }
       setMe(data);
+      return data;
     } catch {
       setMe(null);
+      return null;
     } finally {
       setLoading(false);
     }
