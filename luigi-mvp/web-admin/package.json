@@ -10,10 +10,12 @@
   },
   "dependencies": {
     "firebase": "^11.1.0",
+    "libphonenumber-js": "^1.12.41",
     "next": "16.2.3",
     "next-intl": "^4.8.3",
     "react": "19.2.5",
-    "react-dom": "19.2.5"
+    "react-dom": "19.2.5",
+    "react-phone-number-input": "^3.4.16"
   },
   "devDependencies": {
     "@types/node": "^24.9.2",

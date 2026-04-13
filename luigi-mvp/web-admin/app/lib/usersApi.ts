@@ -54,6 +54,21 @@ export type CreateUserBody = {
   role: "admin" | "staff";
 };
 
+function formatApiErrorBody(text: string): string {
+  try {
+    const j = JSON.parse(text) as {
+      error?: string;
+      details?: unknown;
+    };
+    if (!j.error) return text;
+    if (j.details === undefined || j.details === null) return j.error;
+    if (typeof j.details === "string") return `${j.error}: ${j.details}`;
+    return `${j.error}: ${JSON.stringify(j.details)}`;
+  } catch {
+    return text;
+  }
+}
+
 export async function createUser(body: CreateUserBody): Promise<ApiUser> {
   const res = await fetch(`${API_BASE}/v1/users`, {
     method: "POST",
@@ -62,14 +77,18 @@ export async function createUser(body: CreateUserBody): Promise<ApiUser> {
     body: JSON.stringify({
       shop_id: body.shop_id,
       email: body.email,
-      password: body.password,
+      // Always send the key so the API does not treat the request as "manual" (firebase_uid-only).
+      password: body.password ?? "",
       first_name: body.first_name,
       last_name: body.last_name,
       phone: body.phone,
       role: body.role,
     }),
   });
-  if (!res.ok) throw new Error(await res.text());
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(formatApiErrorBody(text));
+  }
   const raw = (await res.json()) as Record<string, unknown>;
   return normalizeApiUser(raw);
 }
