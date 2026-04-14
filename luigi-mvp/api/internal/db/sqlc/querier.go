@@ -42,7 +42,7 @@ type Querier interface {
 	CreateProductVariantImage(ctx context.Context, arg *CreateProductVariantImageParams) (ProductVariantImage, error)
 	CreateShop(ctx context.Context, arg *CreateShopParams) (Shop, error)
 	CreateStore(ctx context.Context, arg *CreateStoreParams) (Store, error)
-	CreateUser(ctx context.Context, arg *CreateUserParams) (User, error)
+	CreateUser(ctx context.Context, arg *CreateUserParams) (CreateUserRow, error)
 	DeactivateReservationItems(ctx context.Context, reservationID int64) error
 	DeleteCartItem(ctx context.Context, cartItemID int64) error
 	DeleteCustomer(ctx context.Context, id int64) (Customer, error)
@@ -57,7 +57,8 @@ type Querier interface {
 	DeleteProductVariant(ctx context.Context, id int64) (ProductVariant, error)
 	DeleteProductVariantImage(ctx context.Context, id int64) error
 	DeleteStore(ctx context.Context, id int64) (Store, error)
-	DeleteUser(ctx context.Context, id int64) (User, error)
+	DeleteStoreOpeningTimes(ctx context.Context, storeID int64) error
+	DeleteUser(ctx context.Context, id int64) (DeleteUserRow, error)
 	ExpireOpenCarts(ctx context.Context) error
 	GetCartByID(ctx context.Context, cartID int64) (Cart, error)
 	GetCartItemByID(ctx context.Context, cartItemID int64) (CartItem, error)
@@ -108,9 +109,10 @@ type Querier interface {
 	ListProductsWithPrimaryImage(ctx context.Context, arg *ListProductsWithPrimaryImageParams) ([]ListProductsWithPrimaryImageRow, error)
 	ListReservationItemsByReservationIDs(ctx context.Context, reservationIds []int64) ([]ReservationItem, error)
 	ListShops(ctx context.Context, arg *ListShopsParams) ([]Shop, error)
+	ListStoreOpeningTimes(ctx context.Context, storeID int64) ([]StoreOpeningTime, error)
 	ListStores(ctx context.Context, arg *ListStoresParams) ([]Store, error)
-	ListUsers(ctx context.Context, arg *ListUsersParams) ([]User, error)
-	ListUsersStaffAdmin(ctx context.Context, arg *ListUsersStaffAdminParams) ([]User, error)
+	ListUsers(ctx context.Context, arg *ListUsersParams) ([]ListUsersRow, error)
+	ListUsersStaffAdmin(ctx context.Context, arg *ListUsersStaffAdminParams) ([]ListUsersStaffAdminRow, error)
 	RescheduleMyReservation(ctx context.Context, arg *RescheduleMyReservationParams) (Reservation, error)
 	RescheduleMyReservationItems(ctx context.Context, arg *RescheduleMyReservationItemsParams) error
 	// Search available variants across products / stores for a given time range.
@@ -137,9 +139,10 @@ type Querier interface {
 	UpdateProductVariant(ctx context.Context, arg *UpdateProductVariantParams) (ProductVariant, error)
 	UpdateShop(ctx context.Context, arg *UpdateShopParams) (Shop, error)
 	UpdateStore(ctx context.Context, arg *UpdateStoreParams) (Store, error)
-	UpdateUser(ctx context.Context, arg *UpdateUserParams) (User, error)
+	UpdateUser(ctx context.Context, arg *UpdateUserParams) (UpdateUserRow, error)
 	UpsertPricePoint(ctx context.Context, arg *UpsertPricePointParams) (PricePoint, error)
 	UpsertProductTranslation(ctx context.Context, arg *UpsertProductTranslationParams) (ProductTranslation, error)
+	UpsertStoreOpeningTime(ctx context.Context, arg *UpsertStoreOpeningTimeParams) error
 }
 
 var _ Querier = (*Queries)(nil)

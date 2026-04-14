@@ -11,11 +11,11 @@ import (
 )
 
 type userQuerier interface {
-	ListUsers(ctx context.Context, arg *db.ListUsersParams) ([]db.User, error)
-	ListUsersStaffAdmin(ctx context.Context, arg *db.ListUsersStaffAdminParams) ([]db.User, error)
-	CreateUser(ctx context.Context, arg *db.CreateUserParams) (db.User, error)
-	UpdateUser(ctx context.Context, arg *db.UpdateUserParams) (db.User, error)
-	DeleteUser(ctx context.Context, id int64) (db.User, error)
+	ListUsers(ctx context.Context, arg *db.ListUsersParams) ([]db.ListUsersRow, error)
+	ListUsersStaffAdmin(ctx context.Context, arg *db.ListUsersStaffAdminParams) ([]db.ListUsersStaffAdminRow, error)
+	CreateUser(ctx context.Context, arg *db.CreateUserParams) (db.CreateUserRow, error)
+	UpdateUser(ctx context.Context, arg *db.UpdateUserParams) (db.UpdateUserRow, error)
+	DeleteUser(ctx context.Context, id int64) (db.DeleteUserRow, error)
 	GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (db.User, error)
 }
 
@@ -44,11 +44,31 @@ func (s *Service) List(ctx context.Context, in ListInput) ([]db.User, error) {
 	if in.ShopID != nil {
 		shopID = sql.NullInt64{Int64: *in.ShopID, Valid: true}
 	}
-	return s.q.ListUsersStaffAdmin(ctx, &db.ListUsersStaffAdminParams{
+	rows, err := s.q.ListUsersStaffAdmin(ctx, &db.ListUsersStaffAdminParams{
 		ShopID:     shopID,
 		PageLimit:  in.Limit,
 		PageOffset: in.Offset,
 	})
+	if err != nil {
+		return nil, err
+	}
+	out := make([]db.User, 0, len(rows))
+	for _, row := range rows {
+		out = append(out, db.User{
+			ID:          row.ID,
+			ShopID:      row.ShopID,
+			StoreID:     row.StoreID,
+			FirebaseUid: row.FirebaseUid,
+			Email:       row.Email,
+			Phone:       row.Phone,
+			DisplayName: row.DisplayName,
+			Role:        row.Role,
+			IsActive:    row.IsActive,
+			CreatedAt:   row.CreatedAt,
+			UpdatedAt:   row.UpdatedAt,
+		})
+	}
+	return out, nil
 }
 
 type CreateInput struct {
@@ -77,7 +97,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (db.User, error) {
 		role = &v
 	}
 
-	return s.q.CreateUser(ctx, &db.CreateUserParams{
+	row, err := s.q.CreateUser(ctx, &db.CreateUserParams{
 		ShopID:      u.ToNullInt64(in.ShopID),
 		StoreID:     u.ToNullInt64(in.StoreID),
 		FirebaseUid: u.ToNullString(in.FirebaseUID),
@@ -87,6 +107,22 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (db.User, error) {
 		Role:        u.ToNullString(role),
 		IsActive:    u.ToNullBool(isActive),
 	})
+	if err != nil {
+		return db.User{}, err
+	}
+	return db.User{
+		ID:          row.ID,
+		ShopID:      row.ShopID,
+		StoreID:     row.StoreID,
+		FirebaseUid: row.FirebaseUid,
+		Email:       row.Email,
+		Phone:       row.Phone,
+		DisplayName: row.DisplayName,
+		Role:        row.Role,
+		IsActive:    row.IsActive,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}, nil
 }
 
 type UpdateInput struct {
@@ -99,7 +135,7 @@ type UpdateInput struct {
 }
 
 func (s *Service) Update(ctx context.Context, in UpdateInput) (db.User, error) {
-	return s.q.UpdateUser(ctx, &db.UpdateUserParams{
+	row, err := s.q.UpdateUser(ctx, &db.UpdateUserParams{
 		Email:       u.ToNullString(in.Email),
 		Phone:       u.ToNullString(in.Phone),
 		DisplayName: u.ToNullString(in.DisplayName),
@@ -107,10 +143,42 @@ func (s *Service) Update(ctx context.Context, in UpdateInput) (db.User, error) {
 		IsActive:    u.ToNullBool(in.IsActive),
 		ID:          in.ID,
 	})
+	if err != nil {
+		return db.User{}, err
+	}
+	return db.User{
+		ID:          row.ID,
+		ShopID:      row.ShopID,
+		StoreID:     row.StoreID,
+		FirebaseUid: row.FirebaseUid,
+		Email:       row.Email,
+		Phone:       row.Phone,
+		DisplayName: row.DisplayName,
+		Role:        row.Role,
+		IsActive:    row.IsActive,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}, nil
 }
 
 func (s *Service) Delete(ctx context.Context, id int64) (db.User, error) {
-	return s.q.DeleteUser(ctx, id)
+	row, err := s.q.DeleteUser(ctx, id)
+	if err != nil {
+		return db.User{}, err
+	}
+	return db.User{
+		ID:          row.ID,
+		ShopID:      row.ShopID,
+		StoreID:     row.StoreID,
+		FirebaseUid: row.FirebaseUid,
+		Email:       row.Email,
+		Phone:       row.Phone,
+		DisplayName: row.DisplayName,
+		Role:        row.Role,
+		IsActive:    row.IsActive,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}, nil
 }
 
 func (s *Service) GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (db.User, error) {

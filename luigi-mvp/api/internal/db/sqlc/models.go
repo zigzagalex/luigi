@@ -253,16 +253,24 @@ type Store struct {
 	UpdatedAt  time.Time      `json:"updated_at"`
 }
 
+type StoreOpeningTime struct {
+	StoreID   int64        `json:"store_id"`
+	DayOfWeek int16        `json:"day_of_week"`
+	OpensAt   sql.NullTime `json:"opens_at"`
+	ClosesAt  sql.NullTime `json:"closes_at"`
+	IsClosed  bool         `json:"is_closed"`
+}
+
 type User struct {
 	ID          int64          `json:"id"`
 	ShopID      sql.NullInt64  `json:"shop_id"`
 	StoreID     sql.NullInt64  `json:"store_id"`
 	FirebaseUid string         `json:"firebase_uid"`
 	Email       sql.NullString `json:"email"`
-	Phone       sql.NullString `json:"phone"`
 	DisplayName sql.NullString `json:"display_name"`
 	Role        sql.NullString `json:"role"`
 	IsActive    bool           `json:"is_active"`
 	CreatedAt   time.Time      `json:"created_at"`
 	UpdatedAt   time.Time      `json:"updated_at"`
+	Phone       sql.NullString `json:"phone"`
 }

@@ -12,7 +12,9 @@ export function AdminSidebar() {
   const pathname = usePathname();
 
   const usersHref = `/${locale}/users`;
+  const storesHref = `/${locale}/users/stores`;
   const usersActive = pathname === usersHref || pathname.startsWith(`${usersHref}/`);
+  const storesActive = pathname === storesHref;
 
   return (
     <aside className={styles.sidebar} aria-label={t("appTitle")}>
@@ -25,6 +27,14 @@ export function AdminSidebar() {
               href={usersHref}
             >
               {t("navUsers")}
+            </Link>
+          </li>
+          <li>
+            <Link
+              className={storesActive ? styles.navLinkActive : styles.navLink}
+              href={storesHref}
+            >
+              {t("navStores")}
             </Link>
           </li>
         </ul>

@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"time"
 
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	u "github.com/zigzagalex/luigi/api/internal/utils"
@@ -15,6 +16,9 @@ type storeQuerier interface {
 	UpdateStore(ctx context.Context, arg *db.UpdateStoreParams) (db.Store, error)
 	DeleteStore(ctx context.Context, id int64) (db.Store, error)
 	GetStoreById(ctx context.Context, id int64) (db.Store, error)
+	ListStoreOpeningTimes(ctx context.Context, storeID int64) ([]db.StoreOpeningTime, error)
+	DeleteStoreOpeningTimes(ctx context.Context, storeID int64) error
+	UpsertStoreOpeningTime(ctx context.Context, arg *db.UpsertStoreOpeningTimeParams) error
 }
 
 type Service struct {
@@ -123,3 +127,41 @@ func (s *Service) GetStoreById(ctx context.Context, id int64) (db.Store, error) 
 }
 
 var ErrNotFound = sql.ErrNoRows
+
+type OpeningTimeInput struct {
+	DayOfWeek int16
+	OpensAt   *time.Time
+	ClosesAt  *time.Time
+	IsClosed  bool
+}
+
+func (s *Service) ListOpeningTimes(ctx context.Context, storeID int64) ([]db.StoreOpeningTime, error) {
+	return s.q.ListStoreOpeningTimes(ctx, storeID)
+}
+
+func (s *Service) ReplaceOpeningTimes(ctx context.Context, storeID int64, times []OpeningTimeInput) error {
+	if err := s.q.DeleteStoreOpeningTimes(ctx, storeID); err != nil {
+		return err
+	}
+	for _, item := range times {
+		var opensAt sql.NullTime
+		var closesAt sql.NullTime
+		if item.OpensAt != nil {
+			opensAt = sql.NullTime{Time: *item.OpensAt, Valid: true}
+		}
+		if item.ClosesAt != nil {
+			closesAt = sql.NullTime{Time: *item.ClosesAt, Valid: true}
+		}
+
+		if err := s.q.UpsertStoreOpeningTime(ctx, &db.UpsertStoreOpeningTimeParams{
+			StoreID:   storeID,
+			DayOfWeek: item.DayOfWeek,
+			OpensAt:   opensAt,
+			ClosesAt:  closesAt,
+			IsClosed:  sql.NullBool{Bool: item.IsClosed, Valid: true},
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
