@@ -96,10 +96,35 @@
   padding: 4px 6px;
 }
 
+.table input[type="date"],
+.table input[type="text"],
+.table input:not([type]) {
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--control-radius-md);
+  padding: 4px 6px;
+  width: 100%;
+}
+
 .actions {
   margin-top: var(--space-4);
   display: flex;
   gap: var(--space-2);
+}
+
+.holidaysWrap {
+  margin-top: var(--space-4);
+}
+
+.holidaysHead {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-2);
+}
+
+.holidaysHead h3 {
+  margin: 0;
+  font-size: 0.95rem;
 }
 
 .error {

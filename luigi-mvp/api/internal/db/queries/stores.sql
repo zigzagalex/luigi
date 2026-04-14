@@ -93,8 +93,8 @@ WHERE id = sqlc.arg(store_id)::bigint;
 SELECT
   store_id,
   day_of_week,
-  opens_at,
-  closes_at,
+  opens_at::text AS opens_at,
+  closes_at::text AS closes_at,
   is_closed
 FROM store_opening_times
 WHERE store_id = sqlc.arg(store_id)::bigint
@@ -123,3 +123,32 @@ DO UPDATE SET
   opens_at = EXCLUDED.opens_at,
   closes_at = EXCLUDED.closes_at,
   is_closed = EXCLUDED.is_closed;
+
+-- name: ListStoreHolidays :many
+SELECT
+  store_id,
+  start_date,
+  end_date,
+  note,
+  created_at,
+  updated_at
+FROM store_holidays
+WHERE store_id = sqlc.arg(store_id)::bigint
+ORDER BY start_date, end_date;
+
+-- name: DeleteStoreHolidays :exec
+DELETE FROM store_holidays
+WHERE store_id = sqlc.arg(store_id)::bigint;
+
+-- name: CreateStoreHoliday :exec
+INSERT INTO store_holidays (
+  store_id,
+  start_date,
+  end_date,
+  note
+) VALUES (
+  sqlc.arg(store_id),
+  sqlc.arg(start_date),
+  sqlc.arg(end_date),
+  sqlc.narg(note)::text
+);

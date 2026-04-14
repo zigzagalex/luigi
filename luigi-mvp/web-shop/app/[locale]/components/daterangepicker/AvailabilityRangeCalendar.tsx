@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { DayPicker, type DateRange, type OnSelectHandler } from "react-day-picker";
 import "react-day-picker/dist/style.css";
 import {
@@ -23,6 +23,7 @@ type Props = {
   variantId: number;
   storeId: number;
   quantity: number;
+  holidays: Array<{ start_date: string; end_date: string; note?: string | null }>;
   value: RangeValue;
   onChange: (value: RangeValue) => void;
   className?: string;
@@ -39,6 +40,7 @@ export function AvailabilityRangeCalendar({
   variantId,
   storeId,
   quantity,
+  holidays,
   value,
   onChange,
   className,
@@ -97,6 +99,24 @@ export function AvailabilityRangeCalendar({
     () => days.filter((d) => d.available_quantity > 0).map((d) => parseISO(d.date)),
     [days]
   );
+  const holidayDates = useMemo(() => {
+    const out: Date[] = [];
+    for (const holiday of holidays) {
+      const start = parseISO(holiday.start_date);
+      const end = parseISO(holiday.end_date);
+      if (Number.isNaN(start.getTime()) || Number.isNaN(end.getTime())) continue;
+      let cursor = start;
+      while (cursor.getTime() <= end.getTime()) {
+        out.push(cursor);
+        cursor = addDays(cursor, 1);
+      }
+    }
+    return out;
+  }, [holidays]);
+  const isHolidayDate = useCallback(
+    (d: Date) => holidayDates.some((holidayDate) => isSameDay(holidayDate, d)),
+    [holidayDates],
+  );
 
   const disabled = useMemo(
     () => [{ before: today }, ...unavailableDates],
@@ -116,11 +136,18 @@ export function AvailabilityRangeCalendar({
         return;
       }
     }
+    if (triggerDate && isHolidayDate(triggerDate)) {
+      if (!value.from || value.to) return;
+      if (value.from && !value.to) {
+        onChange({ from: value.from, to: undefined });
+        return;
+      }
+    }
 
     // "same day twice" workaround — but don't allow Sunday same-day rentals
     if (!next) {
       if (value.from && !value.to && triggerDate && isSameDay(value.from, triggerDate)) {
-        if (isSunday(triggerDate)) return;
+        if (isSunday(triggerDate) || isHolidayDate(triggerDate)) return;
         onChange({ from: triggerDate, to: triggerDate });
         return;
       }
@@ -133,9 +160,14 @@ export function AvailabilityRangeCalendar({
 
     // Block Sunday start
     if (from && isSunday(from)) return;
+    if (from && isHolidayDate(from)) return;
 
     // Block Sunday end (keep the start and keep range open)
     if (to && isSunday(to)) {
+      onChange({ from, to: undefined });
+      return;
+    }
+    if (to && isHolidayDate(to)) {
       onChange({ from, to: undefined });
       return;
     }
@@ -161,6 +193,13 @@ export function AvailabilityRangeCalendar({
           ·
         </span>
         <span className={styles.legendItem} role="listitem">
+          <span className={`${styles.legendSwatch} ${styles.legendSwatchHoliday}`} aria-hidden />
+          <span>{t("calendarLegendHoliday")}</span>
+        </span>
+        <span className={styles.legendSep} aria-hidden>
+          ·
+        </span>
+        <span className={styles.legendItem} role="listitem">
           <span className={`${styles.legendSwatch} ${styles.legendSwatchToday}`} aria-hidden />
           <span>{t("calendarLegendToday")}</span>
         </span>
@@ -179,8 +218,8 @@ export function AvailabilityRangeCalendar({
         showOutsideDays
         disabled={disabled}
         excludeDisabled
-        modifiers={{ available: availableDates, unavailable: unavailableDates }}
-        modifiersClassNames={{ available: styles.availableDay, unavailable: styles.unavailableDay }}
+        modifiers={{ available: availableDates, unavailable: unavailableDates, holiday: holidayDates }}
+        modifiersClassNames={{ available: styles.availableDay, unavailable: styles.unavailableDay, holiday: styles.holidayDay }}
         max={MAX_DAYS} /* max dates in range in range mode */
       />
     </div>

@@ -256,9 +256,18 @@ type Store struct {
 type StoreOpeningTime struct {
 	StoreID   int64        `json:"store_id"`
 	DayOfWeek int16        `json:"day_of_week"`
-	OpensAt   sql.NullTime `json:"opens_at"`
-	ClosesAt  sql.NullTime `json:"closes_at"`
+	OpensAt   sql.NullString `json:"opens_at"`
+	ClosesAt  sql.NullString `json:"closes_at"`
 	IsClosed  bool         `json:"is_closed"`
+}
+
+type StoreHoliday struct {
+	StoreID   int64          `json:"store_id"`
+	StartDate time.Time      `json:"start_date"`
+	EndDate   time.Time      `json:"end_date"`
+	Note      sql.NullString `json:"note"`
+	CreatedAt time.Time      `json:"created_at"`
+	UpdatedAt time.Time      `json:"updated_at"`
 }
 
 type User struct {

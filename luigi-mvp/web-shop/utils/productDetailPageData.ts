@@ -28,6 +28,11 @@ export type ProductDetailStore = {
   country: string | null;
   timezone: string | null;
   is_active: boolean | null;
+  holidays?: Array<{
+    start_date: string;
+    end_date: string;
+    note?: string | null;
+  }>;
 };
 
 export type ProductDetailInventoryItem = {
