@@ -8,6 +8,12 @@ import { useAdminAuth } from "@/[locale]/components/auth/AdminAuthContext";
 import { useAdminStore } from "@/[locale]/components/admin/AdminStoreContext";
 import { SHOP_ID } from "@/lib/AuthSession";
 import {
+  formatDisplayDateIso,
+  formatIsoAsLocalDateString,
+  formatLocalDateString,
+  addLocalDaysToIsoDate,
+} from "@/lib/adminReservationDates";
+import {
   listAdminReservations,
   updateAdminReservationStatus,
   type ApiAdminReservation,
@@ -377,42 +383,6 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
       </div>
     );
   }
-}
-
-function formatLocalDateString(d: Date): string {
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, "0");
-  const day = String(d.getDate()).padStart(2, "0");
-  return `${y}-${m}-${day}`;
-}
-
-function addLocalDaysToIsoDate(yyyyMmDd: string, days: number): string {
-  const parts = yyyyMmDd.split("-").map(Number);
-  const y = parts[0];
-  const m = parts[1];
-  const d = parts[2];
-  if (y === undefined || m === undefined || d === undefined) return yyyyMmDd;
-  const date = new Date(y, m - 1, d);
-  date.setDate(date.getDate() + days);
-  return formatLocalDateString(date);
-}
-
-function formatDisplayDateIso(yyyyMmDd: string, locale: string): string {
-  const parts = yyyyMmDd.split("-").map(Number);
-  const y = parts[0];
-  const m = parts[1];
-  const d = parts[2];
-  if (y === undefined || m === undefined || d === undefined) return yyyyMmDd;
-  const date = new Date(y, m - 1, d);
-  return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(date);
-}
-
-function formatIsoAsLocalDateString(isoDateTime: string): string {
-  const parsed = new Date(isoDateTime);
-  if (Number.isNaN(parsed.getTime())) {
-    return isoDateTime.slice(0, 10);
-  }
-  return formatLocalDateString(parsed);
 }
 
 function mapApiToRow(row: ApiAdminReservation): ReservationTableRow {

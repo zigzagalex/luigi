@@ -1,0 +1,214 @@
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+.head {
+  margin-bottom: var(--space-6);
+}
+
+.h1 {
+  font-size: var(--text-h1-size);
+  line-height: var(--text-h1-line);
+  font-weight: var(--text-h1-weight);
+  color: var(--color-text-strong);
+  margin: 0 0 var(--space-2);
+}
+
+.sub {
+  margin: 0;
+  color: var(--color-text-meta);
+  font-size: var(--text-meta-size);
+}
+
+.storeHint {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
+}
+
+.storeHint strong {
+  color: var(--color-text-strong);
+  font-weight: 650;
+}
+
+.section {
+  margin-bottom: var(--space-8);
+}
+
+.sectionTitle {
+  margin: 0 0 var(--space-3);
+  color: var(--color-text-strong);
+  font-size: 1.05rem;
+}
+
+.sectionLead {
+  margin: 0 0 var(--space-4);
+  color: var(--color-text-meta);
+  font-size: var(--text-meta-size);
+}
+
+.muted {
+  color: var(--color-text-meta);
+}
+
+.error {
+  color: var(--color-accent-danger);
+  margin-bottom: var(--space-4);
+}
+
+.limitNote {
+  margin: var(--space-3) 0 0;
+  font-size: 0.78rem;
+  color: var(--color-text-meta);
+}
+
+.todayGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: var(--space-3);
+}
+
+.statCard {
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+  padding: var(--space-4);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  min-height: 108px;
+}
+
+.statCardAlert {
+  border-color: color-mix(in srgb, var(--color-accent-danger) 35%, var(--color-border-soft));
+  background: color-mix(in srgb, var(--color-accent-danger) 6%, var(--color-bg-surface));
+}
+
+.statLabel {
+  font-size: 0.78rem;
+  font-weight: 650;
+  color: var(--color-text-meta);
+  line-height: 1.25;
+}
+
+.statValue {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+  line-height: 1.1;
+}
+
+.statLink {
+  margin-top: auto;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--color-text-meta);
+  text-decoration: none;
+  align-self: flex-start;
+}
+
+.statLink:hover {
+  color: var(--color-text-strong);
+  text-decoration: underline;
+}
+
+.weekToolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-3);
+  margin-bottom: var(--space-4);
+}
+
+.weekRange {
+  font-size: var(--text-meta-size);
+  color: var(--color-text-strong);
+  font-weight: 650;
+}
+
+.weekBtn {
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-body);
+  border-radius: var(--control-radius-md);
+  padding: 6px 12px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.weekBtn:hover {
+  background: var(--color-bg-hover-soft);
+}
+
+.weekTableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+}
+
+.weekTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.78rem;
+  min-width: 720px;
+}
+
+.weekTable th,
+.weekTable td {
+  padding: var(--space-2) var(--space-2);
+  border-bottom: 1px solid var(--color-border-soft);
+  text-align: center;
+  vertical-align: bottom;
+}
+
+.weekTable th:first-child,
+.weekTable td:first-child {
+  text-align: left;
+  font-weight: 650;
+  color: var(--color-text-meta);
+  white-space: nowrap;
+  padding-left: var(--space-4);
+}
+
+.weekTable thead th {
+  background: var(--color-bg-subtle);
+  color: var(--color-text-meta);
+  font-weight: 650;
+}
+
+.weekTable tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.barCell {
+  position: relative;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 4px 2px 6px;
+}
+
+.barFill {
+  width: 70%;
+  max-width: 36px;
+  min-height: 4px;
+  border-radius: 4px 4px 2px 2px;
+  background: color-mix(in srgb, var(--color-text-strong) 22%, var(--color-bg-subtle));
+  margin-bottom: 4px;
+}
+
+.barValue {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: var(--color-text-strong);
+}
+
+.todayCol {
+  background: color-mix(in srgb, var(--color-text-strong) 4%, transparent);
+}
