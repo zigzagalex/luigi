@@ -75,7 +75,9 @@
     "pickupToPrepareTitle": "Reservationen zur Abholvorbereitung",
     "pickupReadyTitle": "Reservationen bereit zur Abholung",
     "pickupOpenFlow": "Ablauf öffnen",
-    "pickupTableEmpty": "Keine Reservationen in dieser Liste."
+    "pickupTableEmpty": "Keine Reservationen in dieser Liste.",
+    "storeCityFilterLabel": "Filialort",
+    "storeCityFilterAll": "Alle Orte"
   },
   "auth": {
     "loginSignup": "Anmelden / Registrieren",

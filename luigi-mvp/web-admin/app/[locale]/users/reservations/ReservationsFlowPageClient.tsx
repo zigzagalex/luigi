@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useLocale } from "@/../i18n/useLocale";
 import { useAdminAuth } from "@/[locale]/components/auth/AdminAuthContext";
+import { useAdminStore } from "@/[locale]/components/admin/AdminStoreContext";
 import { SHOP_ID } from "@/lib/AuthSession";
 import {
   listAdminReservations,
@@ -39,17 +40,28 @@ export function ReservationsFlowPageClient() {
   const locale = useLocale();
   const router = useRouter();
   const { me, loading } = useAdminAuth();
+  const { selectedStoreId } = useAdminStore();
   const [rows, setRows] = useState<ReservationTableRow[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<ReservationTableRow | null>(null);
   const reservationsToPrepare = useMemo(
-    () => rows.filter((row) => row.reservation.status === "confirmed"),
-    [rows],
+    () =>
+      rows.filter(
+        (row) =>
+          row.reservation.status === "confirmed" &&
+          (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
+      ),
+    [rows, selectedStoreId],
   );
   const reservationsReadyForPickup = useMemo(
-    () => rows.filter((row) => row.reservation.status === "out_for_pickup"),
-    [rows],
+    () =>
+      rows.filter(
+        (row) =>
+          row.reservation.status === "out_for_pickup" &&
+          (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
+      ),
+    [rows, selectedStoreId],
   );
 
   useEffect(() => {
@@ -81,6 +93,13 @@ export function ReservationsFlowPageClient() {
       cancelled = true;
     };
   }, [me]);
+
+  useEffect(() => {
+    if (!selectedReservation) return;
+    if (selectedStoreId === null) return;
+    if (selectedReservation.reservation.storeId === selectedStoreId) return;
+    setSelectedReservation(null);
+  }, [selectedReservation, selectedStoreId]);
 
   if (loading || !me) {
     return (
@@ -229,6 +248,7 @@ function mapApiToRow(row: ApiAdminReservation): ReservationTableRow {
   return {
     reservation: {
       id: row.reservation_id,
+      storeId: row.store_id,
       customerName: [customerFirst, customerLast].filter(Boolean).join(" ").trim() || "—",
       pickupDate: row.start_at.slice(0, 10),
       returnDate: row.end_at.slice(0, 10),
