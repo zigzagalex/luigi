@@ -1,0 +1,106 @@
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+.head {
+  margin-bottom: var(--space-8);
+}
+
+.h1 {
+  font-size: var(--text-h1-size);
+  line-height: var(--text-h1-line);
+  font-weight: var(--text-h1-weight);
+  color: var(--color-text-strong);
+  margin: 0 0 var(--space-2);
+}
+
+.sub {
+  margin: 0;
+  color: var(--color-text-meta);
+  font-size: var(--text-meta-size);
+}
+
+.muted {
+  color: var(--color-text-meta);
+}
+
+.error {
+  color: var(--color-accent-danger);
+  margin-bottom: var(--space-4);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-meta-size);
+  min-width: 1200px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-soft);
+  white-space: nowrap;
+}
+
+.table th {
+  background: var(--color-bg-subtle);
+  font-weight: 650;
+  color: var(--color-text-meta);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.actionBtn {
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-body);
+  border-radius: var(--control-radius-md);
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.flowOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 35%);
+  z-index: 1000;
+  padding: 24px;
+}
+
+.flowPanel {
+  width: min(1200px, 100%);
+  max-height: calc(100vh - 48px);
+  margin: 0 auto;
+  overflow: auto;
+  background: var(--color-bg-page);
+  border-radius: 12px;
+  border: 1px solid var(--color-border-soft);
+  padding: var(--space-5);
+}
+
+.flowHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.flowTitle {
+  margin: 0;
+  color: var(--color-text-strong);
+}

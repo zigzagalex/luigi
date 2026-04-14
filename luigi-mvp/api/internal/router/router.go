@@ -28,6 +28,7 @@ import (
 	v1productvariantimages "github.com/zigzagalex/luigi/api/internal/v1/product_variant_images"
 	v1product_variants "github.com/zigzagalex/luigi/api/internal/v1/product_variants"
 	v1products "github.com/zigzagalex/luigi/api/internal/v1/products"
+	v1adminreservations "github.com/zigzagalex/luigi/api/internal/v1/admin_reservations"
 	v1reservations "github.com/zigzagalex/luigi/api/internal/v1/reservation"
 	v1shops "github.com/zigzagalex/luigi/api/internal/v1/shops"
 	v1stores "github.com/zigzagalex/luigi/api/internal/v1/stores"
@@ -102,6 +103,7 @@ func New(d Deps) http.Handler {
 
 			v1users.RegisterRoutes(r, d.Q, d.FirebaseAuth)
 			v1customers.RegisterRoutes(r, d.Q)
+			v1adminreservations.RegisterRoutes(r, d.SQLDB)
 		})
 
 		r.NotFound(func(w http.ResponseWriter, r *http.Request) {

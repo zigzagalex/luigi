@@ -1,0 +1,222 @@
+.card {
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+  padding: var(--space-6);
+  display: grid;
+  gap: var(--space-5);
+}
+
+.header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.title {
+  margin: 0;
+  font-size: 1.2rem;
+  color: var(--color-text-strong);
+}
+
+.sub {
+  margin: var(--space-1) 0 0;
+  color: var(--color-text-meta);
+}
+
+.statusPill {
+  margin: 0;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  background: var(--color-bg-subtle);
+}
+
+.progressWrap {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.progressList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: var(--space-2);
+}
+
+.progressStep {
+  min-width: 0;
+}
+
+.stepPending,
+.stepDone,
+.stepCurrent {
+  display: block;
+  border-radius: var(--control-radius-md);
+  padding: 8px 10px;
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid var(--color-border-soft);
+}
+
+.stepPending {
+  color: var(--color-text-meta);
+  background: var(--color-bg-subtle);
+}
+
+.stepDone {
+  color: var(--color-primary);
+  background: color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.stepCurrent {
+  color: #fff;
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+.finalStates {
+  margin: 0;
+  font-size: 0.8rem;
+  color: var(--color-text-meta);
+}
+
+.itemsWrap {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.itemsTitle {
+  margin: 0;
+}
+
+.itemsList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--control-radius-md);
+}
+
+.itemRow {
+  padding: 10px var(--space-4);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.itemRow:last-child {
+  border-bottom: none;
+}
+
+.itemName {
+  margin: 0;
+  font-weight: 600;
+}
+
+.itemDetails {
+  margin: 2px 0 0;
+  color: var(--color-text-meta);
+  font-size: 0.85rem;
+}
+
+.checklistWrap {
+  border: 1px dashed var(--color-border-soft);
+  border-radius: var(--control-radius-md);
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-2);
+}
+
+.checklistTitle {
+  margin: 0;
+  font-weight: 700;
+}
+
+.checklistList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 8px;
+}
+
+.checkboxRow {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.checklistMeta {
+  margin: 0;
+  color: var(--color-text-meta);
+}
+
+.actions {
+  display: flex;
+  gap: var(--space-2);
+  flex-wrap: wrap;
+}
+
+.actionBtn,
+.cancelBtn {
+  border: 1px solid var(--color-border-soft);
+  border-radius: var(--control-radius-md);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-body);
+  padding: 8px 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.actionBtn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.cancelBtn {
+  border-color: var(--color-accent-danger);
+  color: var(--color-accent-danger);
+}
+
+.readonly {
+  margin: 0;
+  color: var(--color-text-meta);
+}
+
+.modalBackdrop {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 30%);
+  display: grid;
+  place-items: center;
+  z-index: 999;
+}
+
+.modal {
+  width: min(420px, calc(100vw - 32px));
+  border-radius: 12px;
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg-surface);
+  padding: var(--space-5);
+  display: grid;
+  gap: var(--space-3);
+}
+
+.modalTitle {
+  margin: 0;
+}
+
+.modalSub {
+  margin: 0;
+  color: var(--color-text-meta);
+}
+
+.modalActions {
+  display: flex;
+  gap: var(--space-2);
+}
