@@ -127,6 +127,16 @@ func (q *Queries) DeleteStore(ctx context.Context, id int64) (Store, error) {
 	return i, err
 }
 
+const deleteStoreOpeningTimes = `-- name: DeleteStoreOpeningTimes :exec
+DELETE FROM store_opening_times
+WHERE store_id = $1::bigint
+`
+
+func (q *Queries) DeleteStoreOpeningTimes(ctx context.Context, storeID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteStoreOpeningTimes, storeID)
+	return err
+}
+
 const getStoreById = `-- name: GetStoreById :one
 SELECT 
   id, shop_id, name, address1, address2, postal_code, city, country, timezone, is_active, created_at, updated_at
@@ -152,6 +162,47 @@ func (q *Queries) GetStoreById(ctx context.Context, storeID int64) (Store, error
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const listStoreOpeningTimes = `-- name: ListStoreOpeningTimes :many
+SELECT
+  store_id,
+  day_of_week,
+  opens_at,
+  closes_at,
+  is_closed
+FROM store_opening_times
+WHERE store_id = $1::bigint
+ORDER BY day_of_week
+`
+
+func (q *Queries) ListStoreOpeningTimes(ctx context.Context, storeID int64) ([]StoreOpeningTime, error) {
+	rows, err := q.db.QueryContext(ctx, listStoreOpeningTimes, storeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []StoreOpeningTime
+	for rows.Next() {
+		var i StoreOpeningTime
+		if err := rows.Scan(
+			&i.StoreID,
+			&i.DayOfWeek,
+			&i.OpensAt,
+			&i.ClosesAt,
+			&i.IsClosed,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
 }
 
 const listStores = `-- name: ListStores :many
@@ -267,4 +318,44 @@ func (q *Queries) UpdateStore(ctx context.Context, arg *UpdateStoreParams) (Stor
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const upsertStoreOpeningTime = `-- name: UpsertStoreOpeningTime :exec
+INSERT INTO store_opening_times (
+  store_id,
+  day_of_week,
+  opens_at,
+  closes_at,
+  is_closed
+) VALUES (
+  $1,
+  $2,
+  $3::time,
+  $4::time,
+  COALESCE($5::bool, FALSE)
+)
+ON CONFLICT (store_id, day_of_week)
+DO UPDATE SET
+  opens_at = EXCLUDED.opens_at,
+  closes_at = EXCLUDED.closes_at,
+  is_closed = EXCLUDED.is_closed
+`
+
+type UpsertStoreOpeningTimeParams struct {
+	StoreID   int64        `json:"store_id"`
+	DayOfWeek int16        `json:"day_of_week"`
+	OpensAt   sql.NullTime `json:"opens_at"`
+	ClosesAt  sql.NullTime `json:"closes_at"`
+	IsClosed  sql.NullBool `json:"is_closed"`
+}
+
+func (q *Queries) UpsertStoreOpeningTime(ctx context.Context, arg *UpsertStoreOpeningTimeParams) error {
+	_, err := q.db.ExecContext(ctx, upsertStoreOpeningTime,
+		arg.StoreID,
+		arg.DayOfWeek,
+		arg.OpensAt,
+		arg.ClosesAt,
+		arg.IsClosed,
+	)
+	return err
 }

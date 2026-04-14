@@ -8,6 +8,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"time"
 )
 
 const createUser = `-- name: CreateUser :one
@@ -55,7 +56,21 @@ type CreateUserParams struct {
 	IsActive    sql.NullBool   `json:"is_active"`
 }
 
-func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (User, error) {
+type CreateUserRow struct {
+	ID          int64          `json:"id"`
+	ShopID      sql.NullInt64  `json:"shop_id"`
+	StoreID     sql.NullInt64  `json:"store_id"`
+	FirebaseUid string         `json:"firebase_uid"`
+	Email       sql.NullString `json:"email"`
+	Phone       sql.NullString `json:"phone"`
+	DisplayName sql.NullString `json:"display_name"`
+	Role        sql.NullString `json:"role"`
+	IsActive    bool           `json:"is_active"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+}
+
+func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (CreateUserRow, error) {
 	row := q.db.QueryRowContext(ctx, createUser,
 		arg.ShopID,
 		arg.StoreID,
@@ -66,7 +81,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (User, 
 		arg.Role,
 		arg.IsActive,
 	)
-	var i User
+	var i CreateUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.ShopID,
@@ -99,9 +114,23 @@ RETURNING
   created_at, updated_at
 `
 
-func (q *Queries) DeleteUser(ctx context.Context, id int64) (User, error) {
+type DeleteUserRow struct {
+	ID          int64          `json:"id"`
+	ShopID      sql.NullInt64  `json:"shop_id"`
+	StoreID     sql.NullInt64  `json:"store_id"`
+	FirebaseUid string         `json:"firebase_uid"`
+	Email       sql.NullString `json:"email"`
+	Phone       sql.NullString `json:"phone"`
+	DisplayName sql.NullString `json:"display_name"`
+	Role        sql.NullString `json:"role"`
+	IsActive    bool           `json:"is_active"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+}
+
+func (q *Queries) DeleteUser(ctx context.Context, id int64) (DeleteUserRow, error) {
 	row := q.db.QueryRowContext(ctx, deleteUser, id)
-	var i User
+	var i DeleteUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.ShopID,
@@ -120,7 +149,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) (User, error) {
 
 const getUserByFirebaseUID = `-- name: GetUserByFirebaseUID :one
 SELECT
-    id, shop_id, store_id, firebase_uid, email, phone, display_name, role, is_active, created_at, updated_at
+    id, shop_id, store_id, firebase_uid, email, display_name, role, is_active, created_at, updated_at, phone
 FROM users
 WHERE firebase_uid = $1
 `
@@ -134,12 +163,12 @@ func (q *Queries) GetUserByFirebaseUID(ctx context.Context, firebaseUid string) 
 		&i.StoreID,
 		&i.FirebaseUid,
 		&i.Email,
-		&i.Phone,
 		&i.DisplayName,
 		&i.Role,
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
+		&i.Phone,
 	)
 	return i, err
 }
@@ -177,15 +206,29 @@ type ListUsersParams struct {
 	PageLimit  int32         `json:"page_limit"`
 }
 
-func (q *Queries) ListUsers(ctx context.Context, arg *ListUsersParams) ([]User, error) {
+type ListUsersRow struct {
+	ID          int64          `json:"id"`
+	ShopID      sql.NullInt64  `json:"shop_id"`
+	StoreID     sql.NullInt64  `json:"store_id"`
+	FirebaseUid string         `json:"firebase_uid"`
+	Email       sql.NullString `json:"email"`
+	Phone       sql.NullString `json:"phone"`
+	DisplayName sql.NullString `json:"display_name"`
+	Role        sql.NullString `json:"role"`
+	IsActive    bool           `json:"is_active"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+}
+
+func (q *Queries) ListUsers(ctx context.Context, arg *ListUsersParams) ([]ListUsersRow, error) {
 	rows, err := q.db.QueryContext(ctx, listUsers, arg.ShopID, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []ListUsersRow
 	for rows.Next() {
-		var i User
+		var i ListUsersRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.ShopID,
@@ -246,15 +289,29 @@ type ListUsersStaffAdminParams struct {
 	PageLimit  int32         `json:"page_limit"`
 }
 
-func (q *Queries) ListUsersStaffAdmin(ctx context.Context, arg *ListUsersStaffAdminParams) ([]User, error) {
+type ListUsersStaffAdminRow struct {
+	ID          int64          `json:"id"`
+	ShopID      sql.NullInt64  `json:"shop_id"`
+	StoreID     sql.NullInt64  `json:"store_id"`
+	FirebaseUid string         `json:"firebase_uid"`
+	Email       sql.NullString `json:"email"`
+	Phone       sql.NullString `json:"phone"`
+	DisplayName sql.NullString `json:"display_name"`
+	Role        sql.NullString `json:"role"`
+	IsActive    bool           `json:"is_active"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+}
+
+func (q *Queries) ListUsersStaffAdmin(ctx context.Context, arg *ListUsersStaffAdminParams) ([]ListUsersStaffAdminRow, error) {
 	rows, err := q.db.QueryContext(ctx, listUsersStaffAdmin, arg.ShopID, arg.PageOffset, arg.PageLimit)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []User
+	var items []ListUsersStaffAdminRow
 	for rows.Next() {
-		var i User
+		var i ListUsersStaffAdminRow
 		if err := rows.Scan(
 			&i.ID,
 			&i.ShopID,
@@ -314,7 +371,21 @@ type UpdateUserParams struct {
 	ID          int64          `json:"id"`
 }
 
-func (q *Queries) UpdateUser(ctx context.Context, arg *UpdateUserParams) (User, error) {
+type UpdateUserRow struct {
+	ID          int64          `json:"id"`
+	ShopID      sql.NullInt64  `json:"shop_id"`
+	StoreID     sql.NullInt64  `json:"store_id"`
+	FirebaseUid string         `json:"firebase_uid"`
+	Email       sql.NullString `json:"email"`
+	Phone       sql.NullString `json:"phone"`
+	DisplayName sql.NullString `json:"display_name"`
+	Role        sql.NullString `json:"role"`
+	IsActive    bool           `json:"is_active"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+}
+
+func (q *Queries) UpdateUser(ctx context.Context, arg *UpdateUserParams) (UpdateUserRow, error) {
 	row := q.db.QueryRowContext(ctx, updateUser,
 		arg.Email,
 		arg.Phone,
@@ -323,7 +394,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg *UpdateUserParams) (User, 
 		arg.IsActive,
 		arg.ID,
 	)
-	var i User
+	var i UpdateUserRow
 	err := row.Scan(
 		&i.ID,
 		&i.ShopID,

@@ -88,3 +88,38 @@ SELECT
   *
 FROM stores
 WHERE id = sqlc.arg(store_id)::bigint;
+
+-- name: ListStoreOpeningTimes :many
+SELECT
+  store_id,
+  day_of_week,
+  opens_at,
+  closes_at,
+  is_closed
+FROM store_opening_times
+WHERE store_id = sqlc.arg(store_id)::bigint
+ORDER BY day_of_week;
+
+-- name: DeleteStoreOpeningTimes :exec
+DELETE FROM store_opening_times
+WHERE store_id = sqlc.arg(store_id)::bigint;
+
+-- name: UpsertStoreOpeningTime :exec
+INSERT INTO store_opening_times (
+  store_id,
+  day_of_week,
+  opens_at,
+  closes_at,
+  is_closed
+) VALUES (
+  sqlc.arg(store_id),
+  sqlc.arg(day_of_week),
+  sqlc.narg(opens_at)::time,
+  sqlc.narg(closes_at)::time,
+  COALESCE(sqlc.narg(is_closed)::bool, FALSE)
+)
+ON CONFLICT (store_id, day_of_week)
+DO UPDATE SET
+  opens_at = EXCLUDED.opens_at,
+  closes_at = EXCLUDED.closes_at,
+  is_closed = EXCLUDED.is_closed;
