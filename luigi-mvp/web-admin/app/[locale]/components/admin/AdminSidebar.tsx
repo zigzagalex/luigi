@@ -15,10 +15,14 @@ export function AdminSidebar() {
   const storesHref = `/${locale}/users/stores`;
   const reservationsPrepareHref = `/${locale}/users/reservations/prepare`;
   const reservationsReadyHref = `/${locale}/users/reservations/ready`;
+  const reservationsDropoffHref = `/${locale}/users/reservations/dropoff`;
+  const reservationsMaintenanceHref = `/${locale}/users/reservations/maintenance`;
   const usersActive = pathname === usersHref;
   const storesActive = pathname === storesHref;
   const reservationsPrepareActive = pathname === reservationsPrepareHref;
   const reservationsReadyActive = pathname === reservationsReadyHref;
+  const reservationsDropoffActive = pathname === reservationsDropoffHref;
+  const reservationsMaintenanceActive = pathname === reservationsMaintenanceHref;
 
   return (
     <aside className={styles.sidebar} aria-label={t("appTitle")}>
@@ -55,6 +59,22 @@ export function AdminSidebar() {
               href={reservationsReadyHref}
             >
               {t("navReservationsReady")}
+            </Link>
+          </li>
+          <li>
+            <Link
+              className={reservationsDropoffActive ? styles.navLinkActive : styles.navLink}
+              href={reservationsDropoffHref}
+            >
+              {t("navReservationsDropoff")}
+            </Link>
+          </li>
+          <li>
+            <Link
+              className={reservationsMaintenanceActive ? styles.navLinkActive : styles.navLink}
+              href={reservationsMaintenanceHref}
+            >
+              {t("navReservationsMaintenance")}
             </Link>
           </li>
         </ul>

@@ -35,7 +35,7 @@ type ReservationTableRow = {
   };
 };
 
-type ReservationsFlowView = "prepare" | "ready" | "both";
+type ReservationsFlowView = "prepare" | "ready" | "dropoff" | "maintenance" | "both";
 
 export function ReservationsFlowPageClient({ view = "both" }: { view?: ReservationsFlowView }) {
   const t = useTranslations("admin");
@@ -49,6 +49,24 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
   const [selectedReservation, setSelectedReservation] = useState<ReservationTableRow | null>(null);
   const [pickupDateFilter, setPickupDateFilter] = useState(() => formatLocalDateString(new Date()));
   const pickupDateNext = useMemo(() => addLocalDaysToIsoDate(pickupDateFilter, 1), [pickupDateFilter]);
+  const pageTitleKey =
+    view === "dropoff"
+      ? "dropoffFlowTitle"
+      : view === "maintenance"
+        ? "maintenanceFlowTitle"
+        : "reservationsFlowTitle";
+  const pageSubtitleKey =
+    view === "dropoff"
+      ? "dropoffFlowSubtitle"
+      : view === "maintenance"
+        ? "maintenanceFlowSubtitle"
+        : "reservationsFlowSubtitle";
+  const dateFilterLabelKey =
+    view === "dropoff"
+      ? "dropoffDateFilterLabel"
+      : view === "maintenance"
+        ? "maintenanceDateFilterLabel"
+        : "pickupDateFilterLabel";
 
   const reservationsToPrepare = useMemo(
     () =>
@@ -80,6 +98,46 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
       ),
     [rows, selectedStoreId, pickupDateFilter],
   );
+  const reservationsMissedPickup = useMemo(
+    () =>
+      rows.filter(
+        (row) =>
+          row.reservation.status === "out_for_pickup" &&
+          row.reservation.pickupDate < pickupDateFilter &&
+          (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
+      ),
+    [rows, selectedStoreId, pickupDateFilter],
+  );
+  const reservationsDueForDropoff = useMemo(
+    () =>
+      rows.filter(
+        (row) =>
+          row.reservation.status === "in_use" &&
+          row.reservation.returnDate === pickupDateFilter &&
+          (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
+      ),
+    [rows, selectedStoreId, pickupDateFilter],
+  );
+  const reservationsOverdueDropoff = useMemo(
+    () =>
+      rows.filter(
+        (row) =>
+          row.reservation.status === "in_use" &&
+          row.reservation.returnDate < pickupDateFilter &&
+          (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
+      ),
+    [rows, selectedStoreId, pickupDateFilter],
+  );
+  const reservationsMaintenanceDue = useMemo(
+    () =>
+      rows.filter(
+        (row) =>
+          row.reservation.status === "returned" &&
+          row.reservation.returnDate === pickupDateFilter &&
+          (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
+      ),
+    [rows, selectedStoreId, pickupDateFilter],
+  );
 
   useEffect(() => {
     if (loading) return;
@@ -93,12 +151,14 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
     let cancelled = false;
     (async () => {
       try {
-        const [confirmedRows, readyRows] = await Promise.all([
+        const [confirmedRows, readyRows, inUseRows, returnedRows] = await Promise.all([
           listAdminReservations(SHOP_ID, "confirmed"),
           listAdminReservations(SHOP_ID, "out_for_pickup"),
+          listAdminReservations(SHOP_ID, "in_use"),
+          listAdminReservations(SHOP_ID, "returned"),
         ]);
         if (cancelled) return;
-        const mapped = [...confirmedRows, ...readyRows].map(mapApiToRow);
+        const mapped = [...confirmedRows, ...readyRows, ...inUseRows, ...returnedRows].map(mapApiToRow);
         setRows(mapped);
         setLoadError(null);
       } catch (err) {
@@ -129,11 +189,11 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
   return (
     <main className={styles.main}>
       <div className={styles.head}>
-        <h1 className={styles.h1}>{t("reservationsFlowTitle")}</h1>
-        <p className={styles.sub}>{t("reservationsFlowSubtitle")}</p>
+        <h1 className={styles.h1}>{t(pageTitleKey)}</h1>
+        <p className={styles.sub}>{t(pageSubtitleKey)}</p>
         <div className={styles.dateFilter}>
           <label className={styles.dateFilterLabel}>
-            <span className={styles.dateFilterText}>{t("pickupDateFilterLabel")}</span>
+            <span className={styles.dateFilterText}>{t(dateFilterLabelKey)}</span>
             <input
               type="date"
               className={styles.dateInput}
@@ -141,7 +201,7 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
               onChange={(e) =>
                 setPickupDateFilter(e.target.value ? e.target.value : formatLocalDateString(new Date()))
               }
-              aria-label={t("pickupDateFilterLabel")}
+              aria-label={t(dateFilterLabelKey)}
             />
           </label>
         </div>
@@ -179,9 +239,33 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
         </section>
       ) : null}
       {view === "both" || view === "ready" ? (
+        <>
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>{t("pickupReadyTitle")}</h2>
+            {renderTable(reservationsReadyForPickup)}
+          </section>
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>{t("pickupMissedTitle")}</h2>
+            {renderTable(reservationsMissedPickup)}
+          </section>
+        </>
+      ) : null}
+      {view === "dropoff" ? (
+        <>
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>{t("dropoffDueTitle")}</h2>
+            {renderTable(reservationsDueForDropoff)}
+          </section>
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>{t("dropoffOverdueTitle")}</h2>
+            {renderTable(reservationsOverdueDropoff)}
+          </section>
+        </>
+      ) : null}
+      {view === "maintenance" ? (
         <section className={styles.section}>
-          <h2 className={styles.sectionTitle}>{t("pickupReadyTitle")}</h2>
-          {renderTable(reservationsReadyForPickup)}
+          <h2 className={styles.sectionTitle}>{t("maintenanceDueTitle")}</h2>
+          {renderTable(reservationsMaintenanceDue)}
         </section>
       ) : null}
 
