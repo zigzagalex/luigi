@@ -17,6 +17,9 @@ type storeQuerier interface {
 	DeleteStore(ctx context.Context, id int64) (db.Store, error)
 	GetStoreById(ctx context.Context, id int64) (db.Store, error)
 	ListStoreOpeningTimes(ctx context.Context, storeID int64) ([]db.StoreOpeningTime, error)
+	ListStoreHolidays(ctx context.Context, storeID int64) ([]db.StoreHoliday, error)
+	DeleteStoreHolidays(ctx context.Context, storeID int64) error
+	CreateStoreHoliday(ctx context.Context, arg *db.CreateStoreHolidayParams) error
 	DeleteStoreOpeningTimes(ctx context.Context, storeID int64) error
 	UpsertStoreOpeningTime(ctx context.Context, arg *db.UpsertStoreOpeningTimeParams) error
 }
@@ -135,8 +138,18 @@ type OpeningTimeInput struct {
 	IsClosed  bool
 }
 
+type HolidayInput struct {
+	StartDate time.Time
+	EndDate   time.Time
+	Note      *string
+}
+
 func (s *Service) ListOpeningTimes(ctx context.Context, storeID int64) ([]db.StoreOpeningTime, error) {
 	return s.q.ListStoreOpeningTimes(ctx, storeID)
+}
+
+func (s *Service) ListHolidays(ctx context.Context, storeID int64) ([]db.StoreHoliday, error) {
+	return s.q.ListStoreHolidays(ctx, storeID)
 }
 
 func (s *Service) ReplaceOpeningTimes(ctx context.Context, storeID int64, times []OpeningTimeInput) error {
@@ -159,6 +172,23 @@ func (s *Service) ReplaceOpeningTimes(ctx context.Context, storeID int64, times 
 			OpensAt:   opensAt,
 			ClosesAt:  closesAt,
 			IsClosed:  sql.NullBool{Bool: item.IsClosed, Valid: true},
+		}); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func (s *Service) ReplaceHolidays(ctx context.Context, storeID int64, holidays []HolidayInput) error {
+	if err := s.q.DeleteStoreHolidays(ctx, storeID); err != nil {
+		return err
+	}
+	for _, item := range holidays {
+		if err := s.q.CreateStoreHoliday(ctx, &db.CreateStoreHolidayParams{
+			StoreID:   storeID,
+			StartDate: item.StartDate,
+			EndDate:   item.EndDate,
+			Note:      u.ToNullString(item.Note),
 		}); err != nil {
 			return err
 		}

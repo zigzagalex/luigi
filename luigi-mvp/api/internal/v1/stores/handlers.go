@@ -37,9 +37,22 @@ type openingTimeResponse struct {
 	IsClosed  bool    `json:"is_closed"`
 }
 
+type holidayInput struct {
+	StartDate string  `json:"start_date"`
+	EndDate   string  `json:"end_date"`
+	Note      *string `json:"note"`
+}
+
+type holidayResponse struct {
+	StartDate string  `json:"start_date"`
+	EndDate   string  `json:"end_date"`
+	Note      *string `json:"note"`
+}
+
 type storeResponse struct {
 	db.Store
 	OpeningTimes []openingTimeResponse `json:"opening_times"`
+	Holidays     []holidayResponse     `json:"holidays"`
 }
 
 func listHandler(svc *storesvc.Service) http.HandlerFunc {
@@ -71,9 +84,15 @@ func listHandler(svc *storesvc.Service) http.HandlerFunc {
 				httpx.Fail(w, http.StatusInternalServerError, "list_store_opening_times_failed", err.Error())
 				return
 			}
+			holidays, err := svc.ListHolidays(r.Context(), item.ID)
+			if err != nil {
+				httpx.Fail(w, http.StatusInternalServerError, "list_store_holidays_failed", err.Error())
+				return
+			}
 			out = append(out, storeResponse{
 				Store:        item,
 				OpeningTimes: toOpeningTimeResponses(openingTimes),
+				Holidays:     toHolidayResponses(holidays),
 			})
 		}
 		httpx.JSON(w, http.StatusOK, out)
@@ -91,6 +110,7 @@ type createReq struct {
 	Timezone     *string            `json:"timezone"`
 	IsActive     *bool              `json:"is_active"`
 	OpeningTimes []openingTimeInput `json:"opening_times"`
+	Holidays     []holidayInput     `json:"holidays"`
 }
 
 func createHandler(svc *storesvc.Service) http.HandlerFunc {
@@ -132,16 +152,33 @@ func createHandler(svc *storesvc.Service) http.HandlerFunc {
 				return
 			}
 		}
+		parsedHolidays, err := parseHolidays(req.Holidays)
+		if err != nil {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_holidays", nil)
+			return
+		}
+		if len(parsedHolidays) > 0 {
+			if err := svc.ReplaceHolidays(r.Context(), item.ID, parsedHolidays); err != nil {
+				httpx.Fail(w, http.StatusInternalServerError, "save_holidays_failed", err.Error())
+				return
+			}
+		}
 
 		openingTimes, err := svc.ListOpeningTimes(r.Context(), item.ID)
 		if err != nil {
 			httpx.Fail(w, http.StatusInternalServerError, "list_store_opening_times_failed", err.Error())
 			return
 		}
+		holidays, err := svc.ListHolidays(r.Context(), item.ID)
+		if err != nil {
+			httpx.Fail(w, http.StatusInternalServerError, "list_store_holidays_failed", err.Error())
+			return
+		}
 
 		httpx.JSON(w, http.StatusCreated, storeResponse{
 			Store:        item,
 			OpeningTimes: toOpeningTimeResponses(openingTimes),
+			Holidays:     toHolidayResponses(holidays),
 		})
 	}
 }
@@ -156,6 +193,7 @@ type updateReq struct {
 	Timezone     *string            `json:"timezone"`
 	IsActive     *bool              `json:"is_active"`
 	OpeningTimes []openingTimeInput `json:"opening_times"`
+	Holidays     []holidayInput     `json:"holidays"`
 }
 
 func updateHandler(svc *storesvc.Service) http.HandlerFunc {
@@ -202,16 +240,33 @@ func updateHandler(svc *storesvc.Service) http.HandlerFunc {
 				return
 			}
 		}
+		parsedHolidays, err := parseHolidays(req.Holidays)
+		if err != nil {
+			httpx.Fail(w, http.StatusBadRequest, "invalid_holidays", nil)
+			return
+		}
+		if req.Holidays != nil {
+			if err := svc.ReplaceHolidays(r.Context(), item.ID, parsedHolidays); err != nil {
+				httpx.Fail(w, http.StatusInternalServerError, "save_holidays_failed", err.Error())
+				return
+			}
+		}
 
 		openingTimes, err := svc.ListOpeningTimes(r.Context(), item.ID)
 		if err != nil {
 			httpx.Fail(w, http.StatusInternalServerError, "list_store_opening_times_failed", err.Error())
 			return
 		}
+		holidays, err := svc.ListHolidays(r.Context(), item.ID)
+		if err != nil {
+			httpx.Fail(w, http.StatusInternalServerError, "list_store_holidays_failed", err.Error())
+			return
+		}
 
 		httpx.JSON(w, http.StatusOK, storeResponse{
 			Store:        item,
 			OpeningTimes: toOpeningTimeResponses(openingTimes),
+			Holidays:     toHolidayResponses(holidays),
 		})
 	}
 }
@@ -284,11 +339,11 @@ func toOpeningTimeResponses(items []db.StoreOpeningTime) []openingTimeResponse {
 		var opensAt *string
 		var closesAt *string
 		if item.OpensAt.Valid {
-			v := item.OpensAt.Time.Format("15:04")
+			v := item.OpensAt.String
 			opensAt = &v
 		}
 		if item.ClosesAt.Valid {
-			v := item.ClosesAt.Time.Format("15:04")
+			v := item.ClosesAt.String
 			closesAt = &v
 		}
 		out = append(out, openingTimeResponse{
@@ -296,6 +351,49 @@ func toOpeningTimeResponses(items []db.StoreOpeningTime) []openingTimeResponse {
 			OpensAt:   opensAt,
 			ClosesAt:  closesAt,
 			IsClosed:  item.IsClosed,
+		})
+	}
+	return out
+}
+
+func parseHolidays(items []holidayInput) ([]storesvc.HolidayInput, error) {
+	if items == nil {
+		return nil, nil
+	}
+	out := make([]storesvc.HolidayInput, 0, len(items))
+	for _, item := range items {
+		startDate, err := time.Parse("2006-01-02", item.StartDate)
+		if err != nil {
+			return nil, err
+		}
+		endDate, err := time.Parse("2006-01-02", item.EndDate)
+		if err != nil {
+			return nil, err
+		}
+		if endDate.Before(startDate) {
+			return nil, strconv.ErrSyntax
+		}
+		out = append(out, storesvc.HolidayInput{
+			StartDate: startDate,
+			EndDate:   endDate,
+			Note:      item.Note,
+		})
+	}
+	return out, nil
+}
+
+func toHolidayResponses(items []db.StoreHoliday) []holidayResponse {
+	out := make([]holidayResponse, 0, len(items))
+	for _, item := range items {
+		var note *string
+		if item.Note.Valid {
+			v := item.Note.String
+			note = &v
+		}
+		out = append(out, holidayResponse{
+			StartDate: item.StartDate.Format("2006-01-02"),
+			EndDate:   item.EndDate.Format("2006-01-02"),
+			Note:      note,
 		})
 	}
 	return out

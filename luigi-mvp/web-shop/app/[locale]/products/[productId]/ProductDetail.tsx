@@ -41,6 +41,7 @@ type Store = {
   name: string;
   city?: string | null | { String: string; Valid: boolean };
   is_active: boolean | null;
+  holidays?: Array<{ start_date: string; end_date: string; note?: string | null }>;
 };
 
 type InventoryItem = {
@@ -588,6 +589,10 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
 
   // We only want to let users pick dates if store + variant are selected
   const canPickDates = selectedVariant?.id != null && selectedStoreId != null;
+  const selectedStore = useMemo(
+    () => stores.find((store) => store.id === selectedStoreId) ?? null,
+    [stores, selectedStoreId],
+  );
 
   useEffect(() => {
     if (!canPickDates) setDatesExpanded(false);
@@ -1139,6 +1144,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
                   variantId={selectedVariant?.id ?? 0}
                   storeId={selectedStoreId ?? 0}
                   quantity={quantity}
+                  holidays={selectedStore?.holidays ?? []}
                   value={range}
                   onChange={setRange}
                 />

@@ -69,7 +69,16 @@
     "daySun": "Sun",
     "storeValidationNameRequired": "Store name is required.",
     "storeValidationHoursRequired": "Open and close times are required for open days.",
-    "storeValidationHoursOrder": "Open time must be before close time."
+    "storeValidationHoursOrder": "Open time must be before close time.",
+    "holidaysTitle": "Holidays",
+    "addHoliday": "Add holiday",
+    "noHolidays": "No holidays configured.",
+    "holidayStartDate": "Start date",
+    "holidayEndDate": "End date",
+    "holidayNote": "Note",
+    "remove": "Remove",
+    "storeValidationHolidayDatesRequired": "Holiday start and end dates are required.",
+    "storeValidationHolidayOrder": "Holiday end date must be on or after start date."
   },
   "auth": {
     "loginSignup": "Log in / Sign up",

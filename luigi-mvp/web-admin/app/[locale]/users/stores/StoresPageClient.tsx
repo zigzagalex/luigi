@@ -5,7 +5,14 @@ import { useRouter } from "next/navigation";
 import { useTranslations } from "next-intl";
 import { useAdminAuth } from "@/[locale]/components/auth/AdminAuthContext";
 import { SHOP_ID } from "@/lib/AuthSession";
-import { createStore, listStores, updateStore, type ApiOpeningTime, type ApiStore } from "@/lib/storesApi";
+import {
+  createStore,
+  listStores,
+  updateStore,
+  type ApiHoliday,
+  type ApiOpeningTime,
+  type ApiStore,
+} from "@/lib/storesApi";
 import { useLocale } from "@/../i18n/useLocale";
 import styles from "./stores.module.css";
 
@@ -19,6 +26,7 @@ type DraftStore = {
   timezone: string;
   is_active: boolean;
   opening_times: ApiOpeningTime[];
+  holidays: ApiHoliday[];
 };
 
 function emptyOpeningTimes(): ApiOpeningTime[] {
@@ -42,6 +50,7 @@ function toDraft(store?: ApiStore): DraftStore {
       timezone: "",
       is_active: true,
       opening_times: emptyOpeningTimes(),
+      holidays: [],
     };
   }
 
@@ -64,6 +73,11 @@ function toDraft(store?: ApiStore): DraftStore {
         is_closed: row?.is_closed ?? false,
       };
     }),
+    holidays: store.holidays.map((item) => ({
+      start_date: item.start_date,
+      end_date: item.end_date,
+      note: item.note ?? "",
+    })),
   };
 }
 
@@ -126,6 +140,28 @@ export function StoresPageClient() {
     setDraft((prev) => ({
       ...prev,
       opening_times: prev.opening_times.map((row) => (row.day_of_week === day ? { ...row, is_closed: isClosed } : row)),
+    }));
+  }
+
+  function addHoliday() {
+    const today = new Date().toISOString().slice(0, 10);
+    setDraft((prev) => ({
+      ...prev,
+      holidays: [...prev.holidays, { start_date: today, end_date: today, note: "" }],
+    }));
+  }
+
+  function updateHoliday(index: number, field: keyof ApiHoliday, value: string) {
+    setDraft((prev) => ({
+      ...prev,
+      holidays: prev.holidays.map((item, idx) => (idx === index ? { ...item, [field]: value } : item)),
+    }));
+  }
+
+  function removeHoliday(index: number) {
+    setDraft((prev) => ({
+      ...prev,
+      holidays: prev.holidays.filter((_, idx) => idx !== index),
     }));
   }
 
@@ -197,6 +233,7 @@ export function StoresPageClient() {
             </div>
             <StoreFields t={t} data={draft} editable onChange={setDraft} />
             <OpeningTimesTable t={t} data={draft} editable onSetTime={setOpenTime} onSetClosed={setClosed} />
+            <HolidaysTable t={t} data={draft} editable onAddHoliday={addHoliday} onUpdateHoliday={updateHoliday} onRemoveHoliday={removeHoliday} />
             <div className={styles.actions}>
               <button type="button" className={styles.actionBtn} disabled={savingId === "new"} onClick={() => void saveCurrent()}>
                 {savingId === "new" ? t("saving") : t("create")}
@@ -223,6 +260,7 @@ export function StoresPageClient() {
               </div>
               <StoreFields t={t} data={data} editable={isEditing} onChange={setDraft} />
               <OpeningTimesTable t={t} data={data} editable={isEditing} onSetTime={setOpenTime} onSetClosed={setClosed} />
+              <HolidaysTable t={t} data={data} editable={isEditing} onAddHoliday={addHoliday} onUpdateHoliday={updateHoliday} onRemoveHoliday={removeHoliday} />
               {isEditing ? (
                 <div className={styles.actions}>
                   <button type="button" className={styles.actionBtn} disabled={savingId === store.id} onClick={() => void saveCurrent()}>
@@ -371,6 +409,82 @@ function OpeningTimesTable({
   );
 }
 
+function HolidaysTable({
+  t,
+  data,
+  editable,
+  onAddHoliday,
+  onUpdateHoliday,
+  onRemoveHoliday,
+}: {
+  t: ReturnType<typeof useTranslations<"admin">>;
+  data: DraftStore;
+  editable: boolean;
+  onAddHoliday: () => void;
+  onUpdateHoliday: (index: number, field: keyof ApiHoliday, value: string) => void;
+  onRemoveHoliday: (index: number) => void;
+}) {
+  return (
+    <div className={styles.holidaysWrap}>
+      <div className={styles.holidaysHead}>
+        <h3>{t("holidaysTitle")}</h3>
+        {editable ? (
+          <button type="button" className={styles.actionBtn} onClick={onAddHoliday}>
+            {t("addHoliday")}
+          </button>
+        ) : null}
+      </div>
+      {data.holidays.length === 0 ? <p className={styles.muted}>{t("noHolidays")}</p> : null}
+      {data.holidays.length > 0 ? (
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>{t("holidayStartDate")}</th>
+              <th>{t("holidayEndDate")}</th>
+              <th>{t("holidayNote")}</th>
+              {editable ? <th>{t("colActions")}</th> : null}
+            </tr>
+          </thead>
+          <tbody>
+            {data.holidays.map((row, idx) => (
+              <tr key={`${row.start_date}-${row.end_date}-${idx}`}>
+                <td>
+                  {editable ? (
+                    <input type="date" value={row.start_date} onChange={(e) => onUpdateHoliday(idx, "start_date", e.target.value)} />
+                  ) : (
+                    row.start_date
+                  )}
+                </td>
+                <td>
+                  {editable ? (
+                    <input type="date" value={row.end_date} onChange={(e) => onUpdateHoliday(idx, "end_date", e.target.value)} />
+                  ) : (
+                    row.end_date
+                  )}
+                </td>
+                <td>
+                  {editable ? (
+                    <input value={row.note ?? ""} onChange={(e) => onUpdateHoliday(idx, "note", e.target.value)} />
+                  ) : (
+                    row.note || "—"
+                  )}
+                </td>
+                {editable ? (
+                  <td>
+                    <button type="button" className={styles.actionBtn} onClick={() => onRemoveHoliday(idx)}>
+                      {t("remove")}
+                    </button>
+                  </td>
+                ) : null}
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      ) : null}
+    </div>
+  );
+}
+
 function validateDraft(
   draft: DraftStore,
   t: ReturnType<typeof useTranslations<"admin">>,
@@ -386,6 +500,15 @@ function validateDraft(
     }
     if (row.opens_at >= row.closes_at) {
       return t("storeValidationHoursOrder");
+    }
+  }
+
+  for (const row of draft.holidays) {
+    if (!row.start_date || !row.end_date) {
+      return t("storeValidationHolidayDatesRequired");
+    }
+    if (row.start_date > row.end_date) {
+      return t("storeValidationHolidayOrder");
     }
   }
 

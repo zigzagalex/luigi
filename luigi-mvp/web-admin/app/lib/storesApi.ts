@@ -10,6 +10,12 @@ export type ApiOpeningTime = {
   is_closed: boolean;
 };
 
+export type ApiHoliday = {
+  start_date: string;
+  end_date: string;
+  note: string | null;
+};
+
 export type ApiStore = {
   id: number;
   shop_id: number;
@@ -22,6 +28,7 @@ export type ApiStore = {
   timezone: string | null;
   is_active: boolean;
   opening_times: ApiOpeningTime[];
+  holidays: ApiHoliday[];
 };
 
 function normalizeOpeningTime(raw: Record<string, unknown>): ApiOpeningTime {
@@ -48,6 +55,16 @@ function normalizeStore(raw: Record<string, unknown>): ApiStore {
     opening_times: Array.isArray(raw.opening_times)
       ? raw.opening_times.map((it) => normalizeOpeningTime(it as Record<string, unknown>))
       : [],
+    holidays: Array.isArray(raw.holidays)
+      ? raw.holidays.map((it) => {
+          const row = it as Record<string, unknown>;
+          return {
+            start_date: String(row.start_date ?? ""),
+            end_date: String(row.end_date ?? ""),
+            note: normalizeSqlNullString(row.note),
+          };
+        })
+      : [],
   };
 }
 
@@ -72,6 +89,7 @@ export type UpsertStoreBody = {
   timezone: string;
   is_active: boolean;
   opening_times: ApiOpeningTime[];
+  holidays: ApiHoliday[];
 };
 
 function sanitizeOpeningTimes(items: ApiOpeningTime[]): ApiOpeningTime[] {
@@ -80,6 +98,14 @@ function sanitizeOpeningTimes(items: ApiOpeningTime[]): ApiOpeningTime[] {
     opens_at: item.is_closed ? null : item.opens_at,
     closes_at: item.is_closed ? null : item.closes_at,
     is_closed: item.is_closed,
+  }));
+}
+
+function sanitizeHolidays(items: ApiHoliday[]): ApiHoliday[] {
+  return items.map((item) => ({
+    start_date: item.start_date,
+    end_date: item.end_date,
+    note: item.note?.trim() ? item.note.trim() : null,
   }));
 }
 
@@ -99,6 +125,7 @@ export async function createStore(body: UpsertStoreBody): Promise<ApiStore> {
       timezone: body.timezone,
       is_active: body.is_active,
       opening_times: sanitizeOpeningTimes(body.opening_times),
+      holidays: sanitizeHolidays(body.holidays),
     }),
   });
   if (!res.ok) throw new Error(await res.text());
@@ -121,6 +148,7 @@ export async function updateStore(storeId: number, body: UpsertStoreBody): Promi
       timezone: body.timezone,
       is_active: body.is_active,
       opening_times: sanitizeOpeningTimes(body.opening_times),
+      holidays: sanitizeHolidays(body.holidays),
     }),
   });
   if (!res.ok) throw new Error(await res.text());
