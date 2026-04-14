@@ -37,6 +37,26 @@
   gap: var(--space-3);
 }
 
+.storePickerLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.storePickerText {
+  font-size: 0.78rem;
+  color: var(--color-text-meta);
+}
+
+.storePickerSelect {
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg-page);
+  color: var(--color-text-body);
+  border-radius: var(--control-radius-md);
+  padding: 6px 8px;
+  min-width: 140px;
+}
+
 .logoutBtn {
   font-size: var(--text-meta-size);
   font-weight: 600;

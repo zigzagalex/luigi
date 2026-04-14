@@ -21,6 +21,7 @@ export type ReservationFlowItem = {
 
 export type ReservationFlowReservation = {
   id: number | string;
+  storeId?: number;
   customerName: string;
   pickupDate: string;
   returnDate: string;

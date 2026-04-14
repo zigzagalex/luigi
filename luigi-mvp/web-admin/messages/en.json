@@ -85,7 +85,9 @@
     "pickupToPrepareTitle": "Reservations to prepare for pickup",
     "pickupReadyTitle": "Reservations ready for pickup",
     "pickupOpenFlow": "Open flow",
-    "pickupTableEmpty": "No reservations in this list."
+    "pickupTableEmpty": "No reservations in this list.",
+    "storeCityFilterLabel": "Store city",
+    "storeCityFilterAll": "All cities"
   },
   "auth": {
     "loginSignup": "Log in / Sign up",
