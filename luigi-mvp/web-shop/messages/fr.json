@@ -193,7 +193,15 @@
     "totalLabel": "Total"
   },
   "reservationStatus": {
+    "draft": "Brouillon",
+    "held": "En attente de confirmation",
     "confirmed": "Confirmée",
+    "out_for_pickup": "Prête pour le retrait",
+    "in_use": "Location en cours",
+    "returned": "Retournée",
+    "serviced": "En entretien",
+    "closed": "Terminée",
+    "expired": "Expirée",
     "cancelled": "Annulée",
     "pending": "Paiement en attente"
   },

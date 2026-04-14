@@ -43,7 +43,14 @@ export function ReservationsFlowPageClient() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<ReservationTableRow | null>(null);
-  const confirmedReservations = useMemo(() => rows.filter((row) => row.reservation.status === "confirmed"), [rows]);
+  const reservationsToPrepare = useMemo(
+    () => rows.filter((row) => row.reservation.status === "confirmed"),
+    [rows],
+  );
+  const reservationsReadyForPickup = useMemo(
+    () => rows.filter((row) => row.reservation.status === "out_for_pickup"),
+    [rows],
+  );
 
   useEffect(() => {
     if (loading) return;
@@ -57,9 +64,12 @@ export function ReservationsFlowPageClient() {
     let cancelled = false;
     (async () => {
       try {
-        const apiRows = await listAdminReservations(SHOP_ID, "confirmed");
+        const [confirmedRows, readyRows] = await Promise.all([
+          listAdminReservations(SHOP_ID, "confirmed"),
+          listAdminReservations(SHOP_ID, "out_for_pickup"),
+        ]);
         if (cancelled) return;
-        const mapped = apiRows.map(mapApiToRow);
+        const mapped = [...confirmedRows, ...readyRows].map(mapApiToRow);
         setRows(mapped);
         setLoadError(null);
       } catch (err) {
@@ -92,46 +102,14 @@ export function ReservationsFlowPageClient() {
         </p>
       ) : null}
 
-      <div className={styles.tableWrap}>
-        <table className={styles.table}>
-          <thead>
-            <tr>
-              <th>Reservation</th>
-              <th>Status</th>
-              <th>Pickup</th>
-              <th>Return</th>
-              <th>Customer first name</th>
-              <th>Customer last name</th>
-              <th>Pickup first name</th>
-              <th>Pickup last name</th>
-              <th>Pickup phone</th>
-              <th>Pickup email</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {confirmedReservations.map((row) => (
-              <tr key={row.reservation.id}>
-                <td>{row.reservation.id}</td>
-                <td>{row.reservation.status}</td>
-                <td>{row.reservation.pickupDate}</td>
-                <td>{row.reservation.returnDate}</td>
-                <td>{row.customer.firstName}</td>
-                <td>{row.customer.lastName}</td>
-                <td>{row.pickupPerson.firstName}</td>
-                <td>{row.pickupPerson.lastName}</td>
-                <td>{row.pickupPerson.phone}</td>
-                <td>{row.pickupPerson.email}</td>
-                <td>
-                  <button type="button" className={styles.actionBtn} onClick={() => setSelectedReservation(row)} disabled={saving}>
-                    Open flow
-                  </button>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>{t("pickupToPrepareTitle")}</h2>
+        {renderTable(reservationsToPrepare)}
+      </section>
+      <section className={styles.section}>
+        <h2 className={styles.sectionTitle}>{t("pickupReadyTitle")}</h2>
+        {renderTable(reservationsReadyForPickup)}
+      </section>
 
       {selectedReservation ? (
         <div className={styles.flowOverlay} role="presentation">
@@ -139,7 +117,7 @@ export function ReservationsFlowPageClient() {
             <div className={styles.flowHead}>
               <h2 className={styles.flowTitle}>Reservation {selectedReservation.reservation.id} flow</h2>
               <button type="button" className={styles.actionBtn} onClick={() => setSelectedReservation(null)}>
-                Close
+                {t("close")}
               </button>
             </div>
             <ReservationFlow
@@ -182,6 +160,64 @@ export function ReservationsFlowPageClient() {
     } finally {
       setSaving(false);
     }
+  }
+
+  function renderTable(tableRows: ReservationTableRow[]) {
+    return (
+      <div className={styles.tableWrap}>
+        <table className={styles.table}>
+          <thead>
+            <tr>
+              <th>Reservation</th>
+              <th>Status</th>
+              <th>Pickup</th>
+              <th>Return</th>
+              <th>Customer first name</th>
+              <th>Customer last name</th>
+              <th>Pickup first name</th>
+              <th>Pickup last name</th>
+              <th>Pickup phone</th>
+              <th>Pickup email</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {tableRows.length === 0 ? (
+              <tr>
+                <td colSpan={11} className={styles.emptyCell}>
+                  {t("pickupTableEmpty")}
+                </td>
+              </tr>
+            ) : (
+              tableRows.map((row) => (
+                <tr key={row.reservation.id}>
+                  <td>{row.reservation.id}</td>
+                  <td>{row.reservation.status}</td>
+                  <td>{row.reservation.pickupDate}</td>
+                  <td>{row.reservation.returnDate}</td>
+                  <td>{row.customer.firstName}</td>
+                  <td>{row.customer.lastName}</td>
+                  <td>{row.pickupPerson.firstName}</td>
+                  <td>{row.pickupPerson.lastName}</td>
+                  <td>{row.pickupPerson.phone}</td>
+                  <td>{row.pickupPerson.email}</td>
+                  <td>
+                    <button
+                      type="button"
+                      className={styles.actionBtn}
+                      onClick={() => setSelectedReservation(row)}
+                      disabled={saving}
+                    >
+                      {t("pickupOpenFlow")}
+                    </button>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+      </div>
+    );
   }
 }
 

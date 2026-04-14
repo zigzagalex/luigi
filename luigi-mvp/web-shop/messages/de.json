@@ -193,7 +193,15 @@
     "totalLabel": "Total"
   },
   "reservationStatus": {
+    "draft": "Entwurf",
+    "held": "Ausstehende Bestätigung",
     "confirmed": "Bestätigt",
+    "out_for_pickup": "Bereit zur Abholung",
+    "in_use": "Miete läuft",
+    "returned": "Zurückgegeben",
+    "serviced": "In Wartung",
+    "closed": "Abgeschlossen",
+    "expired": "Abgelaufen",
     "cancelled": "Storniert",
     "pending": "Zahlung ausstehend"
   },
