@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-export default async function HomePage({
+export default async function Page({
   params,
 }: {
   params: Promise<{ locale: string }> | { locale: string };
