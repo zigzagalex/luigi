@@ -12,6 +12,7 @@ export type ApiUser = {
   store_id?: number | null;
   firebase_uid?: string | null;
   email?: string | null;
+  phone?: string | null;
   display_name?: string | null;
   role?: string | null;
   is_active?: boolean;
@@ -26,6 +27,7 @@ function normalizeApiUser(raw: Record<string, unknown>): ApiUser {
     store_id: normalizeSqlNullInt64(raw.store_id),
     firebase_uid: normalizeSqlNullString(raw.firebase_uid),
     email: normalizeSqlNullString(raw.email),
+    phone: normalizeSqlNullString(raw.phone),
     display_name: normalizeSqlNullString(raw.display_name),
     role: normalizeSqlNullString(raw.role),
     is_active: typeof raw.is_active === "boolean" ? raw.is_active : undefined,
@@ -47,10 +49,10 @@ export async function listUsers(shopId: number): Promise<ApiUser[]> {
 export type CreateUserBody = {
   shop_id: number;
   email: string;
+  phone: string;
   password: string;
   first_name: string;
   last_name: string;
-  phone: string;
   role: "admin" | "staff";
 };
 
@@ -77,13 +79,36 @@ export async function createUser(body: CreateUserBody): Promise<ApiUser> {
     body: JSON.stringify({
       shop_id: body.shop_id,
       email: body.email,
+      phone: body.phone,
       // Always send the key so the API does not treat the request as "manual" (firebase_uid-only).
       password: body.password ?? "",
       first_name: body.first_name,
       last_name: body.last_name,
-      phone: body.phone,
       role: body.role,
     }),
+  });
+  if (!res.ok) {
+    const text = await res.text();
+    throw new Error(formatApiErrorBody(text));
+  }
+  const raw = (await res.json()) as Record<string, unknown>;
+  return normalizeApiUser(raw);
+}
+
+export type UpdateUserBody = {
+  email?: string;
+  phone?: string;
+  display_name?: string;
+  role?: "admin" | "staff";
+  is_active?: boolean;
+};
+
+export async function updateUser(userId: number, body: UpdateUserBody): Promise<ApiUser> {
+  const res = await fetch(`${API_BASE}/v1/users/${encodeURIComponent(String(userId))}`, {
+    method: "PUT",
+    credentials: "include",
+    headers: { "Content-Type": "application/json", Accept: "application/json" },
+    body: JSON.stringify(body),
   });
   if (!res.ok) {
     const text = await res.text();

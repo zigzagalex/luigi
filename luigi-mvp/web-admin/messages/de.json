@@ -17,8 +17,10 @@
     "usersSubtitle": "Personal und Administrator:innen des Shops",
     "colEmail": "E-Mail",
     "colName": "Name",
+    "colPhone": "Telefon",
     "colRole": "Rolle",
     "colActive": "Aktiv",
+    "colActions": "Aktionen",
     "loadError": "Benutzer konnten nicht geladen werden.",
     "showCreateUserForm": "Neuen Benutzer anlegen",
     "cancelCreateUser": "Abbrechen",
@@ -29,9 +31,14 @@
     "creating": "Wird angelegt…",
     "createError": "Benutzer konnte nicht angelegt werden.",
     "createSuccess": "Benutzer angelegt.",
+    "updateError": "Benutzer konnte nicht aktualisiert werden.",
     "readOnly": "Sie sehen nur die Liste. Nur Admins können Benutzer anlegen oder ändern.",
     "yes": "Ja",
-    "no": "Nein"
+    "no": "Nein",
+    "edit": "Bearbeiten",
+    "save": "Speichern",
+    "saving": "Wird gespeichert…",
+    "cancel": "Abbrechen"
   },
   "auth": {
     "loginSignup": "Anmelden / Registrieren",

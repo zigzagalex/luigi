@@ -259,6 +259,7 @@ type User struct {
 	StoreID     sql.NullInt64  `json:"store_id"`
 	FirebaseUid string         `json:"firebase_uid"`
 	Email       sql.NullString `json:"email"`
+	Phone       sql.NullString `json:"phone"`
 	DisplayName sql.NullString `json:"display_name"`
 	Role        sql.NullString `json:"role"`
 	IsActive    bool           `json:"is_active"`

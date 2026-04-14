@@ -11,7 +11,9 @@ export function AdminTopBar() {
 
   return (
     <header className={styles.topBar}>
-      <div className={styles.topBarLeft} aria-hidden />
+      <div className={styles.topBarLeft}>
+        <span className={styles.topBarBrand}>LUIGI ADMIN</span>
+      </div>
       <div className={styles.topBarRight}>
         <LocaleSwitcher />
         {me ? (

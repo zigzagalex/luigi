@@ -192,6 +192,10 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 			shopID = user.ShopID.Int64
 		}
 	}
+	if !user.IsActive {
+		httpx.Fail(w, http.StatusForbidden, "user_inactive", nil)
+		return
+	}
 
 	// 2b) Ensure customer exists for this user (shop customers; staff/admin skip — no shop customer row)
 	if !middleware.IsStaffOrAdmin(user) {
@@ -318,6 +322,7 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 		"email":        nullStringAny(user.Email),
 		"display_name": nullStringAny(user.DisplayName),
 		"role":         nullStringAny(user.Role),
+		"is_active":    user.IsActive,
 		"shop_id":      nullInt64Any(user.ShopID),
 		"store_id":     nullInt64Any(user.StoreID),
 	})

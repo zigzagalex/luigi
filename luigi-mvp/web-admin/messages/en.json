@@ -17,8 +17,10 @@
     "usersSubtitle": "Shop staff and administrators",
     "colEmail": "Email",
     "colName": "Name",
+    "colPhone": "Phone",
     "colRole": "Role",
     "colActive": "Active",
+    "colActions": "Actions",
     "loadError": "Could not load users.",
     "showCreateUserForm": "Create new user",
     "cancelCreateUser": "Cancel",
@@ -29,9 +31,14 @@
     "creating": "Creating…",
     "createError": "Could not create user.",
     "createSuccess": "User created.",
+    "updateError": "Could not update user.",
     "readOnly": "You can view this list. Only admins can add or change users.",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "edit": "Edit",
+    "save": "Save",
+    "saving": "Saving…",
+    "cancel": "Cancel"
   },
   "auth": {
     "loginSignup": "Log in / Sign up",

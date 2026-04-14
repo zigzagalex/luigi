@@ -65,11 +65,11 @@ type createReq struct {
 	StoreID     *int64  `json:"store_id"`
 	FirebaseUID *string `json:"firebase_uid"`
 	Email       *string `json:"email"`
+	Phone       *string `json:"phone"`
 	DisplayName *string `json:"display_name"`
 	Password    *string `json:"password"`
 	FirstName   *string `json:"first_name"`
 	LastName    *string `json:"last_name"`
-	Phone       *string `json:"phone"`
 	Role        *string `json:"role"`      // optional, defaults to "customer"
 	IsActive    *bool   `json:"is_active"` // optional, defaults to true
 }
@@ -156,6 +156,7 @@ func createHandler(svc *usersvc.Service, fb *fbauth.Client) http.HandlerFunc {
 				StoreID:     req.StoreID,
 				FirebaseUID: firebaseUID,
 				Email:       &email,
+				Phone:       &ph,
 				DisplayName: &display,
 				Role:        &roleStr,
 				IsActive:    req.IsActive,
@@ -203,6 +204,7 @@ func createHandler(svc *usersvc.Service, fb *fbauth.Client) http.HandlerFunc {
 			StoreID:     req.StoreID,
 			FirebaseUID: fu,
 			Email:       u.TrimOrNil(req.Email),
+			Phone:       u.TrimOrNil(req.Phone),
 			DisplayName: u.TrimOrNil(req.DisplayName),
 			Role:        u.TrimOrNil(req.Role),
 			IsActive:    req.IsActive,
@@ -261,6 +263,7 @@ func isPostgresUniqueViolation(err error) bool {
 
 type updateReq struct {
 	Email       *string `json:"email"`
+	Phone       *string `json:"phone"`
 	DisplayName *string `json:"display_name"`
 	Role        *string `json:"role"`
 	IsActive    *bool   `json:"is_active"`
@@ -283,6 +286,7 @@ func updateHandler(svc *usersvc.Service) http.HandlerFunc {
 		item, err := svc.Update(r.Context(), usersvc.UpdateInput{
 			ID:          id,
 			Email:       u.TrimOrNil(req.Email),
+			Phone:       u.TrimOrNil(req.Phone),
 			DisplayName: u.TrimOrNil(req.DisplayName),
 			Role:        u.TrimOrNil(req.Role),
 			IsActive:    req.IsActive,
