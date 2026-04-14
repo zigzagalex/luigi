@@ -13,6 +13,7 @@
     "loginCardSubtitle": "Mit Personal- oder Admin-Konto anmelden.",
     "navUsers": "Benutzer",
     "navStores": "Filialen",
+    "navReservations": "Reservationen",
     "logout": "Abmelden",
     "usersTitle": "Benutzer",
     "usersSubtitle": "Personal und Administrator:innen des Shops",
@@ -68,7 +69,9 @@
     "daySun": "So",
     "storeValidationNameRequired": "Name der Filiale ist erforderlich.",
     "storeValidationHoursRequired": "Oeffnungs- und Schliesszeit sind fuer offene Tage erforderlich.",
-    "storeValidationHoursOrder": "Oeffnungszeit muss vor der Schliesszeit liegen."
+    "storeValidationHoursOrder": "Oeffnungszeit muss vor der Schliesszeit liegen.",
+    "reservationsFlowTitle": "Reservationsablauf",
+    "reservationsFlowSubtitle": "Personal-/Admin-Workflow fuer eine Reservation mit allen zugeordneten Artikeln."
   },
   "auth": {
     "loginSignup": "Anmelden / Registrieren",
