@@ -18,6 +18,8 @@ export function AdminSidebar() {
   const reservationsReadyHref = `/${locale}/users/reservations/ready`;
   const reservationsDropoffHref = `/${locale}/users/reservations/dropoff`;
   const reservationsMaintenanceHref = `/${locale}/users/reservations/maintenance`;
+  const findReservationHref = `/${locale}/users/find-reservation`;
+  const financialsHref = `/${locale}/users/financials`;
   const usersActive = pathname === usersHref;
   const storesActive = pathname === storesHref;
   const overviewActive = pathname === overviewHref;
@@ -25,6 +27,8 @@ export function AdminSidebar() {
   const reservationsReadyActive = pathname === reservationsReadyHref;
   const reservationsDropoffActive = pathname === reservationsDropoffHref;
   const reservationsMaintenanceActive = pathname === reservationsMaintenanceHref;
+  const findReservationActive = pathname === findReservationHref;
+  const financialsActive = pathname === financialsHref;
 
   return (
     <aside className={styles.sidebar} aria-label={t("appTitle")}>
@@ -85,6 +89,22 @@ export function AdminSidebar() {
               href={reservationsMaintenanceHref}
             >
               {t("navReservationsMaintenance")}
+            </Link>
+          </li>
+          <li>
+            <Link
+              className={findReservationActive ? styles.navLinkActive : styles.navLink}
+              href={findReservationHref}
+            >
+              {t("navFindReservation")}
+            </Link>
+          </li>
+          <li>
+            <Link
+              className={financialsActive ? styles.navLinkActive : styles.navLink}
+              href={financialsHref}
+            >
+              {t("navFinancials")}
             </Link>
           </li>
         </ul>

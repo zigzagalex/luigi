@@ -25,7 +25,7 @@ import {
 } from "@/[locale]/components/admin/ReservationFlow";
 import styles from "./reservations.module.css";
 
-type ReservationTableRow = {
+export type ReservationTableRow = {
   reservation: ReservationFlowReservation;
   customer: {
     firstName: string;
@@ -385,7 +385,7 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
   }
 }
 
-function mapApiToRow(row: ApiAdminReservation): ReservationTableRow {
+export function mapApiToRow(row: ApiAdminReservation): ReservationTableRow {
   const customerFirst = row.customer.first_name ?? "";
   const customerLast = row.customer.last_name ?? "";
   const pickupFirst = row.pickup_person.first_name ?? "";
