@@ -193,7 +193,15 @@
     "totalLabel": "Totale"
   },
   "reservationStatus": {
+    "draft": "Bozza",
+    "held": "In attesa di conferma",
     "confirmed": "Confermata",
+    "out_for_pickup": "Pronta per il ritiro",
+    "in_use": "Noleggio in corso",
+    "returned": "Restituita",
+    "serviced": "In manutenzione",
+    "closed": "Completata",
+    "expired": "Scaduta",
     "cancelled": "Annullata",
     "pending": "Pagamento in sospeso"
   },

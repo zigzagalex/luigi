@@ -13,7 +13,7 @@
     "loginCardSubtitle": "Sign in with your staff or administrator account.",
     "navUsers": "Users",
     "navStores": "Stores",
-    "navReservations": "Reservations",
+    "navReservations": "Pickup",
     "logout": "Log out",
     "usersTitle": "Users",
     "usersSubtitle": "Shop staff and administrators",
@@ -80,8 +80,12 @@
     "remove": "Remove",
     "storeValidationHolidayDatesRequired": "Holiday start and end dates are required.",
     "storeValidationHolidayOrder": "Holiday end date must be on or after start date.",
-    "reservationsFlowTitle": "Reservations flow",
-    "reservationsFlowSubtitle": "Staff/admin workflow for one reservation and all associated items."
+    "reservationsFlowTitle": "Pickup",
+    "reservationsFlowSubtitle": "Manage reservations that need preparation and pickup handover.",
+    "pickupToPrepareTitle": "Reservations to prepare for pickup",
+    "pickupReadyTitle": "Reservations ready for pickup",
+    "pickupOpenFlow": "Open flow",
+    "pickupTableEmpty": "No reservations in this list."
   },
   "auth": {
     "loginSignup": "Log in / Sign up",

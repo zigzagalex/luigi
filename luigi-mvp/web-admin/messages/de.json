@@ -13,7 +13,7 @@
     "loginCardSubtitle": "Mit Personal- oder Admin-Konto anmelden.",
     "navUsers": "Benutzer",
     "navStores": "Filialen",
-    "navReservations": "Reservationen",
+    "navReservations": "Abholung",
     "logout": "Abmelden",
     "usersTitle": "Benutzer",
     "usersSubtitle": "Personal und Administrator:innen des Shops",
@@ -70,8 +70,12 @@
     "storeValidationNameRequired": "Name der Filiale ist erforderlich.",
     "storeValidationHoursRequired": "Oeffnungs- und Schliesszeit sind fuer offene Tage erforderlich.",
     "storeValidationHoursOrder": "Oeffnungszeit muss vor der Schliesszeit liegen.",
-    "reservationsFlowTitle": "Reservationsablauf",
-    "reservationsFlowSubtitle": "Personal-/Admin-Workflow fuer eine Reservation mit allen zugeordneten Artikeln."
+    "reservationsFlowTitle": "Abholung",
+    "reservationsFlowSubtitle": "Verwalte Reservationen zur Vorbereitung und Ausgabe.",
+    "pickupToPrepareTitle": "Reservationen zur Abholvorbereitung",
+    "pickupReadyTitle": "Reservationen bereit zur Abholung",
+    "pickupOpenFlow": "Ablauf öffnen",
+    "pickupTableEmpty": "Keine Reservationen in dieser Liste."
   },
   "auth": {
     "loginSignup": "Anmelden / Registrieren",

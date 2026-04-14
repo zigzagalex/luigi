@@ -193,7 +193,15 @@
     "totalLabel": "Total"
   },
   "reservationStatus": {
+    "draft": "Draft",
+    "held": "Pending confirmation",
     "confirmed": "Confirmed",
+    "out_for_pickup": "Ready for pickup",
+    "in_use": "Rental in progress",
+    "returned": "Returned",
+    "serviced": "Under service",
+    "closed": "Completed",
+    "expired": "Expired",
     "cancelled": "Cancelled",
     "pending": "Pending payment"
   },
