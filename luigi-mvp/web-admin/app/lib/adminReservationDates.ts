@@ -41,6 +41,8 @@ export type AdminReservationMetrics = {
   status: string;
   pickupDate: string;
   returnDate: string;
+  totalPriceCents: number;
+  currency: string;
 };
 
 export function mapApiToMetrics(row: ApiAdminReservation): AdminReservationMetrics {
@@ -49,5 +51,7 @@ export function mapApiToMetrics(row: ApiAdminReservation): AdminReservationMetri
     status: row.status,
     pickupDate: formatIsoAsLocalDateString(row.start_at),
     returnDate: formatIsoAsLocalDateString(row.end_at),
+    totalPriceCents: row.total_price_cents ?? 0,
+    currency: row.currency ?? "CHF",
   };
 }

@@ -1,0 +1,172 @@
+.main {
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: var(--space-8) var(--space-6);
+}
+
+.head {
+  margin-bottom: var(--space-6);
+}
+
+.h1 {
+  font-size: var(--text-h1-size);
+  line-height: var(--text-h1-line);
+  font-weight: var(--text-h1-weight);
+  color: var(--color-text-strong);
+  margin: 0 0 var(--space-2);
+}
+
+.sub {
+  margin: 0;
+  color: var(--color-text-meta);
+  font-size: var(--text-meta-size);
+}
+
+.storeHint {
+  margin: var(--space-3) 0 0;
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
+}
+
+.storeHint strong {
+  color: var(--color-text-strong);
+  font-weight: 650;
+}
+
+.toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--space-4);
+  margin-bottom: var(--space-4);
+}
+
+.searchLabel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  flex: 1 1 280px;
+  min-width: 200px;
+}
+
+.searchLabelText {
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
+}
+
+.searchInput {
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg-surface);
+  color: var(--color-text-body);
+  border-radius: var(--control-radius-md);
+  padding: 8px 12px;
+  font-size: var(--text-meta-size);
+  min-height: 40px;
+}
+
+.toggleLabel {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-size: var(--text-meta-size);
+  color: var(--color-text-body);
+  cursor: pointer;
+  user-select: none;
+}
+
+.toggleLabel input {
+  width: 18px;
+  height: 18px;
+}
+
+.muted {
+  color: var(--color-text-meta);
+}
+
+.error {
+  color: var(--color-accent-danger);
+  margin-bottom: var(--space-4);
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--color-border-soft);
+  border-radius: 12px;
+  background: var(--color-bg-surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: var(--text-meta-size);
+  min-width: 960px;
+}
+
+.table th,
+.table td {
+  text-align: left;
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--color-border-soft);
+}
+
+.table td.addressCell {
+  white-space: normal;
+  max-width: 220px;
+}
+
+.table th {
+  background: var(--color-bg-subtle);
+  font-weight: 650;
+  color: var(--color-text-meta);
+}
+
+.table tr:last-child td {
+  border-bottom: none;
+}
+
+.emptyCell {
+  text-align: center;
+  color: var(--color-text-meta);
+}
+
+.actionBtn {
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg-subtle);
+  color: var(--color-text-body);
+  border-radius: var(--control-radius-md);
+  padding: 6px 10px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.flowOverlay {
+  position: fixed;
+  inset: 0;
+  background: rgb(0 0 0 / 35%);
+  z-index: 1000;
+  padding: 24px;
+}
+
+.flowPanel {
+  width: min(1200px, 100%);
+  max-height: calc(100vh - 48px);
+  margin: 0 auto;
+  overflow: auto;
+  background: var(--color-bg-page);
+  border-radius: 12px;
+  border: 1px solid var(--color-border-soft);
+  padding: var(--space-5);
+}
+
+.flowHead {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-4);
+}
+
+.flowTitle {
+  margin: 0;
+  color: var(--color-text-strong);
+}
