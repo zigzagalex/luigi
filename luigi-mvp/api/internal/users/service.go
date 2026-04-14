@@ -56,6 +56,7 @@ type CreateInput struct {
 	StoreID     *int64
 	FirebaseUID *string
 	Email       *string
+	Phone       *string
 	DisplayName *string
 	Role        *string // nil -> default "customer" via SQL COALESCE
 	IsActive    *bool   // nil -> default TRUE via SQL COALESCE
@@ -81,6 +82,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (db.User, error) {
 		StoreID:     u.ToNullInt64(in.StoreID),
 		FirebaseUid: u.ToNullString(in.FirebaseUID),
 		Email:       u.ToNullString(in.Email),
+		Phone:       u.ToNullString(in.Phone),
 		DisplayName: u.ToNullString(in.DisplayName),
 		Role:        u.ToNullString(role),
 		IsActive:    u.ToNullBool(isActive),
@@ -90,6 +92,7 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (db.User, error) {
 type UpdateInput struct {
 	ID          int64
 	Email       *string
+	Phone       *string
 	DisplayName *string
 	Role        *string
 	IsActive    *bool
@@ -98,6 +101,7 @@ type UpdateInput struct {
 func (s *Service) Update(ctx context.Context, in UpdateInput) (db.User, error) {
 	return s.q.UpdateUser(ctx, &db.UpdateUserParams{
 		Email:       u.ToNullString(in.Email),
+		Phone:       u.ToNullString(in.Phone),
 		DisplayName: u.ToNullString(in.DisplayName),
 		Role:        u.ToNullString(in.Role),
 		IsActive:    u.ToNullBool(in.IsActive),

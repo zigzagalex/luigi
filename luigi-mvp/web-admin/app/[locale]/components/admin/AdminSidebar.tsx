@@ -16,7 +16,6 @@ export function AdminSidebar() {
 
   return (
     <aside className={styles.sidebar} aria-label={t("appTitle")}>
-      <div className={styles.sidebarBrand}>{t("appTitle")}</div>
       <nav className={styles.sidebarNav}>
         <p className={styles.navSection}>{t("navSectionMain")}</p>
         <ul className={styles.navList}>

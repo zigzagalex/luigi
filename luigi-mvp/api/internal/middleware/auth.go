@@ -110,6 +110,10 @@ func RequireSessionCookie(fb *fbauth.Client, users *usersvc.Service, cookieName 
 				httpx.Fail(w, http.StatusInternalServerError, "get_user_failed", err.Error())
 				return
 			}
+			if !user.IsActive {
+				httpx.Fail(w, http.StatusForbidden, "user_inactive", nil)
+				return
+			}
 
 			ctx := context.WithValue(r.Context(), userKey, user)
 			next.ServeHTTP(w, r.WithContext(ctx))
@@ -159,6 +163,11 @@ func OptionalSessionCookie(fb *fbauth.Client, us *usersvc.Service, cookieName st
 			user, err := us.GetUserByFirebaseUID(r.Context(), uid)
 			if err != nil {
 				// can't map to internal user -> treat as guest
+				next.ServeHTTP(w, r)
+				return
+			}
+			if !user.IsActive {
+				// inactive users are treated as guests on optional routes
 				next.ServeHTTP(w, r)
 				return
 			}

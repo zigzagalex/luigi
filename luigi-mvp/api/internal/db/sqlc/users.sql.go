@@ -16,6 +16,7 @@ INSERT INTO users (
     store_id,
     firebase_uid,
     email,
+    phone,
     display_name,
     role,
     is_active
@@ -25,8 +26,9 @@ INSERT INTO users (
     $3::text,
     $4,
     $5,
-    COALESCE(NULLIF($6::text, ''), 'customer'),
-    COALESCE($7::bool, TRUE)
+    $6,
+    COALESCE(NULLIF($7::text, ''), 'customer'),
+    COALESCE($8::bool, TRUE)
 )
 RETURNING
     id,
@@ -34,6 +36,7 @@ RETURNING
     store_id,
     firebase_uid,
     email,
+    phone,
     display_name,
     role,
     is_active,
@@ -46,6 +49,7 @@ type CreateUserParams struct {
 	StoreID     sql.NullInt64  `json:"store_id"`
 	FirebaseUid sql.NullString `json:"firebase_uid"`
 	Email       sql.NullString `json:"email"`
+	Phone       sql.NullString `json:"phone"`
 	DisplayName sql.NullString `json:"display_name"`
 	Role        sql.NullString `json:"role"`
 	IsActive    sql.NullBool   `json:"is_active"`
@@ -57,6 +61,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (User, 
 		arg.StoreID,
 		arg.FirebaseUid,
 		arg.Email,
+		arg.Phone,
 		arg.DisplayName,
 		arg.Role,
 		arg.IsActive,
@@ -68,6 +73,7 @@ func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (User, 
 		&i.StoreID,
 		&i.FirebaseUid,
 		&i.Email,
+		&i.Phone,
 		&i.DisplayName,
 		&i.Role,
 		&i.IsActive,
@@ -86,6 +92,7 @@ RETURNING
   store_id, 
   firebase_uid, 
   email, 
+  phone,
   display_name,
   role, 
   is_active, 
@@ -101,6 +108,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) (User, error) {
 		&i.StoreID,
 		&i.FirebaseUid,
 		&i.Email,
+		&i.Phone,
 		&i.DisplayName,
 		&i.Role,
 		&i.IsActive,
@@ -112,7 +120,7 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) (User, error) {
 
 const getUserByFirebaseUID = `-- name: GetUserByFirebaseUID :one
 SELECT
-    id, shop_id, store_id, firebase_uid, email, display_name, role, is_active, created_at, updated_at
+    id, shop_id, store_id, firebase_uid, email, phone, display_name, role, is_active, created_at, updated_at
 FROM users
 WHERE firebase_uid = $1
 `
@@ -126,6 +134,7 @@ func (q *Queries) GetUserByFirebaseUID(ctx context.Context, firebaseUid string) 
 		&i.StoreID,
 		&i.FirebaseUid,
 		&i.Email,
+		&i.Phone,
 		&i.DisplayName,
 		&i.Role,
 		&i.IsActive,
@@ -142,6 +151,7 @@ SELECT
     store_id,
     firebase_uid,
     email,
+    phone,
     display_name,
     role,
     is_active,
@@ -182,6 +192,7 @@ func (q *Queries) ListUsers(ctx context.Context, arg *ListUsersParams) ([]User, 
 			&i.StoreID,
 			&i.FirebaseUid,
 			&i.Email,
+			&i.Phone,
 			&i.DisplayName,
 			&i.Role,
 			&i.IsActive,
@@ -208,6 +219,7 @@ SELECT
     store_id,
     firebase_uid,
     email,
+    phone,
     display_name,
     role,
     is_active,
@@ -249,6 +261,7 @@ func (q *Queries) ListUsersStaffAdmin(ctx context.Context, arg *ListUsersStaffAd
 			&i.StoreID,
 			&i.FirebaseUid,
 			&i.Email,
+			&i.Phone,
 			&i.DisplayName,
 			&i.Role,
 			&i.IsActive,
@@ -272,17 +285,19 @@ const updateUser = `-- name: UpdateUser :one
 UPDATE users
 SET 
     email = COALESCE($1::text,        email),
-    display_name = COALESCE($2::text,        display_name),
-    role = COALESCE($3::text,        role),
-    is_active  = COALESCE($4::bool,   is_active),
+    phone = COALESCE($2::text,        phone),
+    display_name = COALESCE($3::text,        display_name),
+    role = COALESCE($4::text,        role),
+    is_active  = COALESCE($5::bool,   is_active),
     updated_at  = now()
-WHERE id = $5
+WHERE id = $6
 RETURNING
     id,
     shop_id,
     store_id,
     firebase_uid,
     email,
+    phone,
     display_name,
     role,
     is_active,
@@ -292,6 +307,7 @@ RETURNING
 
 type UpdateUserParams struct {
 	Email       sql.NullString `json:"email"`
+	Phone       sql.NullString `json:"phone"`
 	DisplayName sql.NullString `json:"display_name"`
 	Role        sql.NullString `json:"role"`
 	IsActive    sql.NullBool   `json:"is_active"`
@@ -301,6 +317,7 @@ type UpdateUserParams struct {
 func (q *Queries) UpdateUser(ctx context.Context, arg *UpdateUserParams) (User, error) {
 	row := q.db.QueryRowContext(ctx, updateUser,
 		arg.Email,
+		arg.Phone,
 		arg.DisplayName,
 		arg.Role,
 		arg.IsActive,
@@ -313,6 +330,7 @@ func (q *Queries) UpdateUser(ctx context.Context, arg *UpdateUserParams) (User, 
 		&i.StoreID,
 		&i.FirebaseUid,
 		&i.Email,
+		&i.Phone,
 		&i.DisplayName,
 		&i.Role,
 		&i.IsActive,

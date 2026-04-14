@@ -5,6 +5,7 @@ SELECT
     store_id,
     firebase_uid,
     email,
+    phone,
     display_name,
     role,
     is_active,
@@ -31,6 +32,7 @@ SELECT
     store_id,
     firebase_uid,
     email,
+    phone,
     display_name,
     role,
     is_active,
@@ -57,6 +59,7 @@ INSERT INTO users (
     store_id,
     firebase_uid,
     email,
+    phone,
     display_name,
     role,
     is_active
@@ -65,6 +68,7 @@ INSERT INTO users (
     sqlc.arg(store_id),
     sqlc.narg(firebase_uid)::text,
     sqlc.arg(email),
+    sqlc.arg(phone),
     sqlc.arg(display_name),
     COALESCE(NULLIF(sqlc.narg(role)::text, ''), 'customer'),
     COALESCE(sqlc.narg(is_active)::bool, TRUE)
@@ -75,6 +79,7 @@ RETURNING
     store_id,
     firebase_uid,
     email,
+    phone,
     display_name,
     role,
     is_active,
@@ -86,6 +91,7 @@ RETURNING
 UPDATE users
 SET 
     email = COALESCE(sqlc.narg(email)::text,        email),
+    phone = COALESCE(sqlc.narg(phone)::text,        phone),
     display_name = COALESCE(sqlc.narg(display_name)::text,        display_name),
     role = COALESCE(sqlc.narg(role)::text,        role),
     is_active  = COALESCE(sqlc.narg(is_active)::bool,   is_active),
@@ -97,6 +103,7 @@ RETURNING
     store_id,
     firebase_uid,
     email,
+    phone,
     display_name,
     role,
     is_active,
@@ -113,6 +120,7 @@ RETURNING
   store_id, 
   firebase_uid, 
   email, 
+  phone,
   display_name,
   role, 
   is_active, 
