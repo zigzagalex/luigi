@@ -120,6 +120,26 @@ export async function fetchReservation(
     return res.json();
   }
 
+export async function downloadReservationInvoice(reservationId: number, shopId: number): Promise<void> {
+  const res = await fetch(`/api/reservations/${reservationId}/invoice?shop_id=${shopId}`, {
+    method: "GET",
+    credentials: "include",
+    headers: { Accept: "application/pdf" },
+  });
+
+  if (!res.ok) throw new Error(await res.text());
+
+  const blob = await res.blob();
+  const blobUrl = window.URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = `reservation-${reservationId}-invoice.pdf`;
+  document.body.appendChild(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(blobUrl);
+}
+
 export async function checkoutReservation(
     payload: CheckoutRequest
   ): Promise<ReservationView[]> {

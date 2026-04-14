@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useLocale, useTranslations } from "next-intl";
 
 import type { ReservationView } from "@/lib/reservationClient";
-import { cancelReservation } from "@/lib/reservationClient";
+import { cancelReservation, downloadReservationInvoice } from "@/lib/reservationClient";
 
 import styles from "./ReservationDetailsClient.module.css";
 import ReservationStatusBadge from "./ReservationStatusBadge";
@@ -34,6 +34,8 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
   const [cancelOpen, setCancelOpen] = useState(false);
   const [cancelBusy, setCancelBusy] = useState(false);
   const [cancelError, setCancelError] = useState<string | null>(null);
+  const [invoiceBusy, setInvoiceBusy] = useState(false);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
 
   const createdDate = useMemo(() => new Date(r.created_at).toLocaleString(locale), [r.created_at, locale]);
   const updatedDate = useMemo(() => new Date(r.updated_at).toLocaleString(locale), [r.updated_at, locale]);
@@ -51,6 +53,7 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
     r.status === "pending" ? t("pendingPayment") : r.status === "cancelled" ? t("cancelled") : t("dash");
 
   const isCancelled = r.status === "cancelled" || !!r.cancelled_at;
+  const canDownloadInvoice = ["in_use", "returned", "serviced", "closed"].includes(r.status);
 
   async function onConfirmCancel(reason: string) {
     setCancelBusy(true);
@@ -70,6 +73,18 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
       setCancelError(e?.message ?? t("cancelFailed"));
     } finally {
       setCancelBusy(false);
+    }
+  }
+
+  async function onDownloadInvoice() {
+    setInvoiceBusy(true);
+    setInvoiceError(null);
+    try {
+      await downloadReservationInvoice(r.id, shopId);
+    } catch (e: any) {
+      setInvoiceError(e?.message ?? t("invoiceDownloadFailed"));
+    } finally {
+      setInvoiceBusy(false);
     }
   }
 
@@ -197,7 +212,11 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
       </div>
 
       <div className={styles.bottomActions}>
-        
+        {canDownloadInvoice ? (
+          <button className={styles.secondaryButton} onClick={onDownloadInvoice} disabled={invoiceBusy}>
+            {invoiceBusy ? t("invoiceGenerating") : t("invoiceButton")}
+          </button>
+        ) : null}
 
         <button
           className={styles.dangerButton}
@@ -208,6 +227,7 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
           {t("cancelReservation")}
         </button>
       </div>
+      {invoiceError ? <p className={styles.muted}>{invoiceError}</p> : null}
 
       <CancelReservationModal
         open={cancelOpen}

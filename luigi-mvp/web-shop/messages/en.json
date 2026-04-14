@@ -243,7 +243,10 @@
     "cancelReservation": "Cancel reservation",
     "alreadyCancelledTitle": "Reservation is already cancelled",
     "cancelTitle": "Cancel reservation",
-    "cancelFailed": "Cancellation failed."
+    "cancelFailed": "Cancellation failed.",
+    "invoiceButton": "See invoice",
+    "invoiceGenerating": "Generating invoice…",
+    "invoiceDownloadFailed": "Invoice download failed."
   },
   "reservationEdit": {
     "backToReservation": "← Back to reservation",

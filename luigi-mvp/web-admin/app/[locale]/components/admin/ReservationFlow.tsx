@@ -67,10 +67,12 @@ export function ReservationFlow({
   reservation: reservationProp,
   meRole,
   onReservationChange,
+  onDownloadInvoice,
 }: {
   reservation: ReservationFlowReservation;
   meRole: string | null | undefined;
   onReservationChange?: (next: ReservationFlowReservation) => void;
+  onDownloadInvoice?: (reservationId: number | string) => Promise<void> | void;
 }) {
   const [reservation, setReservation] = useState<ReservationFlowReservation>(reservationProp);
   useEffect(() => {
@@ -87,6 +89,8 @@ export function ReservationFlow({
   const [showPickupConfirm, setShowPickupConfirm] = useState(false);
   const [idChecked, setIdChecked] = useState(false);
   const [paymentReceived, setPaymentReceived] = useState(false);
+  const [invoiceBusy, setInvoiceBusy] = useState(false);
+  const [invoiceError, setInvoiceError] = useState<string | null>(null);
 
   const canManage = isStaffOrAdmin(meRole);
   const itemCount = reservation.items.length;
@@ -96,6 +100,7 @@ export function ReservationFlow({
   );
   const allItemsChecked = itemCount > 0 && checkedCount === itemCount;
   const activeIndex = ACTIVE_STEPS.indexOf(reservation.status);
+  const canDownloadInvoice = ["in_use", "returned", "serviced", "closed"].includes(reservation.status);
 
   function startChecklist(mode: ChecklistMode) {
     setChecklistMode(mode);
@@ -145,6 +150,19 @@ export function ReservationFlow({
 
   function closeReservation() {
     updateReservation({ ...reservation, status: "closed" });
+  }
+
+  async function downloadInvoice() {
+    if (!onDownloadInvoice) return;
+    setInvoiceBusy(true);
+    setInvoiceError(null);
+    try {
+      await onDownloadInvoice(reservation.id);
+    } catch (e: any) {
+      setInvoiceError(e?.message ?? "Invoice download failed.");
+    } finally {
+      setInvoiceBusy(false);
+    }
   }
 
   return (
@@ -220,6 +238,11 @@ export function ReservationFlow({
       <div className={styles.actions}>
         {canManage ? (
           <>
+            {canDownloadInvoice ? (
+              <button type="button" className={styles.actionBtn} onClick={downloadInvoice} disabled={invoiceBusy}>
+                {invoiceBusy ? "Generating invoice..." : "Generate invoice"}
+              </button>
+            ) : null}
             {reservation.status === "confirmed" && !checklistMode ? (
               <button type="button" className={styles.actionBtn} onClick={() => startChecklist("prepare")}>
                 Prepare for pickup
@@ -290,6 +313,7 @@ export function ReservationFlow({
           </button>
         ) : null}
       </div>
+      {invoiceError ? <p className={styles.readonly}>{invoiceError}</p> : null}
 
       {showPickupConfirm ? (
         <div className={styles.modalBackdrop} role="presentation">

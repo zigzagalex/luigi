@@ -14,6 +14,7 @@ import (
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	imagesvc "github.com/zigzagalex/luigi/api/internal/images"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
+	reservationsvc "github.com/zigzagalex/luigi/api/internal/reservation"
 	"github.com/zigzagalex/luigi/api/internal/storage"
 	stSvc "github.com/zigzagalex/luigi/api/internal/stores"
 	usersvc "github.com/zigzagalex/luigi/api/internal/users"
@@ -98,12 +99,15 @@ func New(d Deps) http.Handler {
 		// Protected routes (admin/management): staff + admin only
 		r.Group(func(r chi.Router) {
 			us := usersvc.NewService(d.Q)
+			cartSvc := cartsvc.NewService(d.Q, d.SQLDB, avService, stService)
+			imageSvc := imagesvc.NewService(d.Q, d.Storage, d.MediaBaseURL)
+			reservationCore := reservationsvc.NewService(d.Q, d.SQLDB, cartSvc, imageSvc)
 			r.Use(middleware.RequireSessionCookie(d.FirebaseAuth, us, "luigi_session"))
 			r.Use(middleware.RequireStaffOrAdmin())
 
 			v1users.RegisterRoutes(r, d.Q, d.FirebaseAuth)
 			v1customers.RegisterRoutes(r, d.Q)
-			v1adminreservations.RegisterRoutes(r, d.SQLDB)
+			v1adminreservations.RegisterRoutes(r, d.SQLDB, reservationCore)
 		})
 
 		r.NotFound(func(w http.ResponseWriter, r *http.Request) {

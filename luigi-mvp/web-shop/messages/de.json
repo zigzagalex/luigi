@@ -243,7 +243,10 @@
     "cancelReservation": "Reservation stornieren",
     "alreadyCancelledTitle": "Reservation ist bereits storniert",
     "cancelTitle": "Reservation stornieren",
-    "cancelFailed": "Stornierung fehlgeschlagen."
+    "cancelFailed": "Stornierung fehlgeschlagen.",
+    "invoiceButton": "Rechnung ansehen",
+    "invoiceGenerating": "Rechnung wird erstellt…",
+    "invoiceDownloadFailed": "Rechnung konnte nicht heruntergeladen werden."
   },
   "reservationEdit": {
     "backToReservation": "← Zurück zur Reservation",
