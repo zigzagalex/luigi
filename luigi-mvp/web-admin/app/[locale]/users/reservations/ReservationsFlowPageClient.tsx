@@ -16,6 +16,7 @@ import {
 import {
   listAdminReservations,
   updateAdminReservationStatus,
+  downloadAdminReservationInvoice,
   type ApiAdminReservation,
 } from "@/lib/reservationsApi";
 import {
@@ -288,6 +289,7 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
               reservation={selectedReservation.reservation}
               meRole={me.role}
               onReservationChange={(next) => void handleReservationChange(selectedReservation, next)}
+              onDownloadInvoice={(reservationId) => void handleInvoiceDownload(reservationId)}
             />
           </div>
         </div>
@@ -323,6 +325,19 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
       setSelectedReservation(current);
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function handleInvoiceDownload(reservationId: number | string) {
+    if (typeof reservationId !== "number") {
+      setLoadError("Could not download invoice for this reservation.");
+      return;
+    }
+    try {
+      setLoadError(null);
+      await downloadAdminReservationInvoice({ reservationId, shopId: SHOP_ID });
+    } catch (err) {
+      setLoadError(err instanceof Error ? err.message : "Could not download invoice.");
     }
   }
 

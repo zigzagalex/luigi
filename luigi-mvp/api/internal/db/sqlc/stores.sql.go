@@ -90,6 +90,37 @@ func (q *Queries) CreateStore(ctx context.Context, arg *CreateStoreParams) (Stor
 	return i, err
 }
 
+const createStoreHoliday = `-- name: CreateStoreHoliday :exec
+INSERT INTO store_holidays (
+  store_id,
+  start_date,
+  end_date,
+  note
+) VALUES (
+  $1,
+  $2,
+  $3,
+  $4::text
+)
+`
+
+type CreateStoreHolidayParams struct {
+	StoreID   int64          `json:"store_id"`
+	StartDate time.Time      `json:"start_date"`
+	EndDate   time.Time      `json:"end_date"`
+	Note      sql.NullString `json:"note"`
+}
+
+func (q *Queries) CreateStoreHoliday(ctx context.Context, arg *CreateStoreHolidayParams) error {
+	_, err := q.db.ExecContext(ctx, createStoreHoliday,
+		arg.StoreID,
+		arg.StartDate,
+		arg.EndDate,
+		arg.Note,
+	)
+	return err
+}
+
 const deleteStore = `-- name: DeleteStore :one
 DELETE FROM stores
 WHERE id = $1
@@ -126,6 +157,16 @@ func (q *Queries) DeleteStore(ctx context.Context, id int64) (Store, error) {
 		&i.UpdatedAt,
 	)
 	return i, err
+}
+
+const deleteStoreHolidays = `-- name: DeleteStoreHolidays :exec
+DELETE FROM store_holidays
+WHERE store_id = $1::bigint
+`
+
+func (q *Queries) DeleteStoreHolidays(ctx context.Context, storeID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteStoreHolidays, storeID)
+	return err
 }
 
 const deleteStoreOpeningTimes = `-- name: DeleteStoreOpeningTimes :exec
@@ -165,6 +206,49 @@ func (q *Queries) GetStoreById(ctx context.Context, storeID int64) (Store, error
 	return i, err
 }
 
+const listStoreHolidays = `-- name: ListStoreHolidays :many
+SELECT
+  store_id,
+  start_date,
+  end_date,
+  note,
+  created_at,
+  updated_at
+FROM store_holidays
+WHERE store_id = $1::bigint
+ORDER BY start_date, end_date
+`
+
+func (q *Queries) ListStoreHolidays(ctx context.Context, storeID int64) ([]StoreHoliday, error) {
+	rows, err := q.db.QueryContext(ctx, listStoreHolidays, storeID)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []StoreHoliday
+	for rows.Next() {
+		var i StoreHoliday
+		if err := rows.Scan(
+			&i.StoreID,
+			&i.StartDate,
+			&i.EndDate,
+			&i.Note,
+			&i.CreatedAt,
+			&i.UpdatedAt,
+		); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Close(); err != nil {
+		return nil, err
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
 const listStoreOpeningTimes = `-- name: ListStoreOpeningTimes :many
 SELECT
   store_id,
@@ -177,15 +261,23 @@ WHERE store_id = $1::bigint
 ORDER BY day_of_week
 `
 
-func (q *Queries) ListStoreOpeningTimes(ctx context.Context, storeID int64) ([]StoreOpeningTime, error) {
+type ListStoreOpeningTimesRow struct {
+	StoreID   int64  `json:"store_id"`
+	DayOfWeek int16  `json:"day_of_week"`
+	OpensAt   string `json:"opens_at"`
+	ClosesAt  string `json:"closes_at"`
+	IsClosed  bool   `json:"is_closed"`
+}
+
+func (q *Queries) ListStoreOpeningTimes(ctx context.Context, storeID int64) ([]ListStoreOpeningTimesRow, error) {
 	rows, err := q.db.QueryContext(ctx, listStoreOpeningTimes, storeID)
 	if err != nil {
 		return nil, err
 	}
 	defer rows.Close()
-	var items []StoreOpeningTime
+	var items []ListStoreOpeningTimesRow
 	for rows.Next() {
-		var i StoreOpeningTime
+		var i ListStoreOpeningTimesRow
 		if err := rows.Scan(
 			&i.StoreID,
 			&i.DayOfWeek,
@@ -359,83 +451,4 @@ func (q *Queries) UpsertStoreOpeningTime(ctx context.Context, arg *UpsertStoreOp
 		arg.IsClosed,
 	)
 	return err
-}
-
-const createStoreHoliday = `-- name: CreateStoreHoliday :exec
-INSERT INTO store_holidays (
-  store_id,
-  start_date,
-  end_date,
-  note
-) VALUES (
-  $1,
-  $2,
-  $3,
-  $4::text
-)
-`
-
-type CreateStoreHolidayParams struct {
-	StoreID   int64          `json:"store_id"`
-	StartDate time.Time      `json:"start_date"`
-	EndDate   time.Time      `json:"end_date"`
-	Note      sql.NullString `json:"note"`
-}
-
-func (q *Queries) CreateStoreHoliday(ctx context.Context, arg *CreateStoreHolidayParams) error {
-	_, err := q.db.ExecContext(ctx, createStoreHoliday, arg.StoreID, arg.StartDate, arg.EndDate, arg.Note)
-	return err
-}
-
-const deleteStoreHolidays = `-- name: DeleteStoreHolidays :exec
-DELETE FROM store_holidays
-WHERE store_id = $1::bigint
-`
-
-func (q *Queries) DeleteStoreHolidays(ctx context.Context, storeID int64) error {
-	_, err := q.db.ExecContext(ctx, deleteStoreHolidays, storeID)
-	return err
-}
-
-const listStoreHolidays = `-- name: ListStoreHolidays :many
-SELECT
-  store_id,
-  start_date,
-  end_date,
-  note,
-  created_at,
-  updated_at
-FROM store_holidays
-WHERE store_id = $1::bigint
-ORDER BY start_date, end_date
-`
-
-func (q *Queries) ListStoreHolidays(ctx context.Context, storeID int64) ([]StoreHoliday, error) {
-	rows, err := q.db.QueryContext(ctx, listStoreHolidays, storeID)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []StoreHoliday
-	for rows.Next() {
-		var i StoreHoliday
-		if err := rows.Scan(
-			&i.StoreID,
-			&i.StartDate,
-			&i.EndDate,
-			&i.Note,
-			&i.CreatedAt,
-			&i.UpdatedAt,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Close(); err != nil {
-		return nil, err
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
 }

@@ -240,6 +240,50 @@ func (q *Queries) GetMyReservation(ctx context.Context, arg *GetMyReservationPar
 	return i, err
 }
 
+const getReservationByShop = `-- name: GetReservationByShop :one
+SELECT
+  r.id, r.shop_id, r.store_id, r.customer_id, r.status, r.start_at, r.end_at, r.reservation_range, r.total_price_cents, r.currency, r.idempotency_key, r.version, r.notes, r.created_at, r.updated_at, r.pickup_person_name, r.pickup_person_phone, r.pickup_person_email, r.cancelled_at, r.cancel_reason, r.store_snapshot_name
+FROM reservations r
+WHERE
+  r.id = $1::bigint
+  AND r.shop_id = $2::bigint
+LIMIT 1
+`
+
+type GetReservationByShopParams struct {
+	ReservationID int64 `json:"reservation_id"`
+	ShopID        int64 `json:"shop_id"`
+}
+
+func (q *Queries) GetReservationByShop(ctx context.Context, arg *GetReservationByShopParams) (Reservation, error) {
+	row := q.db.QueryRowContext(ctx, getReservationByShop, arg.ReservationID, arg.ShopID)
+	var i Reservation
+	err := row.Scan(
+		&i.ID,
+		&i.ShopID,
+		&i.StoreID,
+		&i.CustomerID,
+		&i.Status,
+		&i.StartAt,
+		&i.EndAt,
+		&i.ReservationRange,
+		&i.TotalPriceCents,
+		&i.Currency,
+		&i.IdempotencyKey,
+		&i.Version,
+		&i.Notes,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.PickupPersonName,
+		&i.PickupPersonPhone,
+		&i.PickupPersonEmail,
+		&i.CancelledAt,
+		&i.CancelReason,
+		&i.StoreSnapshotName,
+	)
+	return i, err
+}
+
 const listMyReservations = `-- name: ListMyReservations :many
 SELECT
   r.id, r.shop_id, r.store_id, r.customer_id, r.status, r.start_at, r.end_at, r.reservation_range, r.total_price_cents, r.currency, r.idempotency_key, r.version, r.notes, r.created_at, r.updated_at, r.pickup_person_name, r.pickup_person_phone, r.pickup_person_email, r.cancelled_at, r.cancel_reason, r.store_snapshot_name

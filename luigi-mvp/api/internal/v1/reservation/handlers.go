@@ -44,6 +44,7 @@ func RegisterRoutes(
 	r.Route("/reservations", func(r chi.Router) {
 		r.Get("/", h.ListMyReservations)
 		r.Get("/{reservation_id}", h.GetMyReservation)
+		r.Get("/{reservation_id}/invoice", h.DownloadMyInvoice)
 
 		r.Post("/checkout", h.CheckoutFromCart)
 
@@ -201,6 +202,45 @@ func (h *Handler) GetMyReservation(w http.ResponseWriter, r *http.Request) {
 	}
 
 	httpx.JSON(w, http.StatusOK, res)
+}
+
+func (h *Handler) DownloadMyInvoice(w http.ResponseWriter, r *http.Request) {
+	customerID, err := h.customerIDFromContext(r)
+	if err != nil {
+		httpx.Fail(w, http.StatusUnauthorized, "not_authenticated", nil)
+		return
+	}
+	locale := u.GetLocale(r)
+
+	shopID, err := parseIntQuery(r, "shop_id")
+	if err != nil || shopID <= 0 {
+		httpx.Fail(w, 400, "missing_shop_id", nil)
+		return
+	}
+
+	resID, err := parseReservationIDParam(r)
+	if err != nil {
+		httpx.Fail(w, 400, "invalid_reservation_id", err.Error())
+		return
+	}
+
+	pdf, err := h.svc.InvoicePDFBytes(r.Context(), shopID, resID, locale, &customerID)
+	if err != nil {
+		switch {
+		case errors.Is(err, reservation.ErrReservationNotFound):
+			httpx.Fail(w, 404, "not_found", nil)
+		case errors.Is(err, reservation.ErrInvoiceNotAvailable):
+			httpx.Fail(w, 400, "invoice_not_available", nil)
+		default:
+			httpx.Fail(w, 500, "invoice_failed", err.Error())
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="reservation-%d-invoice.pdf"`, resID))
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(pdf)
 }
 
 func (h *Handler) CancelMyReservation(w http.ResponseWriter, r *http.Request) {

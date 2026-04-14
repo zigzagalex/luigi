@@ -87,3 +87,10 @@ FROM customers
 WHERE 
     user_id = sqlc.arg(user_id) 
 LIMIT 1;
+
+
+-- name: GetCustomerByID :one
+SELECT *
+FROM customers
+WHERE id = sqlc.arg(id)::bigint
+LIMIT 1;

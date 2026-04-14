@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
@@ -12,18 +13,22 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/lib/pq"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
+	"github.com/zigzagalex/luigi/api/internal/middleware"
+	"github.com/zigzagalex/luigi/api/internal/reservation"
 )
 
 type Handler struct {
-	db *sql.DB
+	db  *sql.DB
+	res *reservation.Service
 }
 
-func RegisterRoutes(r chi.Router, sqlDB *sql.DB) {
-	h := &Handler{db: sqlDB}
+func RegisterRoutes(r chi.Router, sqlDB *sql.DB, resSvc *reservation.Service) {
+	h := &Handler{db: sqlDB, res: resSvc}
 	r.Route("/admin/reservations", func(r chi.Router) {
 		r.Get("/search", h.Search)
 		r.Get("/", h.ListByShop)
 		r.Post("/{reservation_id}/status", h.UpdateStatus)
+		r.Get("/{reservation_id}/invoice", h.Invoice)
 	})
 }
 
@@ -523,6 +528,73 @@ RETURNING version
 		"status":         body.Status,
 		"version":        nextVersion,
 	})
+}
+
+func (h *Handler) Invoice(w http.ResponseWriter, r *http.Request) {
+	if h.res == nil {
+		httpx.Fail(w, http.StatusInternalServerError, "invoice_unconfigured", nil)
+		return
+	}
+	reservationID, err := parseChiIDParam(r, "reservation_id")
+	if err != nil {
+		httpx.Fail(w, http.StatusBadRequest, "invalid_reservation_id", err.Error())
+		return
+	}
+	shopID, err := parseIntQuery(r, "shop_id")
+	if err != nil || shopID <= 0 {
+		httpx.Fail(w, http.StatusBadRequest, "invalid_shop_id", nil)
+		return
+	}
+
+	u, ok := middleware.UserFromContext(r.Context())
+	if !ok {
+		httpx.Fail(w, http.StatusUnauthorized, "not_authenticated", nil)
+		return
+	}
+	if u.ShopID.Valid && u.ShopID.Int64 > 0 && u.ShopID.Int64 != shopID {
+		httpx.Fail(w, http.StatusForbidden, "shop_forbidden", nil)
+		return
+	}
+
+	var storeID int64
+	err = h.db.QueryRowContext(r.Context(), `
+SELECT store_id FROM reservations WHERE id = $1 AND shop_id = $2
+`, reservationID, shopID).Scan(&storeID)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			httpx.Fail(w, http.StatusNotFound, "reservation_not_found", nil)
+			return
+		}
+		httpx.Fail(w, http.StatusInternalServerError, "load_reservation_failed", err.Error())
+		return
+	}
+	if u.StoreID.Valid && u.StoreID.Int64 > 0 && u.StoreID.Int64 != storeID {
+		httpx.Fail(w, http.StatusForbidden, "store_forbidden", nil)
+		return
+	}
+
+	locale := strings.TrimSpace(r.URL.Query().Get("locale"))
+	if locale == "" {
+		locale = "en"
+	}
+
+	pdf, err := h.res.InvoicePDFBytes(r.Context(), shopID, reservationID, locale, nil)
+	if err != nil {
+		switch {
+		case errors.Is(err, reservation.ErrReservationNotFound):
+			httpx.Fail(w, http.StatusNotFound, "reservation_not_found", nil)
+		case errors.Is(err, reservation.ErrInvoiceNotAvailable):
+			httpx.Fail(w, http.StatusBadRequest, "invoice_not_available", nil)
+		default:
+			httpx.Fail(w, http.StatusInternalServerError, "invoice_failed", err.Error())
+		}
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/pdf")
+	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="reservation-%d-invoice.pdf"`, reservationID))
+	w.WriteHeader(http.StatusOK)
+	_, _ = w.Write(pdf)
 }
 
 func ptrString(v sql.NullString) *string {

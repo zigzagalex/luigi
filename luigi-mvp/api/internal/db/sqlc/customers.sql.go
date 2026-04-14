@@ -128,6 +128,37 @@ func (q *Queries) DeleteCustomer(ctx context.Context, id int64) (Customer, error
 	return i, err
 }
 
+const getCustomerByID = `-- name: GetCustomerByID :one
+SELECT id, shop_id, email, phone, first_name, last_name, notes, is_active, created_at, updated_at, user_id, address1, address2, postal_code, city, country
+FROM customers
+WHERE id = $1::bigint
+LIMIT 1
+`
+
+func (q *Queries) GetCustomerByID(ctx context.Context, id int64) (Customer, error) {
+	row := q.db.QueryRowContext(ctx, getCustomerByID, id)
+	var i Customer
+	err := row.Scan(
+		&i.ID,
+		&i.ShopID,
+		&i.Email,
+		&i.Phone,
+		&i.FirstName,
+		&i.LastName,
+		&i.Notes,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+		&i.UserID,
+		&i.Address1,
+		&i.Address2,
+		&i.PostalCode,
+		&i.City,
+		&i.Country,
+	)
+	return i, err
+}
+
 const getCustomerByUserID = `-- name: GetCustomerByUserID :one
 SELECT 
     id, shop_id, email, phone, first_name, last_name, notes, is_active, created_at, updated_at, user_id, address1, address2, postal_code, city, country 

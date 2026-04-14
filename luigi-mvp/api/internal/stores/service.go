@@ -16,7 +16,7 @@ type storeQuerier interface {
 	UpdateStore(ctx context.Context, arg *db.UpdateStoreParams) (db.Store, error)
 	DeleteStore(ctx context.Context, id int64) (db.Store, error)
 	GetStoreById(ctx context.Context, id int64) (db.Store, error)
-	ListStoreOpeningTimes(ctx context.Context, storeID int64) ([]db.StoreOpeningTime, error)
+	ListStoreOpeningTimes(ctx context.Context, storeID int64) ([]db.ListStoreOpeningTimesRow, error)
 	ListStoreHolidays(ctx context.Context, storeID int64) ([]db.StoreHoliday, error)
 	DeleteStoreHolidays(ctx context.Context, storeID int64) error
 	CreateStoreHoliday(ctx context.Context, arg *db.CreateStoreHolidayParams) error
@@ -144,7 +144,7 @@ type HolidayInput struct {
 	Note      *string
 }
 
-func (s *Service) ListOpeningTimes(ctx context.Context, storeID int64) ([]db.StoreOpeningTime, error) {
+func (s *Service) ListOpeningTimes(ctx context.Context, storeID int64) ([]db.ListStoreOpeningTimesRow, error) {
 	return s.q.ListStoreOpeningTimes(ctx, storeID)
 }
 

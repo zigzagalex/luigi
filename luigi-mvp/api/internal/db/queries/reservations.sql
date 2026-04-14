@@ -21,6 +21,16 @@ WHERE
 LIMIT 1;
 
 
+-- name: GetReservationByShop :one
+SELECT
+  r.*
+FROM reservations r
+WHERE
+  r.id = sqlc.arg(reservation_id)::bigint
+  AND r.shop_id = sqlc.arg(shop_id)::bigint
+LIMIT 1;
+
+
 -- name: ListReservationItemsByReservationIDs :many
 SELECT
   ri.*

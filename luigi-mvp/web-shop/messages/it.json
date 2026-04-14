@@ -243,7 +243,10 @@
     "cancelReservation": "Annulla prenotazione",
     "alreadyCancelledTitle": "La prenotazione è già annullata",
     "cancelTitle": "Annulla prenotazione",
-    "cancelFailed": "Annullamento non riuscito."
+    "cancelFailed": "Annullamento non riuscito.",
+    "invoiceButton": "Vedi fattura",
+    "invoiceGenerating": "Generazione fattura in corso…",
+    "invoiceDownloadFailed": "Download fattura non riuscito."
   },
   "reservationEdit": {
     "backToReservation": "← Torna alla prenotazione",

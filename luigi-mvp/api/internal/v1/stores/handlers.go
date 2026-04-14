@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
@@ -333,17 +334,17 @@ func parseOpeningTimes(items []openingTimeInput) ([]storesvc.OpeningTimeInput, e
 	return parsed, nil
 }
 
-func toOpeningTimeResponses(items []db.StoreOpeningTime) []openingTimeResponse {
+func toOpeningTimeResponses(items []db.ListStoreOpeningTimesRow) []openingTimeResponse {
 	out := make([]openingTimeResponse, 0, len(items))
 	for _, item := range items {
 		var opensAt *string
 		var closesAt *string
-		if item.OpensAt.Valid {
-			v := item.OpensAt.String
+		if strings.TrimSpace(item.OpensAt) != "" {
+			v := item.OpensAt
 			opensAt = &v
 		}
-		if item.ClosesAt.Valid {
-			v := item.ClosesAt.String
+		if strings.TrimSpace(item.ClosesAt) != "" {
+			v := item.ClosesAt
 			closesAt = &v
 		}
 		out = append(out, openingTimeResponse{
