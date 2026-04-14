@@ -13,10 +13,12 @@ export function AdminSidebar() {
 
   const usersHref = `/${locale}/users`;
   const storesHref = `/${locale}/users/stores`;
-  const reservationsHref = `/${locale}/users/reservations`;
+  const reservationsPrepareHref = `/${locale}/users/reservations/prepare`;
+  const reservationsReadyHref = `/${locale}/users/reservations/ready`;
   const usersActive = pathname === usersHref;
   const storesActive = pathname === storesHref;
-  const reservationsActive = pathname === reservationsHref;
+  const reservationsPrepareActive = pathname === reservationsPrepareHref;
+  const reservationsReadyActive = pathname === reservationsReadyHref;
 
   return (
     <aside className={styles.sidebar} aria-label={t("appTitle")}>
@@ -41,10 +43,18 @@ export function AdminSidebar() {
           </li>
           <li>
             <Link
-              className={reservationsActive ? styles.navLinkActive : styles.navLink}
-              href={reservationsHref}
+              className={reservationsPrepareActive ? styles.navLinkActive : styles.navLink}
+              href={reservationsPrepareHref}
             >
-              {t("navReservations")}
+              {t("navReservationsPrepare")}
+            </Link>
+          </li>
+          <li>
+            <Link
+              className={reservationsReadyActive ? styles.navLinkActive : styles.navLink}
+              href={reservationsReadyHref}
+            >
+              {t("navReservationsReady")}
             </Link>
           </li>
         </ul>

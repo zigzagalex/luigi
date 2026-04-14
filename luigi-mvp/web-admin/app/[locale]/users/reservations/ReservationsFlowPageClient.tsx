@@ -35,7 +35,9 @@ type ReservationTableRow = {
   };
 };
 
-export function ReservationsFlowPageClient() {
+type ReservationsFlowView = "prepare" | "ready" | "both";
+
+export function ReservationsFlowPageClient({ view = "both" }: { view?: ReservationsFlowView }) {
   const t = useTranslations("admin");
   const locale = useLocale();
   const router = useRouter();
@@ -45,23 +47,38 @@ export function ReservationsFlowPageClient() {
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<ReservationTableRow | null>(null);
+  const [pickupDateFilter, setPickupDateFilter] = useState(() => formatLocalDateString(new Date()));
+  const pickupDateNext = useMemo(() => addLocalDaysToIsoDate(pickupDateFilter, 1), [pickupDateFilter]);
+
   const reservationsToPrepare = useMemo(
     () =>
       rows.filter(
         (row) =>
           row.reservation.status === "confirmed" &&
+          row.reservation.pickupDate === pickupDateFilter &&
           (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
       ),
-    [rows, selectedStoreId],
+    [rows, selectedStoreId, pickupDateFilter],
+  );
+  const reservationsToPrepareNextDay = useMemo(
+    () =>
+      rows.filter(
+        (row) =>
+          row.reservation.status === "confirmed" &&
+          row.reservation.pickupDate === pickupDateNext &&
+          (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
+      ),
+    [rows, selectedStoreId, pickupDateNext],
   );
   const reservationsReadyForPickup = useMemo(
     () =>
       rows.filter(
         (row) =>
           row.reservation.status === "out_for_pickup" &&
+          row.reservation.pickupDate === pickupDateFilter &&
           (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
       ),
-    [rows, selectedStoreId],
+    [rows, selectedStoreId, pickupDateFilter],
   );
 
   useEffect(() => {
@@ -114,6 +131,20 @@ export function ReservationsFlowPageClient() {
       <div className={styles.head}>
         <h1 className={styles.h1}>{t("reservationsFlowTitle")}</h1>
         <p className={styles.sub}>{t("reservationsFlowSubtitle")}</p>
+        <div className={styles.dateFilter}>
+          <label className={styles.dateFilterLabel}>
+            <span className={styles.dateFilterText}>{t("pickupDateFilterLabel")}</span>
+            <input
+              type="date"
+              className={styles.dateInput}
+              value={pickupDateFilter}
+              onChange={(e) =>
+                setPickupDateFilter(e.target.value ? e.target.value : formatLocalDateString(new Date()))
+              }
+              aria-label={t("pickupDateFilterLabel")}
+            />
+          </label>
+        </div>
       </div>
       {loadError ? (
         <p className={styles.error} role="alert">
@@ -121,14 +152,38 @@ export function ReservationsFlowPageClient() {
         </p>
       ) : null}
 
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>{t("pickupToPrepareTitle")}</h2>
-        {renderTable(reservationsToPrepare)}
-      </section>
-      <section className={styles.section}>
-        <h2 className={styles.sectionTitle}>{t("pickupReadyTitle")}</h2>
-        {renderTable(reservationsReadyForPickup)}
-      </section>
+      {view === "prepare" ? (
+        <>
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>
+              {t("pickupToPrepareTitleWithDate", {
+                date: formatDisplayDateIso(pickupDateFilter, locale),
+              })}
+            </h2>
+            {renderTable(reservationsToPrepare)}
+          </section>
+          <section className={styles.section}>
+            <h2 className={styles.sectionTitle}>
+              {t("pickupToPrepareTitleWithDate", {
+                date: formatDisplayDateIso(pickupDateNext, locale),
+              })}
+            </h2>
+            {renderTable(reservationsToPrepareNextDay)}
+          </section>
+        </>
+      ) : null}
+      {view === "both" ? (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t("pickupToPrepareTitle")}</h2>
+          {renderTable(reservationsToPrepare)}
+        </section>
+      ) : null}
+      {view === "both" || view === "ready" ? (
+        <section className={styles.section}>
+          <h2 className={styles.sectionTitle}>{t("pickupReadyTitle")}</h2>
+          {renderTable(reservationsReadyForPickup)}
+        </section>
+      ) : null}
 
       {selectedReservation ? (
         <div className={styles.flowOverlay} role="presentation">
@@ -240,6 +295,42 @@ export function ReservationsFlowPageClient() {
   }
 }
 
+function formatLocalDateString(d: Date): string {
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${y}-${m}-${day}`;
+}
+
+function addLocalDaysToIsoDate(yyyyMmDd: string, days: number): string {
+  const parts = yyyyMmDd.split("-").map(Number);
+  const y = parts[0];
+  const m = parts[1];
+  const d = parts[2];
+  if (y === undefined || m === undefined || d === undefined) return yyyyMmDd;
+  const date = new Date(y, m - 1, d);
+  date.setDate(date.getDate() + days);
+  return formatLocalDateString(date);
+}
+
+function formatDisplayDateIso(yyyyMmDd: string, locale: string): string {
+  const parts = yyyyMmDd.split("-").map(Number);
+  const y = parts[0];
+  const m = parts[1];
+  const d = parts[2];
+  if (y === undefined || m === undefined || d === undefined) return yyyyMmDd;
+  const date = new Date(y, m - 1, d);
+  return new Intl.DateTimeFormat(locale, { dateStyle: "medium" }).format(date);
+}
+
+function formatIsoAsLocalDateString(isoDateTime: string): string {
+  const parsed = new Date(isoDateTime);
+  if (Number.isNaN(parsed.getTime())) {
+    return isoDateTime.slice(0, 10);
+  }
+  return formatLocalDateString(parsed);
+}
+
 function mapApiToRow(row: ApiAdminReservation): ReservationTableRow {
   const customerFirst = row.customer.first_name ?? "";
   const customerLast = row.customer.last_name ?? "";
@@ -250,8 +341,8 @@ function mapApiToRow(row: ApiAdminReservation): ReservationTableRow {
       id: row.reservation_id,
       storeId: row.store_id,
       customerName: [customerFirst, customerLast].filter(Boolean).join(" ").trim() || "—",
-      pickupDate: row.start_at.slice(0, 10),
-      returnDate: row.end_at.slice(0, 10),
+      pickupDate: formatIsoAsLocalDateString(row.start_at),
+      returnDate: formatIsoAsLocalDateString(row.end_at),
       status: row.status as ReservationFlowStatus,
       version: row.version,
       items: row.items.map((item) => ({
