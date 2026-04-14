@@ -13,12 +13,14 @@ export function AdminSidebar() {
 
   const usersHref = `/${locale}/users`;
   const storesHref = `/${locale}/users/stores`;
+  const overviewHref = `/${locale}/users/overview`;
   const reservationsPrepareHref = `/${locale}/users/reservations/prepare`;
   const reservationsReadyHref = `/${locale}/users/reservations/ready`;
   const reservationsDropoffHref = `/${locale}/users/reservations/dropoff`;
   const reservationsMaintenanceHref = `/${locale}/users/reservations/maintenance`;
   const usersActive = pathname === usersHref;
   const storesActive = pathname === storesHref;
+  const overviewActive = pathname === overviewHref;
   const reservationsPrepareActive = pathname === reservationsPrepareHref;
   const reservationsReadyActive = pathname === reservationsReadyHref;
   const reservationsDropoffActive = pathname === reservationsDropoffHref;
@@ -29,6 +31,14 @@ export function AdminSidebar() {
       <nav className={styles.sidebarNav}>
         <p className={styles.navSection}>{t("navSectionMain")}</p>
         <ul className={styles.navList}>
+          <li>
+            <Link
+              className={overviewActive ? styles.navLinkActive : styles.navLink}
+              href={overviewHref}
+            >
+              {t("navOverview")}
+            </Link>
+          </li>
           <li>
             <Link
               className={usersActive ? styles.navLinkActive : styles.navLink}
