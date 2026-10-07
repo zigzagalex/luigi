@@ -22,12 +22,18 @@ func NewProductVariantImageHandler(svc *images.Service) *ProductVariantImageHand
 	return &ProductVariantImageHandler{svc: svc}
 }
 
-func RegisterRoutes(r chi.Router, q *db.Queries, store storage.Client, mediaBaseURL string) {
+func RegisterRoutesPublic(r chi.Router, q *db.Queries, store storage.Client, mediaBaseURL string) {
+	svc := images.NewService(q, store, mediaBaseURL)
+	h := NewProductVariantImageHandler(svc)
+
+	r.Get("/product_variants/{variantID}/images", h.List)
+}
+
+func RegisterRoutesPrivate(r chi.Router, q *db.Queries, store storage.Client, mediaBaseURL string) {
 	svc := images.NewService(q, store, mediaBaseURL)
 	h := NewProductVariantImageHandler(svc)
 
 	r.Post("/product_variants/{variantID}/images", h.Upload)
-	r.Get("/product_variants/{variantID}/images", h.List)
 	r.Delete("/product_variants/{variantID}/images/{imageID}", h.Delete)
 }
 

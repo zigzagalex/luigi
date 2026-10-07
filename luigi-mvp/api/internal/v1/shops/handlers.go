@@ -14,11 +14,16 @@ import (
 	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
 
-func RegisterRoutes(r chi.Router, q db.Querier) {
+func RegisterRoutesPublic(r chi.Router, q db.Querier) {
 	svc := shopsvc.NewService(q)
-
 	r.Route("/shops", func(r chi.Router) {
 		r.Get("/", listHandler(svc))
+	})
+}
+
+func RegisterRoutesPrivate(r chi.Router, q db.Querier) {
+	svc := shopsvc.NewService(q)
+	r.Route("/shops", func(r chi.Router) {
 		r.Post("/", createHandler(svc))
 		r.Put("/{shopID}", updateHandler(svc))
 	})
