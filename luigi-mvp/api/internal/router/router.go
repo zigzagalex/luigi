@@ -19,6 +19,7 @@ import (
 	stSvc "github.com/zigzagalex/luigi/api/internal/stores"
 	usersvc "github.com/zigzagalex/luigi/api/internal/users"
 
+	v1adminreservations "github.com/zigzagalex/luigi/api/internal/v1/admin_reservations"
 	v1auth "github.com/zigzagalex/luigi/api/internal/v1/auth"
 	v1availability "github.com/zigzagalex/luigi/api/internal/v1/availability"
 	v1cart "github.com/zigzagalex/luigi/api/internal/v1/cart"
@@ -29,7 +30,6 @@ import (
 	v1productvariantimages "github.com/zigzagalex/luigi/api/internal/v1/product_variant_images"
 	v1product_variants "github.com/zigzagalex/luigi/api/internal/v1/product_variants"
 	v1products "github.com/zigzagalex/luigi/api/internal/v1/products"
-	v1adminreservations "github.com/zigzagalex/luigi/api/internal/v1/admin_reservations"
 	v1reservations "github.com/zigzagalex/luigi/api/internal/v1/reservation"
 	v1shops "github.com/zigzagalex/luigi/api/internal/v1/shops"
 	v1stores "github.com/zigzagalex/luigi/api/internal/v1/stores"
@@ -77,16 +77,16 @@ func New(d Deps) http.Handler {
 		// Auth routes (public + /me protected inside the module)
 		v1auth.RegisterRoutes(r, d.FirebaseAuth, d.Q, d.SQLDB, d.Env, avService, stService)
 
-		// Public routes (shop browsing)
-		v1shops.RegisterRoutes(r, d.Q)
-		v1stores.RegisterRoutes(r, d.Q)
-		v1products.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
-		v1product_variants.RegisterRoutes(r, d.Q)
-		v1categories.RegisterRoutes(r, d.Q)
+		// Public routes (shop browsing — GET only for catalog resources)
+		v1shops.RegisterRoutesPublic(r, d.Q)
+		v1stores.RegisterRoutesPublic(r, d.Q)
+		v1products.RegisterRoutesPublic(r, d.Q, d.MediaBaseURL)
+		v1product_variants.RegisterRoutesPublic(r, d.Q)
+		v1categories.RegisterRoutesPublic(r, d.Q)
 		v1availability.RegisterRoutes(r, d.Q)
-		v1productvariantimages.RegisterRoutes(r, d.Q, d.Storage, d.MediaBaseURL)
-		v1inventory.RegisterRoutes(r, d.Q)
-		v1pricepoints.RegisterRoutes(r, d.Q)
+		v1productvariantimages.RegisterRoutesPublic(r, d.Q, d.Storage, d.MediaBaseURL)
+		v1inventory.RegisterRoutesPublic(r, d.Q)
+		v1pricepoints.RegisterRoutesPublic(r, d.Q)
 
 		r.Group(func(r chi.Router) {
 			us := usersvc.NewService(d.Q)
@@ -105,6 +105,14 @@ func New(d Deps) http.Handler {
 			r.Use(middleware.RequireSessionCookie(d.FirebaseAuth, us, "luigi_session"))
 			r.Use(middleware.RequireStaffOrAdmin())
 
+			v1shops.RegisterRoutesPrivate(r, d.Q)
+			v1stores.RegisterRoutesPrivate(r, d.Q)
+			v1products.RegisterRoutesPrivate(r, d.Q)
+			v1product_variants.RegisterRoutesPrivate(r, d.Q)
+			v1categories.RegisterRoutesPrivate(r, d.Q)
+			v1productvariantimages.RegisterRoutesPrivate(r, d.Q, d.Storage, d.MediaBaseURL)
+			v1inventory.RegisterRoutesPrivate(r, d.Q)
+			v1pricepoints.RegisterRoutesPrivate(r, d.Q)
 			v1users.RegisterRoutes(r, d.Q, d.FirebaseAuth)
 			v1customers.RegisterRoutes(r, d.Q)
 			v1adminreservations.RegisterRoutes(r, d.SQLDB, reservationCore)
