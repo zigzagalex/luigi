@@ -58,8 +58,10 @@ func main() {
 		SQLDB:        sqlDB,
 		FirebaseAuth: fbAuth,
 		Env:          cfg.Env,
+		CORSOrigins:  cfg.CORSOrigins,
 	})
 
+	log.Printf("CORS allowlist: %v", cfg.CORSOrigins)
 	log.Printf("listening on :%s", cfg.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Port, r))
 }

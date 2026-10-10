@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strings"
 	"time"
 )
 
@@ -19,6 +20,8 @@ type Config struct {
 	MediaBaseURL  string
 
 	FirebaseProjectID string
+
+	CORSOrigins []string
 }
 
 // soft-get with default
@@ -73,8 +76,8 @@ func Load() Config {
 
 func base(env, port, url string) Config {
 	var (
-		gcsBucket    string
-		mediaBaseURL string
+		gcsBucket          string
+		mediaBaseURL       string
 		firebaseProdjectId string
 	)
 
@@ -93,15 +96,37 @@ func base(env, port, url string) Config {
 	}
 
 	return Config{
-		Env:             env,
-		Port:            port,
-		DatabaseURL:     url,
-		MaxOpenConns:    10,
-		MaxIdleConns:    5,
-		ConnMaxIdle:     5 * time.Minute,
-		ConnMaxLifetime: 30 * time.Minute,
-		GCSBucketName:   gcsBucket,
-		MediaBaseURL:    mediaBaseURL,
+		Env:               env,
+		Port:              port,
+		DatabaseURL:       url,
+		MaxOpenConns:      10,
+		MaxIdleConns:      5,
+		ConnMaxIdle:       5 * time.Minute,
+		ConnMaxLifetime:   30 * time.Minute,
+		GCSBucketName:     gcsBucket,
+		MediaBaseURL:      mediaBaseURL,
 		FirebaseProjectID: firebaseProdjectId,
+		CORSOrigins:       loadCORSOrigins(),
 	}
+}
+
+func loadCORSOrigins() []string {
+	raw := strings.TrimSpace(must("CORS_ORIGINS"))
+
+	parts := strings.Split(raw, ",")
+	origins := make([]string, 0, len(parts))
+	for _, p := range parts {
+		o := strings.TrimSpace(p)
+		if o == "" {
+			continue
+		}
+		if o == "*" {
+			panic("CORS_ORIGINS cannot be '*' when AllowCredentials is enabled; list explicit origins")
+		}
+		origins = append(origins, o)
+	}
+	if len(origins) == 0 {
+		panic("CORS_ORIGINS is set but empty after parsing")
+	}
+	return origins
 }
