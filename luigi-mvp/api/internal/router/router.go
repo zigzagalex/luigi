@@ -44,19 +44,16 @@ type Deps struct {
 
 	FirebaseAuth *fbauth.Client
 	Env          string
+	CORSOrigins  []string
 }
 
 func New(d Deps) http.Handler {
 	r := chi.NewRouter()
 	c := cors.New(cors.Options{
-		AllowedOrigins: []string{
-			"http://localhost:3000",
-			"http://localhost:3001",
-		},
-		AllowedMethods: []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders: []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		// Only set AllowCredentials=true if you actually use cookies.
-		AllowCredentials: true,
+		AllowedOrigins:   d.CORSOrigins,
+		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowCredentials: true, // required for luigi_session / luigi_guest cookies from browser
 		MaxAge:           300,
 	})
 
