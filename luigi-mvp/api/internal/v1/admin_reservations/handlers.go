@@ -12,6 +12,7 @@ import (
 
 	"github.com/go-chi/chi/v5"
 	"github.com/lib/pq"
+	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	"github.com/zigzagalex/luigi/api/internal/reservation"
@@ -103,9 +104,9 @@ type listReservationResponse struct {
 }
 
 func (h *Handler) ListByShop(w http.ResponseWriter, r *http.Request) {
-	shopID, err := parseIntQuery(r, "shop_id")
-	if err != nil || shopID <= 0 {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_shop_id", nil)
+	clientShopID, _ := parseIntQuery(r, "shop_id")
+	_, shopID, storeIDArg, ok := adminShopScope(w, r, clientShopID)
+	if !ok {
 		return
 	}
 	status := strings.TrimSpace(r.URL.Query().Get("status"))
@@ -151,10 +152,12 @@ SELECT
   r.pickup_person_email
 FROM reservations r
 LEFT JOIN customers c ON c.id = r.customer_id
-WHERE r.shop_id = $1 AND r.status = $2::reservation_status
+WHERE r.shop_id = $1
+  AND r.status = $2::reservation_status
+  AND ($5::bigint IS NULL OR r.store_id = $5::bigint)
 ORDER BY r.created_at DESC
 LIMIT $3 OFFSET $4
-`, shopID, status, limit, offset)
+`, shopID, status, limit, offset, storeIDArg)
 	if err != nil {
 		httpx.Fail(w, http.StatusInternalServerError, "list_admin_reservations_failed", err.Error())
 		return
@@ -215,9 +218,9 @@ LIMIT $3 OFFSET $4
 }
 
 func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
-	shopID, err := parseIntQuery(r, "shop_id")
-	if err != nil || shopID <= 0 {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_shop_id", nil)
+	clientShopID, _ := parseIntQuery(r, "shop_id")
+	u, shopID, sessionStoreArg, ok := adminShopScope(w, r, clientShopID)
+	if !ok {
 		return
 	}
 	q := strings.TrimSpace(r.URL.Query().Get("q"))
@@ -239,14 +242,17 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		locale = "en"
 	}
 
-	var storeIDArg interface{}
-	if s := strings.TrimSpace(r.URL.Query().Get("store_id")); s != "" {
-		v, err := strconv.ParseInt(s, 10, 64)
-		if err != nil || v <= 0 {
-			httpx.Fail(w, http.StatusBadRequest, "invalid_store_id", nil)
-			return
+	// Store-scoped staff are locked to their store. Shop-wide staff may optionally filter.
+	var storeIDArg interface{} = sessionStoreArg
+	if !u.StoreID.Valid || u.StoreID.Int64 <= 0 {
+		if s := strings.TrimSpace(r.URL.Query().Get("store_id")); s != "" {
+			v, err := strconv.ParseInt(s, 10, 64)
+			if err != nil || v <= 0 {
+				httpx.Fail(w, http.StatusBadRequest, "invalid_store_id", nil)
+				return
+			}
+			storeIDArg = v
 		}
-		storeIDArg = v
 	}
 
 	pattern := sqlLikePattern(q)
@@ -474,8 +480,12 @@ func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 		httpx.Fail(w, http.StatusBadRequest, "invalid_json", err.Error())
 		return
 	}
-	if body.ShopID <= 0 || body.ExpectedVersion <= 0 {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_shop_or_version", nil)
+	u, shopID, _, ok := adminShopScope(w, r, body.ShopID)
+	if !ok {
+		return
+	}
+	if body.ExpectedVersion <= 0 {
+		httpx.Fail(w, http.StatusBadRequest, "invalid_version", nil)
 		return
 	}
 	if !isAllowedStatus(body.Status) {
@@ -485,17 +495,22 @@ func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 
 	var currentStatus string
 	var currentVersion int32
+	var storeID int64
 	err = h.db.QueryRowContext(r.Context(), `
-SELECT status::text, version
+SELECT status::text, version, store_id
 FROM reservations
 WHERE id = $1 AND shop_id = $2
-`, reservationID, body.ShopID).Scan(&currentStatus, &currentVersion)
+`, reservationID, shopID).Scan(&currentStatus, &currentVersion, &storeID)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpx.Fail(w, http.StatusNotFound, "reservation_not_found", nil)
 			return
 		}
 		httpx.Fail(w, http.StatusInternalServerError, "load_status_failed", err.Error())
+		return
+	}
+	if u.StoreID.Valid && u.StoreID.Int64 > 0 && u.StoreID.Int64 != storeID {
+		httpx.Fail(w, http.StatusForbidden, "store_forbidden", nil)
 		return
 	}
 	if currentVersion != body.ExpectedVersion {
@@ -513,7 +528,7 @@ UPDATE reservations
 SET status = $1::reservation_status, version = version + 1, updated_at = now()
 WHERE id = $2 AND shop_id = $3 AND version = $4
 RETURNING version
-`, body.Status, reservationID, body.ShopID, body.ExpectedVersion).Scan(&nextVersion)
+`, body.Status, reservationID, shopID, body.ExpectedVersion).Scan(&nextVersion)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			httpx.Fail(w, http.StatusConflict, "version_conflict", nil)
@@ -540,19 +555,9 @@ func (h *Handler) Invoice(w http.ResponseWriter, r *http.Request) {
 		httpx.Fail(w, http.StatusBadRequest, "invalid_reservation_id", err.Error())
 		return
 	}
-	shopID, err := parseIntQuery(r, "shop_id")
-	if err != nil || shopID <= 0 {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_shop_id", nil)
-		return
-	}
-
-	u, ok := middleware.UserFromContext(r.Context())
+	clientShopID, _ := parseIntQuery(r, "shop_id")
+	u, shopID, _, ok := adminShopScope(w, r, clientShopID)
 	if !ok {
-		httpx.Fail(w, http.StatusUnauthorized, "not_authenticated", nil)
-		return
-	}
-	if u.ShopID.Valid && u.ShopID.Int64 > 0 && u.ShopID.Int64 != shopID {
-		httpx.Fail(w, http.StatusForbidden, "shop_forbidden", nil)
 		return
 	}
 
@@ -595,6 +600,30 @@ SELECT store_id FROM reservations WHERE id = $1 AND shop_id = $2
 	w.Header().Set("Content-Disposition", fmt.Sprintf(`attachment; filename="reservation-%d-invoice.pdf"`, reservationID))
 	w.WriteHeader(http.StatusOK)
 	_, _ = w.Write(pdf)
+}
+
+// adminShopScope binds admin reservation access to the session user's shop.
+// clientShopID, when > 0, must match; queries always use the session shop.
+// If the user is store-scoped, storeIDArg is their store_id; otherwise nil.
+func adminShopScope(w http.ResponseWriter, r *http.Request, clientShopID int64) (u db.User, shopID int64, storeIDArg interface{}, ok bool) {
+	u, authed := middleware.UserFromContext(r.Context())
+	if !authed {
+		httpx.Fail(w, http.StatusUnauthorized, "not_authenticated", nil)
+		return u, 0, nil, false
+	}
+	if !u.ShopID.Valid || u.ShopID.Int64 <= 0 {
+		httpx.Fail(w, http.StatusForbidden, "shop_required", nil)
+		return u, 0, nil, false
+	}
+	shopID = u.ShopID.Int64
+	if clientShopID > 0 && clientShopID != shopID {
+		httpx.Fail(w, http.StatusForbidden, "shop_forbidden", nil)
+		return u, 0, nil, false
+	}
+	if u.StoreID.Valid && u.StoreID.Int64 > 0 {
+		storeIDArg = u.StoreID.Int64
+	}
+	return u, shopID, storeIDArg, true
 }
 
 func ptrString(v sql.NullString) *string {
