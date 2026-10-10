@@ -4,7 +4,6 @@ import (
 	"errors"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 
@@ -22,12 +21,18 @@ func NewProductVariantImageHandler(svc *images.Service) *ProductVariantImageHand
 	return &ProductVariantImageHandler{svc: svc}
 }
 
-func RegisterRoutes(r chi.Router, q *db.Queries, store storage.Client, mediaBaseURL string) {
+func RegisterRoutesPublic(r chi.Router, q *db.Queries, store storage.Client, mediaBaseURL string) {
+	svc := images.NewService(q, store, mediaBaseURL)
+	h := NewProductVariantImageHandler(svc)
+
+	r.Get("/product_variants/{variantID}/images", h.List)
+}
+
+func RegisterRoutesPrivate(r chi.Router, q *db.Queries, store storage.Client, mediaBaseURL string) {
 	svc := images.NewService(q, store, mediaBaseURL)
 	h := NewProductVariantImageHandler(svc)
 
 	r.Post("/product_variants/{variantID}/images", h.Upload)
-	r.Get("/product_variants/{variantID}/images", h.List)
 	r.Delete("/product_variants/{variantID}/images/{imageID}", h.Delete)
 }
 
@@ -42,22 +47,26 @@ func (h *ProductVariantImageHandler) Upload(w http.ResponseWriter, r *http.Reque
 		return
 	}
 
+	r.Body = http.MaxBytesReader(w, r.Body, 20<<20)
+
 	file, header, err := r.FormFile("file")
 	if err != nil {
+		var maxBytesErr *http.MaxBytesError
+		if errors.As(err, &maxBytesErr) {
+			httpx.Fail(w, http.StatusRequestEntityTooLarge, "file too large (max 10MB)", nil)
+			return
+		}
 		httpx.Fail(w, http.StatusBadRequest, "missing file", nil)
 		return
 	}
 	defer file.Close()
 
-	contentType := header.Header.Get("Content-Type")
-
-	var objectKeyOverride *string
-	if v := strings.TrimSpace(r.FormValue("object_key")); v != "" {
-		objectKeyOverride = &v
-	}
-
-	img, err := h.svc.UploadVariantImage(r.Context(), variantID, file, header.Filename, contentType, objectKeyOverride)
+	img, err := h.svc.UploadVariantImage(r.Context(), variantID, file, header.Filename)
 	if err != nil {
+		if errors.Is(err, images.ErrUnsupportedFormat) {
+			httpx.Fail(w, http.StatusBadRequest, err.Error(), nil)
+			return
+		}
 		httpx.Fail(w, http.StatusInternalServerError, "failed to upload image", err.Error())
 		return
 	}

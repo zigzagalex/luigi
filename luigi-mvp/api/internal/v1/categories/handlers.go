@@ -15,22 +15,27 @@ import (
 	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
 
-func RegisterRoutes(r chi.Router, q db.Querier) {
+func RegisterRoutesPublic(r chi.Router, q db.Querier) {
 	svc := categoriessvc.NewService(q)
 
-	// /v1/categories...
 	r.Route("/categories", func(r chi.Router) {
-		r.Get("/", listHandler(svc))                  // GET  /categories?shop_id=
-		r.Get("/tree", treeHandler(svc))              // GET  /categories/tree?shop_id=
+		r.Get("/", listHandler(svc))     // GET  /categories?shop_id=
+		r.Get("/tree", treeHandler(svc)) // GET  /categories/tree?shop_id=
+	})
+
+	r.Get("/products/{productID}/categories", listProductCategoriesHandler(svc)) // GET /products/{productID}/categories
+}
+
+func RegisterRoutesPrivate(r chi.Router, q db.Querier) {
+	svc := categoriessvc.NewService(q)
+
+	r.Route("/categories", func(r chi.Router) {
 		r.Post("/", createHandler(svc))               // POST /categories
 		r.Put("/{categoryID}", updateHandler(svc))    // PUT  /categories/{categoryID}
 		r.Delete("/{categoryID}", deleteHandler(svc)) // DELETE /categories/{categoryID}
 	})
 
-	// /v1/products/{productID}/categories...
 	r.Put("/products/{productID}/categories", replaceProductCategoriesHandler(svc)) // PUT /products/{productID}/categories
-	r.Get("/products/{productID}/categories", listProductCategoriesHandler(svc))    // GET /products/{productID}/categories
-
 }
 
 func parseIDParam(r *http.Request, name string) (int64, bool) {

@@ -11,30 +11,26 @@ import (
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
 	productsvc "github.com/zigzagalex/luigi/api/internal/products"
-	"github.com/zigzagalex/luigi/api/internal/storage"
 	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
 
-func RegisterRoutes(r chi.Router, q db.Querier, store storage.Client, mediaBaseURL string) {
+func RegisterRoutesPublic(r chi.Router, q db.Querier, mediaBaseURL string) {
 	svc := productsvc.NewService(q)
 
-	// Debug route to prove this file is wired
-	r.Get("/products/debug/ping", func(w http.ResponseWriter, r *http.Request) {
-		w.Header().Set("Content-Type", "text/plain")
-		_, _ = w.Write([]byte("products ping OK"))
-	})
-
-	// All product routes under /v1/products
 	r.Route("/products", func(r chi.Router) {
-		// /v1/products
 		r.Get("/", listHandler(svc, mediaBaseURL))
-		r.Post("/", createHandler(svc))
-
-		// /v1/products/{productID}
 		r.Get("/{productID}", getHandler(svc))
+		r.Get("/{productID}/translations", listTranslationsHandler(svc))
+	})
+}
+
+func RegisterRoutesPrivate(r chi.Router, q db.Querier) {
+	svc := productsvc.NewService(q)
+
+	r.Route("/products", func(r chi.Router) {
+		r.Post("/", createHandler(svc))
 		r.Put("/{productID}", updateHandler(svc))
 		r.Delete("/{productID}", deleteHandler(svc))
-		r.Get("/{productID}/translations", listTranslationsHandler(svc))
 		r.Put("/{productID}/translations/{locale}", upsertTranslationHandler(svc))
 		r.Delete("/{productID}/translations/{locale}", deleteTranslationHandler(svc))
 	})

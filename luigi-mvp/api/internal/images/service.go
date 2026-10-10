@@ -1,12 +1,13 @@
 package images
 
 import (
+	"bytes"
 	"context"
 	"database/sql"
+	"errors"
 	"fmt"
 	"io"
-	"path/filepath"
-	"strings"
+	"net/http"
 
 	"github.com/google/uuid"
 
@@ -46,25 +47,38 @@ type ImageDTO struct {
 	AltText   *string `json:"alt_text,omitempty"`
 }
 
-var ErrNotFound = sql.ErrNoRows
+var (
+	ErrNotFound          = sql.ErrNoRows
+	ErrUnsupportedFormat = errors.New("unsupported image format")
+)
 
 func (s *Service) UploadVariantImage(
 	ctx context.Context,
 	variantID int64,
 	file io.Reader,
 	filename string,
-	contentType string,
-	objectKeyOverride *string,
 ) (ImageDTO, error) {
-	key := s.objectKeyForVariant(variantID, filename)
-	if objectKeyOverride != nil {
-		v := filepath.Clean(strings.TrimSpace(*objectKeyOverride))
-		if v != "" && v != "." {
-			key = v
-		}
+	buf := make([]byte, 512)
+	n, err := io.ReadFull(file, buf)
+	contentType := http.DetectContentType(buf[:n])
+
+	var ext string
+	switch contentType {
+	case "image/jpeg":
+		ext = ".jpg"
+	case "image/png":
+		ext = ".png"
+	case "image/webp":
+		ext = ".webp"
+	default:
+		return ImageDTO{}, ErrUnsupportedFormat
 	}
 
-	if err := s.storage.Upload(ctx, key, file, contentType); err != nil {
+	key := s.objectKeyForVariant(variantID, ext)
+
+	fullStream := io.MultiReader(bytes.NewReader(buf[:n]), file)
+
+	if err := s.storage.Upload(ctx, key, fullStream, contentType); err != nil {
 		return ImageDTO{}, err
 	}
 
@@ -126,12 +140,8 @@ func (s *Service) GetPrimaryImageURL(ctx context.Context, variantID int64) (stri
 	return s.publicURL(img.ObjectKey), nil
 }
 
-func (s *Service) objectKeyForVariant(variantID int64, filename string) string {
+func (s *Service) objectKeyForVariant(variantID int64, ext string) string {
 	id := uuid.New().String()
-	ext := filepath.Ext(filename)
-	if ext == "" {
-		ext = ".jpg"
-	}
 	return fmt.Sprintf("product-variants/%d/%s_orig%s", variantID, id, ext)
 }
 

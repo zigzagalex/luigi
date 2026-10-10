@@ -14,13 +14,19 @@ import (
 	pricepoints "github.com/zigzagalex/luigi/api/internal/price_points"
 )
 
-// RegisterRoutes wires the /v1/price_points endpoints.
-func RegisterRoutes(r chi.Router, q db.Querier) {
+func RegisterRoutesPublic(r chi.Router, q db.Querier) {
 	svc := pricepoints.NewService(q)
 
 	r.Route("/price_points", func(r chi.Router) {
 		r.Get("/", listHandler(svc))
 		r.Get("/{priceCategory}/{dayCount}", getHandler(svc))
+	})
+}
+
+func RegisterRoutesPrivate(r chi.Router, q db.Querier) {
+	svc := pricepoints.NewService(q)
+
+	r.Route("/price_points", func(r chi.Router) {
 		r.Put("/{priceCategory}/{dayCount}", upsertHandler(svc))
 		r.Delete("/{priceCategory}/{dayCount}", deleteHandler(svc))
 	})
