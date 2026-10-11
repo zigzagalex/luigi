@@ -266,113 +266,148 @@ export default function CheckoutPage() {
   }, [t]);
 
   const missing = missingRequired(customer);
-  const missingDraft = missingRequired(profileDraft);
+  const activeProfile = profileExpanded ? profileDraft : customer;
+  const activeMissing = missingRequired(activeProfile);
   const pickupMissingFields = React.useMemo(() => {
-    if (!pickupDraft.enabled) return [] as string[];
+    const source = pickupExpanded ? pickupDraft : pickup;
+    if (!source.enabled) return [] as string[];
     const missingFields: string[] = [];
-    if (!pickupDraft.first_name.trim()) missingFields.push(t("firstName"));
-    if (!pickupDraft.last_name.trim()) missingFields.push(t("lastName"));
-    if (!pickupDraft.email.trim()) missingFields.push(t("email"));
-    if (!pickupDraft.phone.trim()) missingFields.push(t("phone"));
+    if (!source.first_name.trim()) missingFields.push(t("firstName"));
+    if (!source.last_name.trim()) missingFields.push(t("lastName"));
+    if (!source.email.trim()) missingFields.push(t("email"));
+    if (!source.phone.trim()) missingFields.push(t("phone"));
     return missingFields;
-  }, [pickupDraft, t]);
-  const profileComplete = missing.length === 0;
-
-  async function onContinueProfile() {
-    setProfileError(null);
-
-    if (missingDraft.length > 0) {
-      setProfileError(t("pleaseFill", { fields: missingDraft.map(profileFieldLabel).join(", ") }));
-      return;
-    }
-
-    setProfileSaving(true);
-    try {
-      const saved = await saveCustomer(profileDraft);
-      setCustomer(saved);
-      setProfileDraft(saved);
-      setProfileExpanded(false);
-    } catch (e: any) {
-      setProfileError(e?.message ?? t("failedToSaveProfile"));
-    } finally {
-      setProfileSaving(false);
-    }
-  }
-
-  function onSavePickup() {
-    setPickup(pickupDraft);
-    setPickupExpanded(false);
-  }
+  }, [pickup, pickupDraft, pickupExpanded, t]);
+  const profileComplete = activeMissing.length === 0;
+  const profileDirty =
+    JSON.stringify(normalizeForApi(profileDraft)) !== JSON.stringify(normalizeForApi(customer));
+  const termsReady = profileComplete && pickupMissingFields.length === 0 && items.length > 0 && canCheckout;
 
   const canBuy =
     !authLoading &&
     !!me &&
-    profileComplete &&
+    termsReady &&
     agreed &&
-    items.length > 0 &&
-    canCheckout; 
+    !profileSaving;
 
-    async function onBuy() {
-      setCheckoutBanner(null);
+  React.useEffect(() => {
+    if (!termsReady && agreed) setAgreed(false);
+  }, [termsReady, agreed]);
 
-      if (!agreed) {
-        setCheckoutBanner({ kind: "warning", message: t("acceptTermsAlert") });
+  async function onBuy() {
+    setCheckoutBanner(null);
+    setProfileError(null);
+
+    if (!agreed) {
+      setCheckoutBanner({ kind: "warning", message: t("acceptTermsAlert") });
+      return;
+    }
+
+    if (activeMissing.length > 0) {
+      setProfileExpanded(true);
+      setCheckoutBanner({
+        kind: "warning",
+        message: t("pleaseFill", { fields: activeMissing.map(profileFieldLabel).join(", ") }),
+      });
+      return;
+    }
+
+    if (pickupMissingFields.length > 0) {
+      setPickupExpanded(true);
+      setCheckoutBanner({
+        kind: "warning",
+        message: t("pleaseFill", { fields: pickupMissingFields.join(", ") }),
+      });
+      return;
+    }
+
+    let savedCustomer = customer;
+    if (profileDirty || profileExpanded) {
+      setProfileSaving(true);
+      try {
+        savedCustomer = await saveCustomer(profileDraft);
+        setCustomer(savedCustomer);
+        setProfileDraft(savedCustomer);
+        setProfileExpanded(false);
+      } catch (e: unknown) {
+        const message = e instanceof Error ? e.message : t("failedToSaveProfile");
+        setProfileError(message);
+        setCheckoutBanner({ kind: "error", message });
+        setProfileSaving(false);
+        return;
+      } finally {
+        setProfileSaving(false);
+      }
+    }
+
+    const nextPickup = pickupExpanded ? pickupDraft : pickup;
+    if (pickupExpanded) {
+      setPickup(pickupDraft);
+      setPickupExpanded(false);
+    }
+
+    const idempotencyKey = crypto.randomUUID();
+
+    const customerName = `${savedCustomer.first_name} ${savedCustomer.last_name}`.trim();
+
+    const pickupPersonName = nextPickup.enabled
+      ? `${nextPickup.first_name.trim()} ${nextPickup.last_name.trim()}`.trim()
+      : customerName;
+
+    const pickupPersonEmail = nextPickup.enabled ? nextPickup.email.trim() : savedCustomer.email.trim();
+    const pickupPersonPhone = nextPickup.enabled ? nextPickup.phone.trim() : savedCustomer.phone.trim();
+
+    const notesTrimmed = savedCustomer.notes?.trim() || null;
+
+    const payload = {
+      shop_id: me?.shop_id,
+      store_id: cart?.store_id,
+      idempotency_key: idempotencyKey,
+      notes: notesTrimmed,
+
+      pickup_person_name: pickupPersonName || null,
+      pickup_person_email: pickupPersonEmail || null,
+      pickup_person_phone: pickupPersonPhone || null,
+    };
+
+    try {
+      const res = await fetch("/api/reservations/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        console.error(data);
+        setCheckoutBanner({ kind: "error", message: t("checkoutFailed") });
         return;
       }
 
-      const idempotencyKey = crypto.randomUUID();
-
-      const customerName = `${customer.first_name} ${customer.last_name}`.trim();
-
-      const pickupPersonName = pickup.enabled
-        ? `${pickup.first_name.trim()} ${pickup.last_name.trim()}`.trim()
-        : customerName;
-
-      const pickupPersonEmail = pickup.enabled ? pickup.email.trim() : customer.email.trim();
-      const pickupPersonPhone = pickup.enabled ? pickup.phone.trim() : customer.phone.trim();
-
-      const notesTrimmed = (profileExpanded ? profileDraft.notes : customer.notes)?.trim() || null;
-
-      const payload = {
-        shop_id: me?.shop_id,
-        store_id: cart?.store_id,
-        idempotency_key: idempotencyKey,
-        notes: notesTrimmed,
-
-        pickup_person_name: pickupPersonName || null,
-        pickup_person_email: pickupPersonEmail || null,
-        pickup_person_phone: pickupPersonPhone || null,
-      };
-    
       try {
-        const res = await fetch("/api/reservations/checkout", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload),
-        });
-    
-        const data = await res.json();
-    
-        if (!res.ok) {
-          console.error(data);
-          setCheckoutBanner({ kind: "error", message: t("checkoutFailed") });
-          return;
-        }
-
-        try {
-          sessionStorage.setItem("luigi.checkout.reservations", JSON.stringify(data));
-        } catch {
-          // ignore storage failures; confirmation page still shows success
-        }
-
-        await refresh();
-
-        router.push(localeHref(locale, "/checkout/confirmation?success=1"));
-      } catch (err) {
-        console.error(err);
-        setCheckoutBanner({ kind: "error", message: t("unexpectedError") });
+        sessionStorage.setItem("luigi.checkout.reservations", JSON.stringify(data));
+        sessionStorage.setItem(
+          "luigi.checkout.meta",
+          JSON.stringify({
+            store_name: store_name ?? null,
+            store_address: store_address ?? null,
+            store_postalcode: store_postalcode ?? null,
+            store_city: store_city ?? null,
+          }),
+        );
+      } catch {
+        // ignore storage failures; confirmation page still shows success
       }
+
+      await refresh();
+
+      router.push(localeHref(locale, "/checkout/confirmation?success=1"));
+    } catch (err) {
+      console.error(err);
+      setCheckoutBanner({ kind: "error", message: t("unexpectedError") });
     }
+  }
 
   if (authLoading) return <div className={styles.page}>{t("loadingCart")}</div>;
 
@@ -513,17 +548,28 @@ export default function CheckoutPage() {
                 disabled={profileSaving}
                 autoComplete="address-level2"
               />
-              <Field
-                id={`${fieldId}-profile-country`}
-                label={t("country")}
-                placeholder={t("countryPlaceholder")}
-                value={profileDraft.country}
-                onChange={(v) => setProfileDraft((p) => ({ ...p, country: v }))}
-                disabled={profileSaving}
-                autoComplete="country"
-              />
+              <div className={styles.field}>
+                <label className={styles.fieldLabel} htmlFor={`${fieldId}-profile-country`}>
+                  {t("country")}
+                </label>
+                <select
+                  id={`${fieldId}-profile-country`}
+                  className={styles.input}
+                  value={profileDraft.country || "CH"}
+                  onChange={(e) => setProfileDraft((p) => ({ ...p, country: e.target.value }))}
+                  disabled={profileSaving}
+                  autoComplete="country"
+                >
+                  <option value="CH">CH</option>
+                  <option value="DE">DE</option>
+                  <option value="AT">AT</option>
+                  <option value="FR">FR</option>
+                  <option value="IT">IT</option>
+                </select>
+              </div>
               <Field
                 id={`${fieldId}-profile-address2`}
+                className={styles.fieldFullWidth}
                 label={t("address2")}
                 value={profileDraft.address2}
                 onChange={(v) => setProfileDraft((p) => ({ ...p, address2: v }))}
@@ -547,28 +593,23 @@ export default function CheckoutPage() {
 
             {profileError ? <div className={styles.errorBox}>{profileError}</div> : null}
 
-            <div className={styles.expandActions}>
-              <button
-                className={styles.btnGhost}
-                onClick={() => {
-                  setProfileDraft(customer);
-                  setProfileExpanded(false);
-                  setProfileError(null);
-                }}
-                disabled={profileSaving}
-              >
-                {t("cancel")}
-              </button>
-
-              <button
-                className={styles.btnPrimary}
-                onClick={onContinueProfile}
-                disabled={profileSaving || missingDraft.length > 0}
-                title={missingDraft.length > 0 ? t("missingTitle", { fields: missingDraft.map(profileFieldLabel).join(", ") }) : ""}
-              >
-                {profileSaving ? t("saving") : t("save")}
-              </button>
-            </div>
+            {missing.length === 0 ? (
+              <div className={styles.expandActions}>
+                <button
+                  className={styles.btnGhost}
+                  onClick={() => {
+                    setProfileDraft(customer);
+                    setProfileExpanded(false);
+                    setProfileError(null);
+                  }}
+                  disabled={profileSaving}
+                >
+                  {t("cancel")}
+                </button>
+              </div>
+            ) : (
+              <div className={styles.muted}>{t("confirmSavesProfileHint")}</div>
+            )}
           </div>
         )}
       </div>
@@ -777,15 +818,6 @@ export default function CheckoutPage() {
               >
                 {t("cancel")}
               </button>
-
-              <button
-                className={styles.btnPrimary}
-                onClick={onSavePickup}
-                disabled={pickupMissingFields.length > 0}
-                title={pickupMissingFields.length > 0 ? t("missingTitle", { fields: pickupMissingFields.join(", ") }) : ""}
-              >
-                {t("save")}
-              </button>
             </div>
           </div>
         )}
@@ -809,6 +841,7 @@ export default function CheckoutPage() {
           <input
             type="checkbox"
             checked={agreed}
+            disabled={!termsReady}
             onChange={(e) => {
               const checked = e.target.checked;
               setAgreed(checked);
@@ -842,7 +875,7 @@ export default function CheckoutPage() {
         <button
           className={styles.buyBtn}
           disabled={!canBuy}
-          onClick={onBuy}
+          onClick={() => void onBuy()}
           title={
             blockedItems.length > 0
               ? t("fixBlockedItemsTitle")
@@ -855,7 +888,7 @@ export default function CheckoutPage() {
               : ""
           }
         >
-          {t("rent")}
+          {profileSaving ? t("saving") : t("rent")}
         </button>
 
         {blockedItems.length > 0 ? (

@@ -37,6 +37,13 @@ export function FindReservationPageClient() {
   const router = useRouter();
   const { me, loading } = useAdminAuth();
   const { selectedStoreId, stores } = useAdminStore();
+  const storeNameById = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const store of stores) {
+      map.set(store.id, store.name || store.city);
+    }
+    return map;
+  }, [stores]);
   const [query, setQuery] = useState("");
   const [debouncedQuery, setDebouncedQuery] = useState("");
   const [includeCancelled, setIncludeCancelled] = useState(false);
@@ -182,7 +189,7 @@ export function FindReservationPageClient() {
               </tr>
             ) : (
               hits.map((api) => {
-                const row = mapApiToRow(api);
+                const row = mapApiToRow(api, storeNameById);
                 return (
                   <tr key={api.reservation_id}>
                     <td>{api.reservation_id}</td>
@@ -228,6 +235,7 @@ export function FindReservationPageClient() {
             <ReservationFlow
               reservation={selectedReservation.reservation}
               meRole={me.role}
+              locale={locale}
               onReservationChange={(next) => void handleReservationChange(selectedReservation, next)}
             />
           </div>

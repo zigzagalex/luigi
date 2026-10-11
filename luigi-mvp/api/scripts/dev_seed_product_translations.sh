@@ -31,16 +31,16 @@ The **Standard MTB Trail 1** is built for riders who want confidence and comfort
 - Hydraulic disc brakes for secure stopping
 
 _Best for_: weekend trail rides and daily fitness sessions.$$),
-      ('STD-MTB-TRAIL-1', 'de', 'Standard MTB Trail 1', 'Hardtail-Mountainbike fuer leichte Trail-Touren.', $$### Trail-Hardtail fuer Einsteiger
+      ('STD-MTB-TRAIL-1', 'de', 'Standard MTB Trail 1', 'Hardtail-Mountainbike für leichte Trail-Touren.', $$### Trail-Hardtail für Einsteiger
 Das **Standard MTB Trail 1** bietet Sicherheit und Komfort auf wechselndem Untergrund.
 
 - Leichter Aluminiumrahmen
-- Federgabel fuer Wurzeln und Schotter
+- Federgabel für Wurzeln und Schotter
 - Stabile Geometrie mit gutem Handling
-- Zuverlaessiger 1x-Antrieb mit grossem Uebersetzungsbereich
+- Zuverlässiger 1x-Antrieb mit grossem Übersetzungsbereich
 - Hydraulische Scheibenbremsen
 
-_Ideal fuer_: Wochenend-Trails und regelmaessiges Training.$$),
+_Ideal für_: Wochenend-Trails und regelmässiges Training.$$),
       ('STD-MTB-TRAIL-1', 'fr', 'Standard MTB Trail 1', 'VTT semi-rigide pour sentiers faciles.', $$### Semi-rigide polyvalent
 Le **Standard MTB Trail 1** offre un excellent equilibre entre confort et controle.
 
@@ -83,16 +83,16 @@ The **Standard MTB Trail 2** gives extra grip and comfort on rougher sections.
 - Disc brakes with consistent modulation
 
 _Best for_: riders moving from city paths to rougher trails.$$),
-      ('STD-MTB-TRAIL-2', 'de', 'Standard MTB Trail 2', 'Einsteiger-Fully fuer Wochenendtouren auf Trails.', $$### Komfortables Einsteiger-Fully
+      ('STD-MTB-TRAIL-2', 'de', 'Standard MTB Trail 2', 'Einsteiger-Fully für Wochenendtouren auf Trails.', $$### Komfortables Einsteiger-Fully
 Das **Standard MTB Trail 2** bietet mehr Traktion und Komfort auf unebenem Terrain.
 
-- Vollfederung fuer bessere Kontrolle
-- Ausgewogene Rahmengeometrie fuer Anstieg und Abfahrt
-- Modernes Cockpit fuer sicheres Fahrgefuehl
-- Robuster Laufradsatz fuer haeufige Trails
+- Vollfederung für bessere Kontrolle
+- Ausgewogene Rahmengeometrie für Anstieg und Abfahrt
+- Modernes Cockpit für sicheres Fahrgefühl
+- Robuster Laufradsatz für häufige Trails
 - Scheibenbremsen mit gut dosierbarer Bremskraft
 
-_Ideal fuer_: den Umstieg von Radwegen auf echte Trails.$$),
+_Ideal für_: den Umstieg von Radwegen auf echte Trails.$$),
       ('STD-MTB-TRAIL-2', 'fr', 'Standard MTB Trail 2', 'VTT tout-suspendu debutant pour sorties du week-end.', $$### Tout-suspendu accessible
 Le **Standard MTB Trail 2** apporte plus d'adherence et de confort sur terrain casse.
 
@@ -135,16 +135,16 @@ The **Standard Road Endurance 1** focuses on all-day comfort without losing effi
 - Disc brakes for all-weather control
 
 _Best for_: long weekend rides and sportive preparation.$$),
-      ('STD-RD-END-1', 'de', 'Standard Road Endurance 1', 'Endurance-Rennrad fuer entspannte lange Strecken.', $$### Komfort fuer lange Distanzen
+      ('STD-RD-END-1', 'de', 'Standard Road Endurance 1', 'Endurance-Rennrad für entspannte lange Strecken.', $$### Komfort für lange Distanzen
 Das **Standard Road Endurance 1** verbindet Ausdauerkomfort mit effizientem Vortrieb.
 
 - Endurance-Geometrie zur Entlastung von Ruecken und Nacken
 - Ruhiger Geradeauslauf dank stabilem Radstand
 - Rahmen mit guter Vibrationsdaempfung
-- Praeziser Antrieb fuer lange Etappen
-- Scheibenbremsen fuer jede Wetterlage
+- Präziser Antrieb für lange Etappen
+- Scheibenbremsen für jede Wetterlage
 
-_Ideal fuer_: lange Touren und Jedermann-Rennen.$$),
+_Ideal für_: lange Touren und Jedermann-Rennen.$$),
       ('STD-RD-END-1', 'fr', 'Standard Road Endurance 1', 'Velo de route endurance pour longues sorties confortables.', $$### Route endurance au long cours
 Le **Standard Road Endurance 1** privilegie le confort sur plusieurs heures de selle.
 
@@ -187,16 +187,16 @@ The **Standard Road Endurance 2** blends city practicality with road-bike effici
 - Easy service design for low maintenance
 
 _Best for_: commuting during the week and longer rides on weekends.$$),
-      ('STD-RD-END-2', 'de', 'Standard Road Endurance 2', 'Komfortorientiertes Rennrad fuer Stadt und Landstrasse.', $$### Vielseitig fuer Stadt und Tour
+      ('STD-RD-END-2', 'de', 'Standard Road Endurance 2', 'Komfortorientiertes Rennrad für Stadt und Landstrasse.', $$### Vielseitig für Stadt und Tour
 Das **Standard Road Endurance 2** kombiniert Alltagstauglichkeit mit effizientem Vortrieb.
 
-- Etwas aufrechtere Sitzposition fuer bessere Uebersicht
-- Leichtlaufende Bereifung fuer Asphalt und Stadtverkehr
+- Etwas aufrechtere Sitzposition für bessere Übersicht
+- Leichtlaufende Bereifung für Asphalt und Stadtverkehr
 - Sicheres Lenkverhalten im Verkehr
-- Robuste Komponenten fuer hohe Laufleistung
+- Robuste Komponenten für hohe Laufleistung
 - Wartungsfreundlicher Aufbau
 
-_Ideal fuer_: Pendeln und Wochenendtouren.$$),
+_Ideal für_: Pendeln und Wochenendtouren.$$),
       ('STD-RD-END-2', 'fr', 'Standard Road Endurance 2', 'Velo route confortable pour usage mixte ville et route.', $$### Polyvalent ville + route
 Le **Standard Road Endurance 2** associe confort quotidien et rendement routier.
 
@@ -239,16 +239,16 @@ The **Standard Road City 1** is designed for quick urban mobility and comfort.
 - Reliable braking for stop-and-go traffic
 
 _Best for_: daily commuting, errands, and short fitness rides.$$),
-      ('STD-RD-CITY-1', 'de', 'Standard Road City 1', 'Flatbar-Road/City-Bike fuer den taeglichen Arbeitsweg.', $$### Schnelles City-Bike
+      ('STD-RD-CITY-1', 'de', 'Standard Road City 1', 'Flatbar-Road/City-Bike für den täglichen Arbeitsweg.', $$### Schnelles City-Bike
 Das **Standard Road City 1** bringt dich schnell und komfortabel durch die Stadt.
 
-- Gerader Lenker fuer direkte Kontrolle
-- Wendige Geometrie fuer den Stadtverkehr
+- Gerader Lenker für direkte Kontrolle
+- Wendige Geometrie für den Stadtverkehr
 - Effiziente Reifen mit geringem Rollwiderstand
-- Aufnahmen fuer Schutzbleche und Gepaecktraeger
-- Zuverlaessige Bremsen fuer Stop-and-go
+- Aufnahmen für Schutzbleche und Gepäckträger
+- Zuverlässige Bremsen für Stop-and-go
 
-_Ideal fuer_: Pendeln, Erledigungen und kurze Trainingsrunden.$$),
+_Ideal für_: Pendeln, Erledigungen und kurze Trainingsrunden.$$),
       ('STD-RD-CITY-1', 'fr', 'Standard Road City 1', 'Velo route/city a guidon plat pour trajets quotidiens.', $$### Commuter urbain rapide
 Le **Standard Road City 1** facilite les deplacements en ville au quotidien.
 
@@ -291,16 +291,16 @@ The **Pro MTB Enduro 1** is tuned for aggressive descents and technical terrain.
 - Reinforced wheelset for enduro impacts
 
 _Best for_: advanced riders, bike parks, and enduro race stages.$$),
-      ('PRO-MTB-END-1', 'de', 'Pro MTB Enduro 1', 'High-End-Enduro-MTB mit langem Federweg.', $$### Enduro fuer anspruchsvolle Trails
-Das **Pro MTB Enduro 1** ist auf schnelle Abfahrten und technisches Gelaende ausgelegt.
+      ('PRO-MTB-END-1', 'de', 'Pro MTB Enduro 1', 'High-End-Enduro-MTB mit langem Federweg.', $$### Enduro für anspruchsvolle Trails
+Das **Pro MTB Enduro 1** ist auf schnelle Abfahrten und technisches Gelände ausgelegt.
 
 - Fahrwerk mit viel Federweg und progressiver Kennlinie
-- Steifer Rahmen fuer praezise Linienwahl
-- Vario-Sattelstuetze fuer aktive Fahrposition
+- Steifer Rahmen für präzise Linienwahl
+- Vario-Sattelstütze für aktive Fahrposition
 - Kraftvolle 4-Kolben-Bremsanlage
-- Verstaerkter Laufradsatz fuer harte Einsaetze
+- Verstärkter Laufradsatz für harte Einsätze
 
-_Ideal fuer_: ambitionierte Fahrer und Enduro-Rennen.$$),
+_Ideal für_: ambitionierte Fahrer und Enduro-Rennen.$$),
       ('PRO-MTB-END-1', 'fr', 'Pro MTB Enduro 1', 'VTT enduro haut de gamme a grand debattement.', $$### Enduro performance
 Le **Pro MTB Enduro 1** est concu pour la vitesse en descente et les passages engages.
 
@@ -343,16 +343,16 @@ The **Pro MTB Downhill 1** is purpose-built for steep lines and maximum stabilit
 - Reinforced drivetrain for gravity use
 
 _Best for_: bike parks, downhill tracks, and shuttle days.$$),
-      ('PRO-MTB-DH-1', 'de', 'Pro MTB Downhill 1', 'Downhill-MTB fuer Bikepark und Rennstrecke.', $$### Reines Downhill-Bike
-Das **Pro MTB Downhill 1** ist auf steiles Gelaende und maximale Laufruhe optimiert.
+      ('PRO-MTB-DH-1', 'de', 'Pro MTB Downhill 1', 'Downhill-MTB für Bikepark und Rennstrecke.', $$### Reines Downhill-Bike
+Das **Pro MTB Downhill 1** ist auf steiles Gelände und maximale Laufruhe optimiert.
 
 - Downhill-Geometrie mit tiefem Schwerpunkt
-- Belastbares Fahrwerk fuer grosse Schlaege
-- Gripstarke Bereifung fuer lose Untergruende
+- Belastbares Fahrwerk für grosse Schläge
+- Gripstarke Bereifung für lose Untergründe
 - Sehr starke Bremsanlage
-- Verstaerkter Antrieb fuer Gravity-Einsatz
+- Verstärkter Antrieb für Gravity-Einsatz
 
-_Ideal fuer_: Bikepark-Tage und Downhill-Strecken.$$),
+_Ideal für_: Bikepark-Tage und Downhill-Strecken.$$),
       ('PRO-MTB-DH-1', 'fr', 'Pro MTB Downhill 1', 'VTT de descente pour bike park et pistes de course.', $$### Machine de descente pure
 Le **Pro MTB Downhill 1** est optimise pour les pentes raides et la stabilite a haute vitesse.
 
@@ -374,7 +374,7 @@ La **Pro MTB Downhill 1** e progettata per pendenze elevate e massima stabilita.
 
 _Ideale per_: bike park e gare di discesa.$$),
       ('PRO-MTB-DH-1', 'es', 'Pro MTB Downhill 1', 'MTB de descenso para bike park y pistas de carrera.', $$### Downhill pura
-La **Pro MTB Downhill 1** esta hecha para pendientes fuertes y maxima estabilidad.
+La **Pro MTB Downhill 1** esta hecha para pendientes fürtes y maxima estabilidad.
 
 - Geometria especifica de descenso
 - Suspensiones reforzadas para grandes impactos
@@ -395,16 +395,16 @@ The **Pro Road Race 1** targets riders who want fast acceleration and efficient 
 - High-performance wheelset for race pace
 
 _Best for_: criteriums, hill stages, and competitive group rides.$$),
-      ('PRO-RD-RACE-1', 'de', 'Pro Road Race 1', 'Carbon-Rennrad optimiert fuer Klettern und Sprint.', $$### Leichtes Race-Bike
+      ('PRO-RD-RACE-1', 'de', 'Pro Road Race 1', 'Carbon-Rennrad optimiert für Klettern und Sprint.', $$### Leichtes Race-Bike
 Das **Pro Road Race 1** liefert schnelle Beschleunigung und starke Klettereigenschaften.
 
 - Carbonrahmen mit optimalem Steifigkeits-Gewichts-Verhaeltnis
 - Sportliche Race-Geometrie
 - Aerodynamisch geformte Rohrprofile
-- Praeziser Antrieb auch unter Last
-- Performance-Laufradsatz fuer Wettkampftempo
+- Präziser Antrieb auch unter Last
+- Performance-Laufradsatz für Wettkampftempo
 
-_Ideal fuer_: Rennen, Bergetappen und schnelle Gruppenausfahrten.$$),
+_Ideal für_: Rennen, Bergetappen und schnelle Gruppenausfahrten.$$),
       ('PRO-RD-RACE-1', 'fr', 'Pro Road Race 1', 'Velo carbone de course optimise pour grimpe et sprint.', $$### Rendement competition
 Le **Pro Road Race 1** offre acceleration instantanee et excellent comportement en montee.
 
@@ -447,16 +447,16 @@ The **Pro Road Aero 1** minimizes drag for high-speed riding on flat terrain.
 - Stable handling at high velocity
 
 _Best for_: flat races, breakaways, and fast training blocks.$$),
-      ('PRO-RD-AERO-1', 'de', 'Pro Road Aero 1', 'Aero-Rennrad fuer flache und schnelle Strecken.', $$### Geschwindigkeit mit Aerodynamik
-Das **Pro Road Aero 1** reduziert Luftwiderstand fuer hohes Tempo auf flachen Kursen.
+      ('PRO-RD-AERO-1', 'de', 'Pro Road Aero 1', 'Aero-Rennrad für flache und schnelle Strecken.', $$### Geschwindigkeit mit Aerodynamik
+Das **Pro Road Aero 1** reduziert Luftwiderstand für hohes Tempo auf flachen Kursen.
 
 - Aero-Rahmen und Aero-Gabel
-- Integriertes Cockpit fuer sauberen Luftstrom
-- Hohe Felgen fuer besseren Speed-Erhalt
-- Uebersetzung fuer dauerhaft hohes Tempo
+- Integriertes Cockpit für sauberen Luftstrom
+- Hohe Felgen für besseren Speed-Erhalt
+- Übersetzung für dauerhaft hohes Tempo
 - Souveraenes Handling bei hoher Geschwindigkeit
 
-_Ideal fuer_: flache Rennen und schnelle Trainings.$$),
+_Ideal für_: flache Rennen und schnelle Trainings.$$),
       ('PRO-RD-AERO-1', 'fr', 'Pro Road Aero 1', 'Velo route aero pour parcours plats et rapides.', $$### Vitesse aerodynamique
 Le **Pro Road Aero 1** est developpe pour reduire la trainee a grande vitesse.
 
@@ -499,16 +499,16 @@ The **Pro Road Gravel 1** is built for long routes across asphalt, dirt, and gra
 - Disc brakes for confident control off-road
 
 _Best for_: bikepacking, adventure rides, and all-road exploration.$$),
-      ('PRO-RD-GRVL-1', 'de', 'Pro Road Gravel 1', 'Gravelbike fuer gemischte Untergruende und Bikepacking.', $$### Gravel fuer Abenteuer
-Das **Pro Road Gravel 1** ist fuer lange Touren auf Asphalt, Schotter und Feldwegen gebaut.
+      ('PRO-RD-GRVL-1', 'de', 'Pro Road Gravel 1', 'Gravelbike für gemischte Untergründe und Bikepacking.', $$### Gravel für Abenteuer
+Das **Pro Road Gravel 1** ist für lange Touren auf Asphalt, Schotter und Feldwegen gebaut.
 
-- Gravel-Geometrie fuer Stabilitaet und Komfort
-- Platz fuer breitere Reifen
-- Viele Montagepunkte fuer Taschen und Flaschen
-- Breite Uebersetzung fuer steile Passagen
-- Scheibenbremsen fuer sicheres Bremsen im Gelaende
+- Gravel-Geometrie für Stabilität und Komfort
+- Platz für breitere Reifen
+- Viele Montagepunkte für Taschen und Flaschen
+- Breite Übersetzung für steile Passagen
+- Scheibenbremsen für sicheres Bremsen im Gelände
 
-_Ideal fuer_: Bikepacking und Allroad-Abenteuer.$$),
+_Ideal für_: Bikepacking und Allroad-Abenteuer.$$),
       ('PRO-RD-GRVL-1', 'fr', 'Pro Road Gravel 1', 'Velo gravel pour aventures tous terrains et bikepacking.', $$### Gravel polyvalent
 Le **Pro Road Gravel 1** accompagne les longues sorties sur route et chemins.
 
@@ -536,7 +536,7 @@ La **Pro Road Gravel 1** esta preparada para rutas largas en asfalto y tierra.
 - Paso de rueda para cubiertas mas anchas
 - Multiples anclajes para bolsas y bidones
 - Amplio rango de marchas para terreno mixto
-- Frenos de disco para control fuera de carretera
+- Frenos de disco para control füra de carretera
 
 _Ideal para_: bikepacking y exploracion all-road.$$)
   ) AS t(sku, locale, name, description, detailed_description)

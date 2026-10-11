@@ -172,7 +172,13 @@ export function UsersPageClient() {
                     cell(u.phone ?? null)
                   )}
                 </td>
-                <td>{cell(u.role ?? null)}</td>
+                <td>
+                  {(u.role ?? "").toLowerCase().trim() === "admin"
+                    ? t("roleAdmin")
+                    : (u.role ?? "").toLowerCase().trim() === "staff"
+                      ? t("roleStaff")
+                      : cell(u.role ?? null)}
+                </td>
                 <td>
                   {editingUserId === u.id ? (
                     <label className={styles.activeToggle}>

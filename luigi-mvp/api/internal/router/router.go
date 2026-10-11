@@ -51,8 +51,8 @@ func New(d Deps) http.Handler {
 	c := cors.New(cors.Options{
 		AllowedOrigins:   d.CORSOrigins,
 		AllowedMethods:   []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		AllowCredentials: true, // required for luigi_session / luigi_guest cookies from browser
+		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token", "X-Luigi-Audience"},
+		AllowCredentials: true, // required for luigi_customer / luigi_staff / luigi_guest cookies from browser
 		MaxAge:           300,
 	})
 
@@ -89,7 +89,7 @@ func New(d Deps) http.Handler {
 		r.Group(func(r chi.Router) {
 			us := usersvc.NewService(d.Q)
 			cartSvc := cartsvc.NewService(d.Q, d.SQLDB, avService, stService)
-			r.Use(middleware.OptionalSessionCookie(d.SessionSecret, d.Q, us, "luigi_session", secureCookie))
+			r.Use(middleware.OptionalSessionCookie(d.SessionSecret, d.Q, us, "luigi_customer", secureCookie))
 			v1cart.RegisterRoutes(r, d.Q, d.SQLDB, avService, stService)
 			v1reservations.RegisterRoutes(r, d.Q, d.SQLDB, cartSvc, imageSvc)
 		})
@@ -100,7 +100,7 @@ func New(d Deps) http.Handler {
 			cartSvc := cartsvc.NewService(d.Q, d.SQLDB, avService, stService)
 			imageSvc := imagesvc.NewService(d.Q, d.Storage, d.MediaBaseURL)
 			reservationCore := reservationsvc.NewService(d.Q, d.SQLDB, cartSvc, imageSvc)
-			r.Use(middleware.RequireSessionCookie(d.SessionSecret, d.Q, us, "luigi_session"))
+			r.Use(middleware.RequireSessionCookie(d.SessionSecret, d.Q, us, "luigi_staff"))
 			r.Use(middleware.RequireStaffOrAdmin())
 
 			v1shops.RegisterRoutesPrivate(r, d.Q)

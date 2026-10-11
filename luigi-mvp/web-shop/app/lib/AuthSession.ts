@@ -40,7 +40,7 @@ export async function loginSession(email: string, password: string): Promise<voi
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({ email, password }),
+    body: JSON.stringify({ email, password, audience: "customer" }),
   });
   if (!res.ok) throw new Error(await readApiError(res));
 }
@@ -56,10 +56,10 @@ export async function registerSession(input: RegisterInput): Promise<void> {
 }
 
 export async function fetchMe(): Promise<Me | null> {
-  const res = await fetch(`${API_BASE}/v1/auth/me`, {
+  const res = await fetch(`${API_BASE}/v1/auth/me?audience=customer`, {
     method: "GET",
     credentials: "include",
-    headers: { Accept: "application/json" },
+    headers: { Accept: "application/json", "X-Luigi-Audience": "customer" },
   });
 
   if (res.status === 401) return null;
@@ -73,7 +73,7 @@ export async function logoutSession(shopId: number) {
     method: "POST",
     credentials: "include",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ shop_id: shopId }),
+    body: JSON.stringify({ shop_id: shopId, audience: "customer" }),
   });
   if (!res.ok) throw new Error(await res.text());
 }

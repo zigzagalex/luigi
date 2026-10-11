@@ -6,7 +6,15 @@ import { useAdminStore } from "@/[locale]/components/admin/AdminStoreContext";
 import LocaleSwitcher from "@/[locale]/components/i18n/LocaleSwitcher";
 import styles from "./AdminShell.module.css";
 
-export function AdminTopBar() {
+export function AdminTopBar({
+  showMenuButton = false,
+  navOpen = false,
+  onToggleNav,
+}: {
+  showMenuButton?: boolean;
+  navOpen?: boolean;
+  onToggleNav?: () => void;
+}) {
   const t = useTranslations("admin");
   const { me, logout } = useAdminAuth();
   const { stores, selectedStoreId, setSelectedStoreId, loading } = useAdminStore();
@@ -14,6 +22,17 @@ export function AdminTopBar() {
   return (
     <header className={styles.topBar}>
       <div className={styles.topBarLeft}>
+        {showMenuButton ? (
+          <button
+            type="button"
+            className={styles.menuBtn}
+            aria-expanded={navOpen}
+            aria-controls="admin-sidebar"
+            onClick={onToggleNav}
+          >
+            {navOpen ? t("close") : t("navMenu")}
+          </button>
+        ) : null}
         <span className={styles.topBarBrand}>LUIGI ADMIN</span>
       </div>
       <div className={styles.topBarRight}>

@@ -9,23 +9,44 @@ import { formatMoneyCents, formatRentalDay } from "@/lib/rentalDates";
 import styles from "./Confirmation.module.css";
 
 const STORAGE_KEY = "luigi.checkout.reservations";
+const META_KEY = "luigi.checkout.meta";
+
+type CheckoutMeta = {
+  store_name?: string | null;
+  store_address?: string | null;
+  store_postalcode?: string | null;
+  store_city?: string | null;
+};
 
 export default function CheckoutConfirmationPage() {
   const t = useTranslations("checkoutConfirmation");
   const locale = useLocale();
   const [reservations, setReservations] = useState<ReservationView[]>([]);
+  const [meta, setMeta] = useState<CheckoutMeta | null>(null);
 
   useEffect(() => {
     try {
       const raw = sessionStorage.getItem(STORAGE_KEY);
-      if (!raw) return;
-      const parsed = JSON.parse(raw) as ReservationView[];
-      if (Array.isArray(parsed)) setReservations(parsed);
-      sessionStorage.removeItem(STORAGE_KEY);
+      if (raw) {
+        const parsed = JSON.parse(raw) as ReservationView[];
+        if (Array.isArray(parsed)) setReservations(parsed);
+        sessionStorage.removeItem(STORAGE_KEY);
+      }
+      const metaRaw = sessionStorage.getItem(META_KEY);
+      if (metaRaw) {
+        const parsedMeta = JSON.parse(metaRaw) as CheckoutMeta;
+        setMeta(parsedMeta);
+        sessionStorage.removeItem(META_KEY);
+      }
     } catch {
       // ignore
     }
   }, []);
+
+  const storeLabel =
+    meta?.store_name?.trim() ||
+    [meta?.store_postalcode, meta?.store_city].filter(Boolean).join(" ").trim() ||
+    null;
 
   return (
     <div className={styles.page}>
@@ -35,6 +56,9 @@ export default function CheckoutConfirmationPage() {
         <h1 className={styles.title}>{t("title")}</h1>
 
         <p className={styles.subtitle}>{t("subtitle")}</p>
+
+        {storeLabel ? <p className={styles.subtitle}>{t("storeLine", { store: storeLabel })}</p> : null}
+        <p className={styles.subtitle}>{t("payAtPickup")}</p>
 
         {reservations.length > 0 ? (
           <ul className={styles.reservationList}>

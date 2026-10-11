@@ -10,8 +10,8 @@ import { SHOP_ID } from "@/lib/AuthSession";
 import {
   formatDisplayDateIso,
   formatIsoAsLocalDateString,
+  formatInclusiveReturnDateString,
   formatLocalDateString,
-  addLocalDaysToIsoDate,
 } from "@/lib/adminReservationDates";
 import {
   listAdminReservations,
@@ -49,13 +49,19 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
   const locale = useLocale();
   const router = useRouter();
   const { me, loading } = useAdminAuth();
-  const { selectedStoreId } = useAdminStore();
+  const { selectedStoreId, stores } = useAdminStore();
+  const storeNameById = useMemo(() => {
+    const map = new Map<number, string>();
+    for (const store of stores) {
+      map.set(store.id, store.name || store.city);
+    }
+    return map;
+  }, [stores]);
   const [rows, setRows] = useState<ReservationTableRow[]>([]);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [selectedReservation, setSelectedReservation] = useState<ReservationTableRow | null>(null);
   const [pickupDateFilter, setPickupDateFilter] = useState(() => formatLocalDateString(new Date()));
-  const pickupDateNext = useMemo(() => addLocalDaysToIsoDate(pickupDateFilter, 1), [pickupDateFilter]);
   const pageTitleKey =
     view === "dropoff"
       ? "dropoffFlowTitle"
@@ -75,6 +81,32 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
         ? "maintenanceDateFilterLabel"
         : "pickupDateFilterLabel";
 
+  const reservationsToPrepareOverdue = useMemo(
+    () =>
+      rows.filter(
+        (row) =>
+          row.reservation.status === "confirmed" &&
+          row.reservation.pickupDate < pickupDateFilter &&
+          (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
+      ),
+    [rows, selectedStoreId, pickupDateFilter],
+  );
+  const reservationsToPrepareByDay = useMemo(() => {
+    const upcoming = rows.filter(
+      (row) =>
+        row.reservation.status === "confirmed" &&
+        row.reservation.pickupDate >= pickupDateFilter &&
+        (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
+    );
+    const byDay = new Map<string, ReservationTableRow[]>();
+    for (const row of upcoming) {
+      const day = row.reservation.pickupDate;
+      const list = byDay.get(day);
+      if (list) list.push(row);
+      else byDay.set(day, [row]);
+    }
+    return Array.from(byDay.entries()).sort(([a], [b]) => a.localeCompare(b));
+  }, [rows, selectedStoreId, pickupDateFilter]);
   const reservationsToPrepare = useMemo(
     () =>
       rows.filter(
@@ -84,16 +116,6 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
           (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
       ),
     [rows, selectedStoreId, pickupDateFilter],
-  );
-  const reservationsToPrepareNextDay = useMemo(
-    () =>
-      rows.filter(
-        (row) =>
-          row.reservation.status === "confirmed" &&
-          row.reservation.pickupDate === pickupDateNext &&
-          (selectedStoreId === null || row.reservation.storeId === selectedStoreId),
-      ),
-    [rows, selectedStoreId, pickupDateNext],
   );
   const reservationsReadyForPickup = useMemo(
     () =>
@@ -165,7 +187,9 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
           listAdminReservations(SHOP_ID, "returned"),
         ]);
         if (cancelled) return;
-        const mapped = [...confirmedRows, ...readyRows, ...inUseRows, ...returnedRows].map(mapApiToRow);
+        const mapped = [...confirmedRows, ...readyRows, ...inUseRows, ...returnedRows].map((row) =>
+          mapApiToRow(row, storeNameById),
+        );
         setRows(mapped);
         setLoadError(null);
       } catch (err) {
@@ -176,7 +200,7 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
     return () => {
       cancelled = true;
     };
-  }, [me]);
+  }, [me, storeNameById]);
 
   useEffect(() => {
     if (!selectedReservation) return;
@@ -222,21 +246,30 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
       {view === "prepare" ? (
         <>
           <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>
-              {t("pickupToPrepareTitleWithDate", {
-                date: formatDisplayDateIso(pickupDateFilter, locale),
-              })}
-            </h2>
-            {renderTable(reservationsToPrepare)}
+            <h2 className={styles.sectionTitle}>{t("pickupOverduePrepareTitle")}</h2>
+            {renderTable(reservationsToPrepareOverdue)}
           </section>
-          <section className={styles.section}>
-            <h2 className={styles.sectionTitle}>
-              {t("pickupToPrepareTitleWithDate", {
-                date: formatDisplayDateIso(pickupDateNext, locale),
-              })}
-            </h2>
-            {renderTable(reservationsToPrepareNextDay)}
-          </section>
+          {reservationsToPrepareByDay.length === 0 ? (
+            <section className={styles.section}>
+              <h2 className={styles.sectionTitle}>
+                {t("pickupToPrepareTitleWithDate", {
+                  date: formatDisplayDateIso(pickupDateFilter, locale),
+                })}
+              </h2>
+              {renderTable([])}
+            </section>
+          ) : (
+            reservationsToPrepareByDay.map(([day, dayRows]) => (
+              <section key={day} className={styles.section}>
+                <h2 className={styles.sectionTitle}>
+                  {t("pickupToPrepareTitleWithDate", {
+                    date: formatDisplayDateIso(day, locale),
+                  })}
+                </h2>
+                {renderTable(dayRows)}
+              </section>
+            ))
+          )}
         </>
       ) : null}
       {view === "both" ? (
@@ -280,7 +313,9 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
         <div className={styles.flowOverlay} role="presentation">
           <div className={styles.flowPanel}>
             <div className={styles.flowHead}>
-              <h2 className={styles.flowTitle}>Reservation {selectedReservation.reservation.id} flow</h2>
+              <h2 className={styles.flowTitle}>
+                {t("flowTitleWithId", { id: selectedReservation.reservation.id })}
+              </h2>
               <button type="button" className={styles.actionBtn} onClick={() => setSelectedReservation(null)}>
                 {t("close")}
               </button>
@@ -288,6 +323,7 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
             <ReservationFlow
               reservation={selectedReservation.reservation}
               meRole={me.role}
+              locale={locale}
               onReservationChange={(next) => void handleReservationChange(selectedReservation, next)}
               onDownloadInvoice={(reservationId) => void handleInvoiceDownload(reservationId)}
             />
@@ -341,23 +377,46 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
     }
   }
 
+  function statusLabel(status: ReservationFlowStatus) {
+    switch (status) {
+      case "confirmed":
+        return t("statusConfirmed");
+      case "out_for_pickup":
+        return t("statusOutForPickup");
+      case "in_use":
+        return t("statusInUse");
+      case "returned":
+        return t("statusReturned");
+      case "serviced":
+        return t("statusServiced");
+      case "closed":
+        return t("statusClosed");
+      case "cancelled":
+        return t("statusCancelled");
+      case "expired":
+        return t("statusExpired");
+      default:
+        return status;
+    }
+  }
+
   function renderTable(tableRows: ReservationTableRow[]) {
     return (
       <div className={styles.tableWrap}>
         <table className={styles.table}>
           <thead>
             <tr>
-              <th>Reservation</th>
-              <th>Status</th>
-              <th>Pickup</th>
-              <th>Return</th>
-              <th>Customer first name</th>
-              <th>Customer last name</th>
-              <th>Pickup first name</th>
-              <th>Pickup last name</th>
-              <th>Pickup phone</th>
-              <th>Pickup email</th>
-              <th>Actions</th>
+              <th>{t("colReservation")}</th>
+              <th>{t("colStatus")}</th>
+              <th>{t("colPickup")}</th>
+              <th>{t("colReturn")}</th>
+              <th>{t("colCustomerFirstName")}</th>
+              <th>{t("colCustomerLastName")}</th>
+              <th>{t("colPickupFirstName")}</th>
+              <th>{t("colPickupLastName")}</th>
+              <th>{t("colPickupPhone")}</th>
+              <th>{t("colPickupEmail")}</th>
+              <th>{t("colActions")}</th>
             </tr>
           </thead>
           <tbody>
@@ -371,7 +430,7 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
               tableRows.map((row) => (
                 <tr key={row.reservation.id}>
                   <td>{row.reservation.id}</td>
-                  <td>{row.reservation.status}</td>
+                  <td>{statusLabel(row.reservation.status)}</td>
                   <td>{row.reservation.pickupDate}</td>
                   <td>{row.reservation.returnDate}</td>
                   <td>{row.customer.firstName}</td>
@@ -400,20 +459,28 @@ export function ReservationsFlowPageClient({ view = "both" }: { view?: Reservati
   }
 }
 
-export function mapApiToRow(row: ApiAdminReservation): ReservationTableRow {
+export function mapApiToRow(
+  row: ApiAdminReservation,
+  storeNameById?: Map<number, string>,
+): ReservationTableRow {
   const customerFirst = row.customer.first_name ?? "";
   const customerLast = row.customer.last_name ?? "";
   const pickupFirst = row.pickup_person.first_name ?? "";
   const pickupLast = row.pickup_person.last_name ?? "";
+  const customerPhone = row.customer.phone ?? "";
   return {
     reservation: {
       id: row.reservation_id,
       storeId: row.store_id,
+      storeName: storeNameById?.get(row.store_id),
       customerName: [customerFirst, customerLast].filter(Boolean).join(" ").trim() || "—",
+      customerPhone: customerPhone || undefined,
       pickupDate: formatIsoAsLocalDateString(row.start_at),
-      returnDate: formatIsoAsLocalDateString(row.end_at),
+      returnDate: formatInclusiveReturnDateString(row.end_at),
       status: row.status as ReservationFlowStatus,
       version: row.version,
+      totalPriceCents: row.total_price_cents,
+      currency: row.currency,
       items: row.items.map((item) => ({
         id: String(item.id),
         name: item.name,
@@ -423,7 +490,7 @@ export function mapApiToRow(row: ApiAdminReservation): ReservationTableRow {
     customer: {
       firstName: customerFirst || "—",
       lastName: customerLast || "—",
-      phone: row.customer.phone ?? "—",
+      phone: customerPhone || "—",
       email: row.customer.email ?? "—",
     },
     pickupPerson: {

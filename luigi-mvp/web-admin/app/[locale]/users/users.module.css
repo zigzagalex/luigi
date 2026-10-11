@@ -51,6 +51,7 @@
   width: 100%;
   border-collapse: collapse;
   font-size: var(--text-meta-size);
+  min-width: 900px;
 }
 
 .table th,

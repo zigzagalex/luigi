@@ -6,5 +6,5 @@ export default async function Page({
   params: Promise<{ locale: string }> | { locale: string };
 }) {
   const { locale } = await Promise.resolve(params);
-  redirect(`/${locale}/users`);
+  redirect(`/${locale}/users/overview`);
 }

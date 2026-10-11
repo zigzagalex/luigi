@@ -2,13 +2,17 @@
     position: absolute;
     right: 0;
     top: calc(100% + 10px);
-    width: 360px;
+    width: min(360px, calc(100vw - 24px));
+    max-height: min(70vh, calc(100dvh - 96px));
+    display: flex;
+    flex-direction: column;
     border-radius: 16px;
     background: white;
     color: var(--color-text-strong);
     box-shadow: 0 16px 60px rgba(0,0,0,0.18);
     padding: var(--space-4);
     z-index: 50;
+    box-sizing: border-box;
   }
   
   /* Header */
@@ -46,6 +50,10 @@
     display: grid;
     gap: var(--space-3);
     margin: var(--space-3) 0;
+    overflow-y: auto;
+    min-height: 0;
+    flex: 1 1 auto;
+    padding-right: 2px;
   }
   
   .row {
@@ -215,6 +223,7 @@
     border-top: 1px solid var(--color-border);
     padding-top: var(--space-3);
     margin-top: var(--space-3);
+    flex-shrink: 0;
   }
   
   .totalRow {

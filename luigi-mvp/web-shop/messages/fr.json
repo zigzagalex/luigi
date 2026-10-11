@@ -128,7 +128,8 @@
     "agbs": "CG",
     "agreeMiddle": "et les",
     "privacyTerms": "conditions de confidentialité",
-    "rent": "Louer",
+    "rent": "Confirmer la réservation",
+    "confirmSavesProfileHint": "Remplis les champs obligatoires — la confirmation enregistre aussi ton profil.",
     "fixBlockedItemsTitle": "Corriger les articles bloqués",
     "completeProfileTitle": "Complète d'abord ton profil",
     "acceptTermsTitle": "Accepter les CG et les conditions de confidentialité",
@@ -144,6 +145,8 @@
   "checkoutConfirmation": {
     "title": "Réservation réussie",
     "subtitle": "Ta réservation a été créée avec succès. Tu peux la consulter et la gérer à tout moment dans ton compte.",
+    "storeLine": "Retrait à {store}",
+    "payAtPickup": "Le paiement se fait lors du retrait en magasin.",
     "checkReservations": "Voir mes réservations",
     "continueShopping": "Continuer les achats",
     "reservationNumber": "Réservation {id}",
@@ -384,6 +387,8 @@
     "calendarLegendSelected": "Plage sélectionnée",
     "calendarLegendHoliday": "Jour férié",
     "calendarLegendToday": "Aujourd'hui",
+    "calendarLegendUnavailable": "Indisponible",
+    "calendarLegendPast": "Passé",
     "pickup": "RETRAIT",
     "return": "RETOUR",
     "selectStoreForDates": "Sélectionne un lieu de retrait pour choisir les dates.",
@@ -632,5 +637,10 @@
     "agbs": "CG",
     "privacy": "Confidentialité",
     "imprint": "Mentions légales"
+  },
+  "notFound": {
+    "title": "Page introuvable",
+    "body": "Cette page n’existe pas ou a été déplacée.",
+    "home": "Retour à l’accueil"
   }
 }

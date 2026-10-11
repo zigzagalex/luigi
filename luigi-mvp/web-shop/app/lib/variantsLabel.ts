@@ -1,34 +1,74 @@
-// app/lib/variantLabel.ts
+// app/lib/variantsLabel.ts
 
 type VariantAttrs = Record<string, any> | null | undefined;
 
-export function formatVariantSpecs(attrs: VariantAttrs): string {
+const ATTR_LABELS: Record<string, Record<string, string>> = {
+  de: {
+    size: "Grösse",
+    size_eu: "Grösse",
+    color: "Farbe",
+    colour: "Farbe",
+  },
+  en: {
+    size: "Size",
+    size_eu: "Size",
+    color: "Color",
+    colour: "Colour",
+  },
+  fr: {
+    size: "Taille",
+    size_eu: "Taille",
+    color: "Couleur",
+    colour: "Couleur",
+  },
+  it: {
+    size: "Taglia",
+    size_eu: "Taglia",
+    color: "Colore",
+    colour: "Colore",
+  },
+};
+
+const SKIP_KEYS = new Set(["category", "type", "sku", "id"]);
+
+function labelsForLocale(locale?: string) {
+  const key = (locale ?? "de").slice(0, 2).toLowerCase();
+  return ATTR_LABELS[key] ?? ATTR_LABELS.de;
+}
+
+function readAttr(a: any, key: string): string | number | undefined {
+  const direct = a?.[key];
+  if (typeof direct === "string" || typeof direct === "number") return direct;
+  const nested = a?.RawMessage?.[key];
+  if (typeof nested === "string" || typeof nested === "number") return nested;
+  return undefined;
+}
+
+export function formatVariantSpecs(attrs: VariantAttrs, locale = "de"): string {
   if (!attrs) return "";
 
   const a: any = (attrs as any).RawMessage ?? attrs;
+  const labels = labelsForLocale(locale);
 
-  const size =
-    typeof a.size === "string" ? a.size :
-    typeof a?.RawMessage?.size === "string" ? a.RawMessage.size :
-    undefined;
+  const size = readAttr(a, "size_eu") ?? readAttr(a, "size");
+  const color = readAttr(a, "color") ?? readAttr(a, "colour");
 
-  const color =
-    typeof a.color === "string" ? a.color :
-    typeof a?.RawMessage?.color === "string" ? a.RawMessage.color :
-    undefined;
+  const parts: string[] = [];
+  if (size !== undefined) parts.push(`${labels.size_eu}: ${size}`);
+  if (color !== undefined) parts.push(`${labels.color}: ${color}`);
 
-  const parts = [size, color].filter(Boolean);
-
-  // Fallback: if nothing matched, try a safe stringify of simple keys
   if (parts.length === 0) {
     const safe = Object.entries(a)
-      .filter(([k, v]) => typeof v === "string" || typeof v === "number" || typeof v === "boolean")
+      .filter(([k, v]) => !SKIP_KEYS.has(k) && (typeof v === "string" || typeof v === "number" || typeof v === "boolean"))
       .slice(0, 3)
-      .map(([k, v]) => `${k}: ${String(v)}`);
+      .map(([k, v]) => {
+        const label = labels[k] ?? k;
+        return `${label}: ${String(v)}`;
+      });
     return safe.join(" · ");
   }
 
-  return parts.join(" / ");
+  return parts.join(" · ");
 }
 
 export function normalizeVariantAttributes(

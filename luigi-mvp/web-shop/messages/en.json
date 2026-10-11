@@ -128,7 +128,8 @@
     "agbs": "AGBs",
     "agreeMiddle": "and the",
     "privacyTerms": "Privacy terms",
-    "rent": "Rent",
+    "rent": "Confirm reservation",
+    "confirmSavesProfileHint": "Fill in the required fields — confirming the reservation also saves your profile.",
     "fixBlockedItemsTitle": "Fix blocked items in cart",
     "completeProfileTitle": "Complete your profile first",
     "acceptTermsTitle": "Accept AGBs and privacy terms",
@@ -144,6 +145,8 @@
   "checkoutConfirmation": {
     "title": "Reservation successful",
     "subtitle": "Your reservation has been created successfully. You can view and manage it anytime in your account.",
+    "storeLine": "Pickup at {store}",
+    "payAtPickup": "Payment is due at pickup in the store.",
     "checkReservations": "Check my reservations",
     "continueShopping": "Continue shopping",
     "reservationNumber": "Reservation {id}",
@@ -384,6 +387,8 @@
     "calendarLegendSelected": "Selected range",
     "calendarLegendHoliday": "Holiday",
     "calendarLegendToday": "Today",
+    "calendarLegendUnavailable": "Unavailable",
+    "calendarLegendPast": "Past",
     "pickup": "PICK-UP",
     "return": "RETURN",
     "selectStoreForDates": "Select a pick-up location to choose dates.",
@@ -632,5 +637,10 @@
     "agbs": "AGBs",
     "privacy": "Privacy",
     "imprint": "Imprint"
+  },
+  "notFound": {
+    "title": "Page not found",
+    "body": "This page does not exist or was moved.",
+    "home": "Back to home"
   }
 }

@@ -24,10 +24,15 @@ import (
 	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
 
-const cookieName = "luigi_session"
+const customerCookieName = "luigi_customer"
+const staffCookieName = "luigi_staff"
+const legacyCookieName = "luigi_session" // cleared on set/logout so old local cookies die
 const guestCookieName = "luigi_guest"
 
 const sessionTTL = 7 * 24 * time.Hour
+
+const audienceCustomer = "customer"
+const audienceStaff = "staff"
 
 type Handler struct {
 	env           string
@@ -63,13 +68,13 @@ func RegisterRoutes(r chi.Router, q *db.Queries, sqlDB *sql.DB, env, sessionSecr
 		r.Post("/logout", h.Logout)
 
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.RequireSessionCookie(sessionSecret, q, us, cookieName))
+			r.Use(middleware.RequireAudienceSessionCookie(sessionSecret, q, us, customerCookieName, staffCookieName))
 			r.Get("/me", h.Me)
 		})
 	})
 
 	r.Group(func(r chi.Router) {
-		r.Use(middleware.RequireSessionCookie(sessionSecret, q, us, cookieName))
+		r.Use(middleware.RequireSessionCookie(sessionSecret, q, us, customerCookieName))
 		r.Get("/me/customer", h.GetMyCustomer)
 		r.Put("/me/customer", h.UpsertMyCustomer)
 	})
@@ -92,10 +97,13 @@ type registerReq struct {
 type loginReq struct {
 	Email    string `json:"email"`
 	Password string `json:"password"`
+	// Audience selects which cookie to set: "customer" (shop) or "staff" (admin).
+	Audience string `json:"audience,omitempty"`
 }
 
 type logoutReq struct {
-	ShopID int64 `json:"shop_id"`
+	ShopID   int64  `json:"shop_id"`
+	Audience string `json:"audience,omitempty"`
 }
 
 func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
@@ -192,7 +200,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.issueSession(w, r, user.ID); err != nil {
+	if err := h.issueSession(w, r, user.ID, customerCookieName); err != nil {
 		httpx.Fail(w, http.StatusInternalServerError, "session_create_failed", err.Error())
 		return
 	}
@@ -235,7 +243,13 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	if err := h.issueSession(w, r, user.ID); err != nil {
+	cookieName, err := cookieNameForAudience(req.Audience, user)
+	if err != nil {
+		httpx.Fail(w, http.StatusForbidden, "access_denied", nil)
+		return
+	}
+
+	if err := h.issueSession(w, r, user.ID, cookieName); err != nil {
 		httpx.Fail(w, http.StatusInternalServerError, "session_create_failed", err.Error())
 		return
 	}
@@ -243,7 +257,29 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
-func (h *Handler) issueSession(w http.ResponseWriter, r *http.Request, userID int64) error {
+func cookieNameForAudience(audience string, user db.User) (string, error) {
+	kind := strings.ToLower(strings.TrimSpace(audience))
+	if kind == "" {
+		kind = audienceCustomer
+	}
+	role := ""
+	if user.Role.Valid {
+		role = strings.ToLower(strings.TrimSpace(user.Role.String))
+	}
+	switch kind {
+	case audienceStaff:
+		if role != "admin" && role != "staff" {
+			return "", errors.New("staff_required")
+		}
+		return staffCookieName, nil
+	case audienceCustomer:
+		return customerCookieName, nil
+	default:
+		return "", errors.New("invalid_audience")
+	}
+}
+
+func (h *Handler) issueSession(w http.ResponseWriter, r *http.Request, userID int64, cookieName string) error {
 	token, err := auth.NewSessionToken()
 	if err != nil {
 		return err
@@ -268,7 +304,21 @@ func (h *Handler) issueSession(w http.ResponseWriter, r *http.Request, userID in
 		SameSite: http.SameSiteLaxMode,
 		MaxAge:   int(sessionTTL.Seconds()),
 	})
+	// Drop the shared legacy cookie so an old luigi_session cannot override the new pair.
+	clearAuthCookie(w, legacyCookieName, secure)
 	return nil
+}
+
+func clearAuthCookie(w http.ResponseWriter, name string, secure bool) {
+	http.SetCookie(w, &http.Cookie{
+		Name:     name,
+		Value:    "",
+		Path:     "/",
+		HttpOnly: true,
+		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
+		MaxAge:   -1,
+	})
 }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
@@ -278,19 +328,20 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	var req logoutReq
 	_ = json.NewDecoder(r.Body).Decode(&req)
 
+	kind := strings.ToLower(strings.TrimSpace(req.Audience))
+	if kind == "" {
+		kind = audienceCustomer
+	}
+	cookieName := customerCookieName
+	if kind == audienceStaff {
+		cookieName = staffCookieName
+	}
+
 	if c, err := r.Cookie(cookieName); err == nil && strings.TrimSpace(c.Value) != "" {
 		_ = h.q.DeleteSessionByTokenHash(ctx, auth.HashToken(h.sessionSecret, c.Value))
 	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     cookieName,
-		Value:    "",
-		Path:     "/",
-		HttpOnly: true,
-		Secure:   secure,
-		SameSite: http.SameSiteLaxMode,
-		MaxAge:   -1,
-	})
+	clearAuthCookie(w, cookieName, secure)
+	clearAuthCookie(w, legacyCookieName, secure)
 
 	sid := uuid.NewString()
 	maxAge := int((30 * 24 * time.Hour).Seconds())

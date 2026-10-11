@@ -153,6 +153,51 @@ func RequireSessionCookie(
 	}
 }
 
+// RequireAudienceSessionCookie picks luigi_staff or luigi_customer from ?audience= / X-Luigi-Audience.
+// Default is the customer cookie so the shop keeps working without a header.
+func RequireAudienceSessionCookie(
+	sessionSecret string,
+	q sessionQuerier,
+	users *usersvc.Service,
+	customerCookie string,
+	staffCookie string,
+) func(http.Handler) http.Handler {
+	return func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			audience := strings.ToLower(strings.TrimSpace(r.URL.Query().Get("audience")))
+			if audience == "" {
+				audience = strings.ToLower(strings.TrimSpace(r.Header.Get("X-Luigi-Audience")))
+			}
+			cookieName := customerCookie
+			if audience == "staff" {
+				cookieName = staffCookie
+			}
+			c, err := r.Cookie(cookieName)
+			if err != nil || strings.TrimSpace(c.Value) == "" {
+				httpx.Fail(w, http.StatusUnauthorized, "missing_session", nil)
+				return
+			}
+
+			user, err := resolveSessionUser(r.Context(), sessionSecret, q, users, c.Value)
+			if err != nil {
+				if errors.Is(err, usersvc.ErrNotFound) {
+					httpx.Fail(w, http.StatusForbidden, "user_not_provisioned", nil)
+					return
+				}
+				httpx.Fail(w, http.StatusUnauthorized, "invalid_session", nil)
+				return
+			}
+			if !user.IsActive {
+				httpx.Fail(w, http.StatusForbidden, "user_inactive", nil)
+				return
+			}
+
+			ctx := context.WithValue(r.Context(), userKey, user)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		})
+	}
+}
+
 // OptionalSessionCookie is like RequireSessionCookie, but it NEVER blocks the request.
 // If a valid session cookie is present -> it injects the user into context.
 // If missing/invalid -> it does nothing and the request continues as guest.

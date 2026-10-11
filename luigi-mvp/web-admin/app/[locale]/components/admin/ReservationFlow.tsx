@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useTranslations } from "next-intl";
 import styles from "./ReservationFlow.module.css";
 
 export type ReservationFlowStatus =
@@ -22,11 +23,15 @@ export type ReservationFlowItem = {
 export type ReservationFlowReservation = {
   id: number | string;
   storeId?: number;
+  storeName?: string;
   customerName: string;
+  customerPhone?: string;
   pickupDate: string;
   returnDate: string;
   status: ReservationFlowStatus;
   version?: number;
+  totalPriceCents?: number;
+  currency?: string;
   items: ReservationFlowItem[];
 };
 
@@ -43,15 +48,15 @@ const ACTIVE_STEPS: ReservationFlowStatus[] = [
 
 const FINAL_STEPS: ReservationFlowStatus[] = ["cancelled", "expired", "closed"];
 
-const LABELS: Record<ReservationFlowStatus, string> = {
-  confirmed: "Confirmed",
-  out_for_pickup: "Out for pickup",
-  in_use: "In use",
-  returned: "Returned",
-  serviced: "Serviced",
-  closed: "Closed",
-  cancelled: "Cancelled",
-  expired: "Expired",
+const STATUS_MESSAGE_KEYS: Record<ReservationFlowStatus, string> = {
+  confirmed: "statusConfirmed",
+  out_for_pickup: "statusOutForPickup",
+  in_use: "statusInUse",
+  returned: "statusReturned",
+  serviced: "statusServiced",
+  closed: "statusClosed",
+  cancelled: "statusCancelled",
+  expired: "statusExpired",
 };
 
 function isTerminal(status: ReservationFlowStatus) {
@@ -63,21 +68,36 @@ function isStaffOrAdmin(role: string | null | undefined) {
   return normalized === "admin" || normalized === "staff";
 }
 
+function formatMoney(cents: number, currency: string, locale: string) {
+  try {
+    return new Intl.NumberFormat(locale, { style: "currency", currency }).format(cents / 100);
+  } catch {
+    return `${(cents / 100).toFixed(2)} ${currency}`;
+  }
+}
+
 export function ReservationFlow({
   reservation: reservationProp,
   meRole,
   onReservationChange,
   onDownloadInvoice,
+  locale = "de",
 }: {
   reservation: ReservationFlowReservation;
   meRole: string | null | undefined;
   onReservationChange?: (next: ReservationFlowReservation) => void;
   onDownloadInvoice?: (reservationId: number | string) => Promise<void> | void;
+  locale?: string;
 }) {
+  const t = useTranslations("admin");
   const [reservation, setReservation] = useState<ReservationFlowReservation>(reservationProp);
   useEffect(() => {
     setReservation(reservationProp);
   }, [reservationProp]);
+
+  function statusLabel(status: ReservationFlowStatus) {
+    return t(STATUS_MESSAGE_KEYS[status] as Parameters<typeof t>[0]);
+  }
 
   function updateReservation(next: ReservationFlowReservation) {
     setReservation(next);
@@ -158,42 +178,60 @@ export function ReservationFlow({
     setInvoiceError(null);
     try {
       await onDownloadInvoice(reservation.id);
-    } catch (e: any) {
-      setInvoiceError(e?.message ?? "Invoice download failed.");
+    } catch (e: unknown) {
+      const message = e instanceof Error ? e.message : t("flowInvoiceFailed");
+      setInvoiceError(message);
     } finally {
       setInvoiceBusy(false);
     }
   }
 
+  const totalLabel =
+    typeof reservation.totalPriceCents === "number"
+      ? formatMoney(reservation.totalPriceCents, reservation.currency ?? "CHF", locale)
+      : null;
+
   return (
     <section className={styles.card}>
       <header className={styles.header}>
         <div>
-          <h2 className={styles.title}>Reservation {reservation.id}</h2>
+          <h2 className={styles.title}>{t("flowTitle", { id: reservation.id })}</h2>
           <p className={styles.sub}>
-            {reservation.customerName} · {reservation.pickupDate} to {reservation.returnDate}
+            {reservation.customerName} ·{" "}
+            {t("flowDateRange", { pickup: reservation.pickupDate, return: reservation.returnDate })}
+          </p>
+          <p className={styles.metaLine}>
+            {reservation.storeName ? t("flowStore", { store: reservation.storeName }) : null}
+            {reservation.storeName && reservation.customerPhone ? " · " : null}
+            {reservation.customerPhone ? t("flowPhone", { phone: reservation.customerPhone }) : null}
+            {(reservation.storeName || reservation.customerPhone) && totalLabel ? " · " : null}
+            {totalLabel ? t("flowTotal", { total: totalLabel }) : null}
           </p>
         </div>
-        <p className={styles.statusPill}>{LABELS[reservation.status]}</p>
+        <p className={styles.statusPill}>{statusLabel(reservation.status)}</p>
       </header>
 
-      <div className={styles.progressWrap} aria-label="Reservation progress">
+      <div className={styles.progressWrap} aria-label={t("flowProgressLabel")}>
         <ol className={styles.progressList}>
           {ACTIVE_STEPS.map((status, index) => {
             const reached = activeIndex >= index || reservation.status === "cancelled" || reservation.status === "expired";
             const current = reservation.status === status;
             return (
               <li key={status} className={styles.progressStep}>
-                <span className={current ? styles.stepCurrent : reached ? styles.stepDone : styles.stepPending}>{LABELS[status]}</span>
+                <span className={current ? styles.stepCurrent : reached ? styles.stepDone : styles.stepPending}>
+                  {statusLabel(status)}
+                </span>
               </li>
             );
           })}
         </ol>
-        <p className={styles.finalStates}>Final states: {FINAL_STEPS.map((status) => LABELS[status]).join(", ")}</p>
+        <p className={styles.finalStates}>
+          {t("flowFinalStates", { states: FINAL_STEPS.map((status) => statusLabel(status)).join(", ") })}
+        </p>
       </div>
 
       <div className={styles.itemsWrap}>
-        <h3 className={styles.itemsTitle}>Items in reservation</h3>
+        <h3 className={styles.itemsTitle}>{t("flowItemsTitle")}</h3>
         <ul className={styles.itemsList}>
           {reservation.items.map((item) => (
             <li key={item.id} className={styles.itemRow}>
@@ -210,10 +248,10 @@ export function ReservationFlow({
         <div className={styles.checklistWrap}>
           <p className={styles.checklistTitle}>
             {checklistMode === "prepare"
-              ? "Prepare for pickup checklist"
+              ? t("flowChecklistPrepare")
               : checklistMode === "return"
-                ? "Returned items checklist"
-                : "Service checklist"}
+                ? t("flowChecklistReturn")
+                : t("flowChecklistService")}
           </p>
           <ul className={styles.checklistList}>
             {reservation.items.map((item) => (
@@ -229,9 +267,7 @@ export function ReservationFlow({
               </li>
             ))}
           </ul>
-          <p className={styles.checklistMeta}>
-            {checkedCount}/{itemCount} checked
-          </p>
+          <p className={styles.checklistMeta}>{t("flowCheckedCount", { checked: checkedCount, total: itemCount })}</p>
         </div>
       ) : null}
 
@@ -240,76 +276,76 @@ export function ReservationFlow({
           <>
             {canDownloadInvoice ? (
               <button type="button" className={styles.actionBtn} onClick={downloadInvoice} disabled={invoiceBusy}>
-                {invoiceBusy ? "Generating invoice..." : "Generate invoice"}
+                {invoiceBusy ? t("flowGeneratingInvoice") : t("flowGenerateInvoice")}
               </button>
             ) : null}
             {reservation.status === "confirmed" && !checklistMode ? (
               <button type="button" className={styles.actionBtn} onClick={() => startChecklist("prepare")}>
-                Prepare for pickup
+                {t("flowPrepareForPickup")}
               </button>
             ) : null}
             {reservation.status === "confirmed" && checklistMode === "prepare" ? (
               <>
                 <button type="button" className={styles.actionBtn} onClick={setOutForPickup} disabled={!allItemsChecked}>
-                  Set ready for pickup
+                  {t("flowSetReadyForPickup")}
                 </button>
                 <button type="button" className={styles.actionBtn} onClick={closeChecklist}>
-                  Cancel
+                  {t("cancel")}
                 </button>
               </>
             ) : null}
 
             {reservation.status === "out_for_pickup" ? (
               <button type="button" className={styles.actionBtn} onClick={() => setShowPickupConfirm(true)}>
-                Picked up
+                {t("flowPickedUp")}
               </button>
             ) : null}
 
             {reservation.status === "in_use" && !checklistMode ? (
               <button type="button" className={styles.actionBtn} onClick={() => startChecklist("return")}>
-                Return items
+                {t("flowReturnItems")}
               </button>
             ) : null}
             {reservation.status === "in_use" && checklistMode === "return" ? (
               <>
                 <button type="button" className={styles.actionBtn} onClick={setReturned} disabled={!allItemsChecked}>
-                  Returned and ready for service
+                  {t("flowReturnedReadyForService")}
                 </button>
                 <button type="button" className={styles.actionBtn} onClick={closeChecklist}>
-                  Cancel
+                  {t("cancel")}
                 </button>
               </>
             ) : null}
 
             {reservation.status === "returned" && !checklistMode ? (
               <button type="button" className={styles.actionBtn} onClick={() => startChecklist("service")}>
-                Start service checklist
+                {t("flowStartServiceChecklist")}
               </button>
             ) : null}
             {reservation.status === "returned" && checklistMode === "service" ? (
               <>
                 <button type="button" className={styles.actionBtn} onClick={setServiced} disabled={!allItemsChecked}>
-                  Set serviced
+                  {t("flowSetServiced")}
                 </button>
                 <button type="button" className={styles.actionBtn} onClick={closeChecklist}>
-                  Cancel
+                  {t("cancel")}
                 </button>
               </>
             ) : null}
 
             {reservation.status === "serviced" ? (
               <button type="button" className={styles.actionBtn} onClick={closeReservation}>
-                Close reservation
+                {t("flowCloseReservation")}
               </button>
             ) : null}
           </>
         ) : (
-          <p className={styles.readonly}>Staff/admin access required to transition this reservation.</p>
+          <p className={styles.readonly}>{t("flowReadonly")}</p>
         )}
 
         {canManage && !isTerminal(reservation.status) ? (
           <button type="button" className={styles.cancelBtn} onClick={cancelReservation}>
-            Cancel reservation
+            {t("flowCancelReservation")}
           </button>
         ) : null}
       </div>
@@ -317,12 +353,12 @@ export function ReservationFlow({
 
       {showPickupConfirm ? (
         <div className={styles.modalBackdrop} role="presentation">
-          <div className={styles.modal} role="dialog" aria-modal="true" aria-label="Pickup confirmation">
-            <h3 className={styles.modalTitle}>Confirm pickup</h3>
-            <p className={styles.modalSub}>Please confirm ID check and payment received.</p>
+          <div className={styles.modal} role="dialog" aria-modal="true" aria-label={t("flowConfirmPickupTitle")}>
+            <h3 className={styles.modalTitle}>{t("flowConfirmPickupTitle")}</h3>
+            <p className={styles.modalSub}>{t("flowConfirmPickupSub")}</p>
             <label className={styles.checkboxRow}>
               <input type="checkbox" checked={idChecked} onChange={(e) => setIdChecked(e.target.checked)} />
-              <span>ID checked</span>
+              <span>{t("flowIdChecked")}</span>
             </label>
             <label className={styles.checkboxRow}>
               <input
@@ -330,14 +366,19 @@ export function ReservationFlow({
                 checked={paymentReceived}
                 onChange={(e) => setPaymentReceived(e.target.checked)}
               />
-              <span>Payment received</span>
+              <span>{t("flowPaymentReceived")}</span>
             </label>
             <div className={styles.modalActions}>
-              <button type="button" className={styles.actionBtn} onClick={confirmPickup} disabled={!idChecked || !paymentReceived}>
-                Confirm pickup
+              <button
+                type="button"
+                className={styles.actionBtn}
+                onClick={confirmPickup}
+                disabled={!idChecked || !paymentReceived}
+              >
+                {t("flowConfirmPickup")}
               </button>
               <button type="button" className={styles.actionBtn} onClick={() => setShowPickupConfirm(false)}>
-                Cancel
+                {t("cancel")}
               </button>
             </div>
           </div>

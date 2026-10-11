@@ -6,7 +6,13 @@ import { useTranslations } from "next-intl";
 import { useLocale } from "@/../i18n/useLocale";
 import styles from "./AdminShell.module.css";
 
-export function AdminSidebar() {
+export function AdminSidebar({
+  open = false,
+  onNavigate,
+}: {
+  open?: boolean;
+  onNavigate?: () => void;
+}) {
   const t = useTranslations("admin");
   const locale = useLocale();
   const pathname = usePathname();
@@ -31,7 +37,11 @@ export function AdminSidebar() {
   const financialsActive = pathname === financialsHref;
 
   return (
-    <aside className={styles.sidebar} aria-label={t("appTitle")}>
+    <aside
+      id="admin-sidebar"
+      className={open ? `${styles.sidebar} ${styles.sidebarOpen}` : styles.sidebar}
+      aria-label={t("appTitle")}
+    >
       <nav className={styles.sidebarNav}>
         <p className={styles.navSection}>{t("navSectionMain")}</p>
         <ul className={styles.navList}>
@@ -39,6 +49,7 @@ export function AdminSidebar() {
             <Link
               className={overviewActive ? styles.navLinkActive : styles.navLink}
               href={overviewHref}
+              onClick={onNavigate}
             >
               {t("navOverview")}
             </Link>
@@ -47,6 +58,7 @@ export function AdminSidebar() {
             <Link
               className={usersActive ? styles.navLinkActive : styles.navLink}
               href={usersHref}
+              onClick={onNavigate}
             >
               {t("navUsers")}
             </Link>
@@ -55,6 +67,7 @@ export function AdminSidebar() {
             <Link
               className={storesActive ? styles.navLinkActive : styles.navLink}
               href={storesHref}
+              onClick={onNavigate}
             >
               {t("navStores")}
             </Link>
@@ -63,6 +76,7 @@ export function AdminSidebar() {
             <Link
               className={reservationsPrepareActive ? styles.navLinkActive : styles.navLink}
               href={reservationsPrepareHref}
+              onClick={onNavigate}
             >
               {t("navReservationsPrepare")}
             </Link>
@@ -71,6 +85,7 @@ export function AdminSidebar() {
             <Link
               className={reservationsReadyActive ? styles.navLinkActive : styles.navLink}
               href={reservationsReadyHref}
+              onClick={onNavigate}
             >
               {t("navReservationsReady")}
             </Link>
@@ -79,6 +94,7 @@ export function AdminSidebar() {
             <Link
               className={reservationsDropoffActive ? styles.navLinkActive : styles.navLink}
               href={reservationsDropoffHref}
+              onClick={onNavigate}
             >
               {t("navReservationsDropoff")}
             </Link>
@@ -87,6 +103,7 @@ export function AdminSidebar() {
             <Link
               className={reservationsMaintenanceActive ? styles.navLinkActive : styles.navLink}
               href={reservationsMaintenanceHref}
+              onClick={onNavigate}
             >
               {t("navReservationsMaintenance")}
             </Link>
@@ -95,6 +112,7 @@ export function AdminSidebar() {
             <Link
               className={findReservationActive ? styles.navLinkActive : styles.navLink}
               href={findReservationHref}
+              onClick={onNavigate}
             >
               {t("navFindReservation")}
             </Link>
@@ -103,6 +121,7 @@ export function AdminSidebar() {
             <Link
               className={financialsActive ? styles.navLinkActive : styles.navLink}
               href={financialsHref}
+              onClick={onNavigate}
             >
               {t("navFinancials")}
             </Link>

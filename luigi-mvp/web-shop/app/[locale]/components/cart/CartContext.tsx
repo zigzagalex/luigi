@@ -19,7 +19,8 @@ import { int64OrNull } from "@/lib/nulls";
 
 import { fetchProductVariant, type ProductVariantDTO } from "@/lib/productVariantsClient";
 import { fetchProduct, type ProductDTO } from "@/lib/ProductsClient";
-import {normalizeVariantAttributes} from "@/lib/variantsLabel"
+import { formatVariantSpecs, normalizeVariantAttributes } from "@/lib/variantsLabel";
+import { useLocale } from "next-intl";
 
 type CartItem = CartView["items"][number];
 
@@ -84,6 +85,7 @@ const PLACEHOLDER = "/media/placeholders/blue/blue-1.png";
 
 export function CartProvider({ shopId, children }: CartProviderProps) {
   const { loading: authLoading, me } = useAuth();
+  const locale = useLocale();
 
   const [cart, setCart] = useState<CartView | null>(null);
   const [loading, setLoading] = useState(true);
@@ -267,10 +269,10 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
       if (!v) return "";
       
       const specs = normalizeVariantAttributes(v.attributes);
-      const attrs = formatVariantAttributes(specs);
+      const attrs = formatVariantSpecs(specs, locale);
       return attrs ? `${attrs}` : v.label;
     },
-    [variantsById]
+    [variantsById, locale]
   );
 
   const [isAddPopoverOpen, setIsAddPopoverOpen] = useState(false);
@@ -338,24 +340,3 @@ export function useCart() {
   return v;
 }
 
-// ---- helpers ----
-
-function formatVariantAttributes(attrs: Record<string, any> | null): string {
-  if (!attrs) return "";
-
-  // Common case: { size: "S", color: "black" }
-  const size = typeof attrs.size === "string" ? attrs.size : undefined;
-  const color = typeof attrs.color === "string" ? attrs.color : undefined;
-
-  const parts: string[] = [];
-  if (size) parts.push(`Size ${size}`);
-  if (color) parts.push(color);
-
-  // fallback: show a couple of keys
-  if (parts.length === 0) {
-    const keys = Object.keys(attrs).slice(0, 2);
-    for (const k of keys) parts.push(`${k}: ${String(attrs[k])}`);
-  }
-
-  return parts.join(" · ");
-}

@@ -124,24 +124,28 @@ export function AvailabilityRangeCalendar({
   );
 
   const handleSelect: OnSelectHandler<DateRange | undefined> = (next, triggerDate) => {
-    // If user clicks a Sunday, never allow it to become start or end.
-    // We decide whether they're choosing start vs end based on current state.
-    if (triggerDate && isSunday(triggerDate)) {
-      // Choosing a new start (nothing selected yet OR range already completed)
-      if (!value.from || value.to) return;
-
-      // Choosing an end (start selected, end not yet)
-      if (value.from && !value.to) {
+    // If a start is already chosen and the user clicks again, prefer setting the end
+    // instead of letting DayPicker replace the start with a new single-day range.
+    if (value.from && !value.to && triggerDate) {
+      if (isSunday(triggerDate) || isHolidayDate(triggerDate)) {
         onChange({ from: value.from, to: undefined });
         return;
       }
+      if (isSameDay(value.from, triggerDate) || triggerDate >= value.from) {
+        onChange({ from: value.from, to: triggerDate });
+        return;
+      }
+      // Click before the start: begin a new range from that day.
+      onChange({ from: triggerDate, to: undefined });
+      return;
+    }
+
+    // If user clicks a Sunday, never allow it to become start or end.
+    if (triggerDate && isSunday(triggerDate)) {
+      if (!value.from || value.to) return;
     }
     if (triggerDate && isHolidayDate(triggerDate)) {
       if (!value.from || value.to) return;
-      if (value.from && !value.to) {
-        onChange({ from: value.from, to: undefined });
-        return;
-      }
     }
 
     // "same day twice" workaround — but don't allow Sunday same-day rentals
@@ -188,6 +192,20 @@ export function AvailabilityRangeCalendar({
         <span className={styles.legendItem} role="listitem">
           <span className={`${styles.legendSwatch} ${styles.legendSwatchSelected}`} aria-hidden />
           <span>{t("calendarLegendSelected")}</span>
+        </span>
+        <span className={styles.legendSep} aria-hidden>
+          ·
+        </span>
+        <span className={styles.legendItem} role="listitem">
+          <span className={`${styles.legendSwatch} ${styles.legendSwatchUnavailable}`} aria-hidden />
+          <span>{t("calendarLegendUnavailable")}</span>
+        </span>
+        <span className={styles.legendSep} aria-hidden>
+          ·
+        </span>
+        <span className={styles.legendItem} role="listitem">
+          <span className={`${styles.legendSwatch} ${styles.legendSwatchPast}`} aria-hidden />
+          <span>{t("calendarLegendPast")}</span>
         </span>
         <span className={styles.legendSep} aria-hidden>
           ·

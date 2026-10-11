@@ -4,6 +4,7 @@ import { serverApiBase } from "@/lib/apiBase";
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const shopId = body?.shop_id;
+  const audience = typeof body?.audience === "string" ? body.audience : "customer";
 
   const res = await fetch(`${serverApiBase()}/v1/auth/logout`, {
     method: "POST",
@@ -12,7 +13,7 @@ export async function POST(req: Request) {
       // forward browser cookies to the Go API
       cookie: req.headers.get("cookie") ?? "",
     },
-    body: JSON.stringify({ shop_id: shopId }),
+    body: JSON.stringify({ shop_id: shopId, audience }),
   });
 
   const text = await res.text();

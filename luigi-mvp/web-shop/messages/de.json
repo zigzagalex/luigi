@@ -128,7 +128,8 @@
     "agbs": "AGB",
     "agreeMiddle": "und den",
     "privacyTerms": "Datenschutzbestimmungen zu",
-    "rent": "Mieten",
+    "rent": "Reservation bestätigen",
+    "confirmSavesProfileHint": "Pflichtfelder ausfüllen — mit «Reservation bestätigen» wird dein Profil gespeichert.",
     "fixBlockedItemsTitle": "Blockierte Artikel beheben",
     "completeProfileTitle": "Zuerst Profil vervollständigen",
     "acceptTermsTitle": "AGB und Datenschutzbestimmungen akzeptieren",
@@ -144,6 +145,8 @@
   "checkoutConfirmation": {
     "title": "Reservation erfolgreich",
     "subtitle": "Deine Reservation wurde erfolgreich erstellt. Du kannst sie jederzeit in deinem Konto einsehen und verwalten.",
+    "storeLine": "Abholung in {store}",
+    "payAtPickup": "Die Zahlung erfolgt bei der Abholung vor Ort.",
     "checkReservations": "Meine Reservationen ansehen",
     "continueShopping": "Weiter einkaufen",
     "reservationNumber": "Reservation {id}",
@@ -384,6 +387,8 @@
     "calendarLegendSelected": "Ausgewählter Zeitraum",
     "calendarLegendHoliday": "Feiertag",
     "calendarLegendToday": "Heute",
+    "calendarLegendUnavailable": "Nicht verfügbar",
+    "calendarLegendPast": "Vergangen",
     "pickup": "ABHOLUNG",
     "return": "RÜCKGABE",
     "selectStoreForDates": "Wähle einen Abholort, um Daten auszuwählen.",
@@ -632,5 +637,10 @@
     "agbs": "AGB",
     "privacy": "Datenschutz",
     "imprint": "Impressum"
+  },
+  "notFound": {
+    "title": "Seite nicht gefunden",
+    "body": "Diese Seite gibt es nicht oder sie wurde verschoben.",
+    "home": "Zur Startseite"
   }
 }

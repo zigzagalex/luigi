@@ -11,6 +11,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: var(--space-3);
   padding: 0 var(--space-6);
   background: var(--color-bg-surface);
   border-bottom: 1px solid var(--color-border-soft);
@@ -19,8 +20,9 @@
 .topBarLeft {
   display: flex;
   align-items: center;
-  gap: var(--space-4);
+  gap: var(--space-3);
   min-width: 0;
+  flex-shrink: 1;
 }
 
 .topBarBrand {
@@ -29,12 +31,30 @@
   letter-spacing: 0.04em;
   text-transform: uppercase;
   color: var(--color-text-meta);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.menuBtn {
+  display: none;
+  border: 1px solid var(--color-border-soft);
+  background: var(--color-bg-page);
+  color: var(--color-text-body);
+  border-radius: var(--control-radius-md);
+  padding: 6px 10px;
+  font-size: 0.78rem;
+  font-weight: 650;
+  cursor: pointer;
+  flex-shrink: 0;
 }
 
 .topBarRight {
   display: flex;
   align-items: center;
   gap: var(--space-3);
+  flex-shrink: 0;
+  flex-wrap: nowrap;
 }
 
 .storePickerLabel {
@@ -161,4 +181,78 @@
   display: grid;
   place-items: center;
   color: var(--color-text-meta);
+}
+
+.navBackdrop {
+  display: none;
+}
+
+@media (max-width: 767px) {
+  .topBar {
+    padding: 0 var(--space-3);
+    height: auto;
+    min-height: var(--admin-topbar-height);
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .menuBtn {
+    display: inline-flex;
+    align-items: center;
+  }
+
+  .topBarBrand {
+    max-width: 7.5rem;
+  }
+
+  .storePickerText {
+    display: none;
+  }
+
+  .storePickerSelect {
+    min-width: 0;
+    max-width: 110px;
+  }
+
+  .logoutBtn {
+    padding: var(--space-2);
+  }
+
+  .bodyRow {
+    position: relative;
+  }
+
+  .sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    z-index: 40;
+    width: min(280px, 86vw);
+    transform: translateX(-105%);
+    transition: transform 160ms ease;
+    box-shadow: none;
+    overflow-y: auto;
+  }
+
+  .sidebarOpen {
+    transform: translateX(0);
+    box-shadow: 8px 0 24px rgb(0 0 0 / 18%);
+  }
+
+  .navBackdrop {
+    display: block;
+    position: fixed;
+    inset: 0;
+    z-index: 30;
+    border: 0;
+    padding: 0;
+    margin: 0;
+    background: rgb(0 0 0 / 35%);
+    cursor: pointer;
+  }
+
+  .mainPane {
+    width: 100%;
+  }
 }

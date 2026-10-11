@@ -32,7 +32,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Ensure we always have *some* session identity:
-   * - logged-in users: luigi_session cookie
+   * - logged-in users: luigi_customer cookie
    * - guests: luigi_guest cookie so carts can persist
    */
   const refresh = useCallback(async () => {

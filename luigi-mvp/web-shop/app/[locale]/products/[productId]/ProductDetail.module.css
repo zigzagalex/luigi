@@ -257,7 +257,7 @@
   text-underline-offset: 2px;
 }
 
-@media (min-width: 900px) {
+@media (min-width: 960px) {
   .layout {
     flex-direction: row;
     align-items: flex-start;
@@ -270,8 +270,8 @@
   }
 
   .sidebar {
-    flex: 0 0 min(380px, 100%);
-    max-width: 400px;
+    flex: 0 0 min(400px, 42%);
+    max-width: 440px;
     min-width: 0;
     position: sticky;
     top: var(--space-5);

@@ -78,10 +78,10 @@ JSON
 }
 
 create_store \
-  "Luigi's Bike Shop Geneva" \
+  "Luigi's Bike Shop Genf" \
   "Rue du Rhône 1" \
   "1204" \
-  "Geneva" \
+  "Genf" \
   "Switzerland" \
   "Europe/Zurich"
 
@@ -89,7 +89,7 @@ create_store \
   "Luigi's Bike Shop Zürich" \
   "Bahnhofstrasse 10" \
   "8001" \
-  "Zurich" \
+  "Zürich" \
   "Switzerland" \
   "Europe/Zurich"
 

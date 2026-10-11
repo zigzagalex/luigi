@@ -1189,7 +1189,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
             {canQuote && quoteLoading && (
               <div className={styles.priceLoading}>{t("calculating")}</div>
             )}
-            <div className={styles.priceHint}>{t("priceHint")}</div>
+            {!isValidRange ? <div className={styles.priceHint}>{t("priceHint")}</div> : null}
             {quoteError && <div className={styles.priceError}>{quoteError}</div>}
           </div>
 
