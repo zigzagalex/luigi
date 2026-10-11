@@ -1,7 +1,8 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
-if (!API_BASE) throw new Error("NEXT_PUBLIC_API_BASE is not set");
+import { apiBase } from "@/lib/apiBase";
 
-export const SHOP_ID = 1;
+export { SHOP_ID } from "@/lib/shopId";
+
+const API_BASE = apiBase();
 
 export type Me = {
   id: number;

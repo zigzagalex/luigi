@@ -15,13 +15,12 @@ import {
 import { TOP_BIKES_CATEGORY_SLUG } from "@/../utils/categorySlugs";
 import { fetchApi } from "@/../utils/fetchAPI";
 import { fetchProducts, type Product } from "@/../utils/products";
+import { SHOP_ID } from "@/lib/shopId";
 
 import styles from "./page.module.css";
 import pageShell from "../../PageShell.module.css";
 
 export const dynamic = "force-dynamic";
-
-const DEFAULT_SHOP_ID = 1;
 
 type PricePointDTO = {
   price_category: string;
@@ -83,7 +82,7 @@ export default async function CategoryPage({
 
   let tree;
   try {
-    tree = await fetchCategoryTree(DEFAULT_SHOP_ID);
+    tree = await fetchCategoryTree(SHOP_ID);
   } catch (err) {
     console.error("Failed to load category tree:", err);
     notFound();
@@ -117,7 +116,7 @@ export default async function CategoryPage({
       node.slug === "accessories" || node.slug.startsWith("acc-");
     try {
       products = await fetchProducts({
-        shop_id: DEFAULT_SHOP_ID,
+        shop_id: SHOP_ID,
         category_id: node.id,
         limit: 200,
         locale,
@@ -134,7 +133,7 @@ export default async function CategoryPage({
     gridCategorySlug = TOP_BIKES_CATEGORY_SLUG;
     try {
       products = await fetchProducts({
-        shop_id: DEFAULT_SHOP_ID,
+        shop_id: SHOP_ID,
         limit: 200,
         locale,
         is_accessory: false,

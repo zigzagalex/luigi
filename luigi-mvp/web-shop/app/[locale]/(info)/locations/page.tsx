@@ -5,18 +5,17 @@ import {
   type StoreForLocation,
 } from "@/../utils/fetchAPI";
 
+import { SHOP_ID } from "@/lib/shopId";
 import LocationsContent from "./LocationsContent";
 import pageShell from "../../PageShell.module.css";
 
 export const dynamic = "force-dynamic";
 
-const DEFAULT_SHOP_ID = 1;
-
 export default async function LocationsPage() {
   const t = await getTranslations("locationsPage");
   let stores: StoreForLocation[];
   try {
-    stores = await fetchStoresForLocations(DEFAULT_SHOP_ID);
+    stores = await fetchStoresForLocations(SHOP_ID);
   } catch {
     stores = [];
   }

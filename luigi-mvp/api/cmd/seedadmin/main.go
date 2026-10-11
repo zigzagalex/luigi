@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 
@@ -74,6 +75,14 @@ RETURNING id
 }
 
 func ensureShop(ctx context.Context, db *sql.DB) (int64, error) {
+	if raw := strings.TrimSpace(os.Getenv("SHOP_ID")); raw != "" {
+		want, err := strconv.ParseInt(raw, 10, 64)
+		if err != nil || want <= 0 {
+			return 0, fmt.Errorf("SHOP_ID must be a positive integer")
+		}
+		return ensureShopID(ctx, db, want)
+	}
+
 	var id int64
 	err := db.QueryRowContext(ctx, `SELECT id FROM shops ORDER BY id LIMIT 1`).Scan(&id)
 	if err == nil {
@@ -90,6 +99,33 @@ RETURNING id
 `).Scan(&id)
 	if err != nil {
 		return 0, fmt.Errorf("insert shop: %w", err)
+	}
+	return id, nil
+}
+
+func ensureShopID(ctx context.Context, db *sql.DB, want int64) (int64, error) {
+	var id int64
+	err := db.QueryRowContext(ctx, `SELECT id FROM shops WHERE id = $1`, want).Scan(&id)
+	if err == nil {
+		return id, nil
+	}
+	if err != sql.ErrNoRows {
+		return 0, err
+	}
+
+	err = db.QueryRowContext(ctx, `
+INSERT INTO shops (id, name, timezone, is_active)
+VALUES ($1, 'Luigi''s Bike Shop', 'Europe/Zurich', TRUE)
+RETURNING id
+`, want).Scan(&id)
+	if err != nil {
+		return 0, fmt.Errorf("insert shop %d: %w", want, err)
+	}
+
+	if _, err := db.ExecContext(ctx, `
+SELECT setval(pg_get_serial_sequence('shops', 'id'), (SELECT MAX(id) FROM shops))
+`); err != nil {
+		return 0, fmt.Errorf("advance shops id sequence: %w", err)
 	}
 	return id, nil
 }

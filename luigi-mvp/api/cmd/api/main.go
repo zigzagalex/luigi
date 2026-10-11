@@ -53,6 +53,9 @@ func main() {
 	})
 
 	log.Printf("CORS allowlist: %v", cfg.CORSOrigins)
+	if cfg.ShopID > 0 {
+		log.Printf("deploy shop id: %d", cfg.ShopID)
+	}
 	log.Printf("listening on :%s", cfg.Port)
 	log.Fatal(http.ListenAndServe(":"+cfg.Port, r))
 }

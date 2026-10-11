@@ -4,13 +4,12 @@ import {
   fetchCategoryOptions,
   fetchStoreOptions,
 } from "@/../utils/fetchAPI";
-
-const DEFAULT_SHOP_ID = 1;
+import { SHOP_ID } from "@/lib/shopId";
 
 export default async function AppHeaderShell() {
   const [categoryOptions, storeOptions] = await Promise.all([
-    fetchCategoryOptions(DEFAULT_SHOP_ID),
-    fetchStoreOptions(DEFAULT_SHOP_ID),
+    fetchCategoryOptions(SHOP_ID),
+    fetchStoreOptions(SHOP_ID),
   ]);
 
   return <AppHeader categories={categoryOptions} stores={storeOptions} />;

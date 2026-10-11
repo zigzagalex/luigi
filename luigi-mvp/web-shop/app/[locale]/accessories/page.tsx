@@ -12,13 +12,12 @@ import {
 } from "@/../utils/categories";
 import { fetchApi } from "@/../utils/fetchAPI";
 import { fetchProducts, type Product } from "@/../utils/products";
+import { SHOP_ID } from "@/lib/shopId";
 
 import catStyles from "../categories/[slug]/page.module.css";
 import pageShell from "../PageShell.module.css";
 
 export const dynamic = "force-dynamic";
-
-const DEFAULT_SHOP_ID = 1;
 
 const ACCESSORIES_ROOT_SLUG = "accessories";
 
@@ -83,7 +82,7 @@ export default async function AccessoriesPage({
 
   let tree;
   try {
-    tree = await fetchCategoryTree(DEFAULT_SHOP_ID);
+    tree = await fetchCategoryTree(SHOP_ID);
   } catch (err) {
     console.error("Failed to load category tree:", err);
     notFound();
@@ -106,7 +105,7 @@ export default async function AccessoriesPage({
   let products: Product[] = [];
   try {
     products = await fetchProducts({
-      shop_id: DEFAULT_SHOP_ID,
+      shop_id: SHOP_ID,
       category_id: node.id,
       limit: 200,
       locale,

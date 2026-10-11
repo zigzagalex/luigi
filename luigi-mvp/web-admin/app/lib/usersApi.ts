@@ -2,9 +2,9 @@ import {
   normalizeSqlNullInt64,
   normalizeSqlNullString,
 } from "@/lib/AuthSession";
+import { apiBase } from "@/lib/apiBase";
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
-if (!API_BASE) throw new Error("NEXT_PUBLIC_API_BASE is not set");
+const API_BASE = apiBase();
 
 export type ApiUser = {
   id: number;

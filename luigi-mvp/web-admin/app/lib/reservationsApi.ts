@@ -1,5 +1,6 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
-if (!API_BASE) throw new Error("NEXT_PUBLIC_API_BASE is not set");
+import { apiBase } from "@/lib/apiBase";
+
+const API_BASE = apiBase();
 
 export type ApiAdminReservation = {
   reservation_id: number;

@@ -10,8 +10,7 @@ import { AuthProvider } from "./components/auth/AuthContext";
 import { AuthModalProvider } from "./components/auth/AuthModalContext";
 import { CartProvider } from "./components/cart/CartContext";
 import { CartAddPopover } from "./components/cart/CartAddPopover";
-
-const DEFAULT_SHOP_ID = 1;
+import { SHOP_ID } from "@/lib/shopId";
 const locales = ["en", "de", "fr", "it"] as const;
 export const dynamic = "force-dynamic";
 
@@ -33,7 +32,7 @@ export default async function LocaleLayout({ children, params }: Props) {
     <NextIntlClientProvider locale={locale} messages={messages}>
       <AuthProvider>
         <AuthModalProvider>
-          <CartProvider shopId={DEFAULT_SHOP_ID}>
+          <CartProvider shopId={SHOP_ID}>
             <AppHeaderShell />
             {children}
             <AppFooterShell locale={locale} />

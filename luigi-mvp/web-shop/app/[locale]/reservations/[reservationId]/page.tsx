@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { fetchApi } from "../../../../utils/fetchAPI";
 import type { ReservationView } from "@/lib/reservationClient";
 import ReservationDetailsClient from "../../components/reservations/ReservationDetailsClient";
+import { SHOP_ID } from "@/lib/shopId";
 import { getTranslations } from "next-intl/server";
 
 export default async function ReservationDetailsPage({
@@ -13,7 +14,6 @@ export default async function ReservationDetailsPage({
   params: Promise<{ reservationId: string }>;
 }) {
   const t = await getTranslations("reservationDetailsPage");
-  const SHOP_ID = 1;
 
   const { reservationId } = await params;
   const reservationIdNum = Number(reservationId);

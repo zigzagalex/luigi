@@ -13,12 +13,11 @@ import {
   type Accessory,
 } from "@/../utils/accessories";
 import { fetchApi } from "@/../utils/fetchAPI";
+import { SHOP_ID } from "@/lib/shopId";
 import { getTranslations } from "next-intl/server";
 import styles from "./PageShell.module.css";
 
 export const dynamic = "force-dynamic";
-
-const DEFAULT_SHOP_ID = 1;
 
 type PricePointDTO = {
   price_category: string;
@@ -79,7 +78,7 @@ export default async function HomePage({
 
   try {
     products = await fetchProducts({
-      shop_id: DEFAULT_SHOP_ID,
+      shop_id: SHOP_ID,
       limit: 32,
       locale,
       is_accessory: false,
@@ -108,7 +107,7 @@ export default async function HomePage({
   let homeAccessories: Accessory[] = [];
   try {
     const raw = await fetchAccessories({
-      shop_id: DEFAULT_SHOP_ID,
+      shop_id: SHOP_ID,
       limit: 12,
       locale,
     });

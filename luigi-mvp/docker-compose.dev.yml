@@ -1,43 +1,116 @@
+# Laptop stack: Postgres, migrations, seeded admin, API, SeaweedFS.
+# Shop and admin stay on the host (`pnpm dev`). No TLS proxy and no public DNS.
+#
+#   docker compose -f docker-compose.dev.yml up --build
+#
+# Reset local data by deleting the volumes:
+#   docker compose -f docker-compose.dev.yml down -v
+
 services:
   postgres:
     image: postgres:17
     container_name: luigi-postgres-dev
     restart: unless-stopped
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:-luigi}
+      POSTGRES_USER: ${POSTGRES_USER:-luigi}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-luigi}
     ports:
-      - "${POSTGRES_PORT}:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - luigi-postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-luigi} -d ${POSTGRES_DB:-luigi}"]
       interval: 5s
       timeout: 5s
-      retries: 5
+      retries: 10
+
+  migrate:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      target: migrate
+      args:
+        GO_VERSION: 1.25.5
+    volumes:
+      - ./api/migrations:/migrations:ro
+    depends_on:
+      postgres:
+        condition: service_healthy
+    # Inside the Docker network Postgres is always 5432. POSTGRES_PORT is the host mapping.
+    command:
+      - "-dir"
+      - "/migrations"
+      - "postgres"
+      - "postgres://${POSTGRES_USER:-luigi}:${POSTGRES_PASSWORD:-luigi}@postgres:5432/${POSTGRES_DB:-luigi}?sslmode=disable"
+      - "up"
+    restart: "no"
+
+  seed:
+    build:
+      context: ./api
+      dockerfile: Dockerfile
+      target: seed
+      args:
+        GO_VERSION: 1.25.5
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-luigi}:${POSTGRES_PASSWORD:-luigi}@postgres:5432/${POSTGRES_DB:-luigi}?sslmode=disable
+      SHOP_ID: ${SHOP_ID:-1}
+      SEED_ADMIN_EMAIL: ${SEED_ADMIN_EMAIL:-admin@localhost}
+      SEED_ADMIN_PASSWORD: ${SEED_ADMIN_PASSWORD:-Admin123!}
+      SEED_ADMIN_NAME: ${SEED_ADMIN_NAME:-Local Admin}
+      SEED_ADMIN_PHONE: ${SEED_ADMIN_PHONE:-+41000000000}
+    restart: "no"
 
   api:
     build:
       context: ./api
       dockerfile: Dockerfile
+      target: api
       args:
         GO_VERSION: 1.25.5
     container_name: luigi-api-dev
+    restart: unless-stopped
     depends_on:
-      postgres:
-        condition: service_healthy
+      seed:
+        condition: service_completed_successfully
     environment:
-      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@postgres:${POSTGRES_PORT}/${POSTGRES_DB}?sslmode=disable
+      DATABASE_URL: postgres://${POSTGRES_USER:-luigi}:${POSTGRES_PASSWORD:-luigi}@postgres:5432/${POSTGRES_DB:-luigi}?sslmode=disable
       PORT: 8080
-      ENV: ${ENV}
-      MEDIA_BASE_URL: ${MEDIA_BASE_URL:-http://localhost:3000}
-      # Browser origins allowed to call the API with cookies (shop :3000, admin :3001).
-      # Comma-separated; override in .env when ports/hosts differ.
+      ENV: ${ENV:-dev}
+      SESSION_SECRET: ${SESSION_SECRET:-dev-only-session-secret-change-me}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:3001}
-      SESSION_SECRET: ${SESSION_SECRET}
+      # Next dev still serves /public. Point this at Seaweed once the S3 client lands.
+      MEDIA_BASE_URL: ${MEDIA_BASE_URL:-http://localhost:3000}
+      SHOP_ID: ${SHOP_ID:-1}
+      # Present for the S3 client. Dev storage is still the noop client until that lands.
+      S3_ENDPOINT: ${S3_ENDPOINT:-http://seaweedfs:8333}
+      S3_BUCKET: ${S3_BUCKET:-luigi}
+      S3_ACCESS_KEY: ${S3_ACCESS_KEY:-luigi}
+      S3_SECRET_KEY: ${S3_SECRET_KEY:-luigi-dev-secret}
+      S3_REGION: ${S3_REGION:-us-east-1}
     ports:
       - "8080:8080"
 
+  # weed mini: master, volume, filer, and S3 in one process.
+  # Only the S3 port is published, for browser GETs of media. Master, filer, and admin stay off the host.
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.28
+    container_name: luigi-seaweed-dev
+    restart: unless-stopped
+    command: ["mini", "-dir=/data"]
+    environment:
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-luigi}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-luigi-dev-secret}
+      S3_BUCKET: ${S3_BUCKET:-luigi}
+    ports:
+      - "${S3_PORT:-8333}:8333"
+    volumes:
+      - luigi-seaweed-data:/data
+
 volumes:
   luigi-postgres-data:
+  luigi-seaweed-data:

@@ -8,6 +8,7 @@ import { RangeCalendar } from "@/[locale]/components/daterangepicker/DateRangePi
 import { intlLocaleTagForAppLocale } from "@/[locale]/components/daterangepicker/dateFnsLocale";
 import { IconSearch } from "@/[locale]/components/icons";
 import type { CategoryOption, StoreOption } from "@/../utils/fetchAPI";
+import { SHOP_ID } from "@/lib/shopId";
 import styles from "./SearchPill.module.css";
 
 type ActivePanel = "what" | "when" | "where" | null;
@@ -21,7 +22,6 @@ type SearchPillProps = {
   embedded?: boolean;
 };
 
-const DEFAULT_SHOP_ID = 1;
 
 function formatDateForApiLocal(date: Date): string {
   const y = date.getFullYear();
@@ -182,7 +182,7 @@ export default function SearchPill({
     setGateMessage(null);
 
     const params = new URLSearchParams();
-    params.set("shop_id", String(DEFAULT_SHOP_ID));
+    params.set("shop_id", String(SHOP_ID));
     params.set("store_id", String(store.id));
 
     if (selectedCategory?.id) params.set("category_id", String(selectedCategory.id));

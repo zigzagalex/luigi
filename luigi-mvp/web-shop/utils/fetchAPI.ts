@@ -1,13 +1,9 @@
 // utils/fetchAPI.ts
 
-function getApiBase(): string {
-  const base =
-    process.env.API_BASE_URL ??
-    process.env.NEXT_PUBLIC_API_BASE_URL ??
-    process.env.NEXT_PUBLIC_API_BASE ??
-    "http://localhost:8080/v1";
+import { apiBase } from "../app/lib/apiBase";
 
-  return base.replace(/\/+$/, "");
+function getApiBase(): string {
+  return apiBase();
 }
 
 /**

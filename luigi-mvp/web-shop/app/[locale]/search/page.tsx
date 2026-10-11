@@ -3,6 +3,7 @@ import ProductGrid from "../components/products/ProductGrid";
 import { fetchApi } from "../../../utils/fetchAPI";
 import { fetchProducts, type Product } from "@/../utils/products";
 import { getTranslations } from "next-intl/server";
+import { SHOP_ID } from "@/lib/shopId";
 
 import pageShell from "../PageShell.module.css";
 import styles from "./page.module.css";
@@ -95,7 +96,7 @@ export default async function SearchPage({ searchParams, params }: SearchPagePro
   const t = await getTranslations("searchPage");
   const sp: RawSearchParams = (await searchParams) ?? {};
 
-  const shopId = Number(sp.shop_id ?? "1");
+  const shopId = Number(sp.shop_id ?? String(SHOP_ID));
   const storeIdRaw = sp.store_id;
   const storeId = Number(storeIdRaw ?? "");
   const storeOk = Number.isFinite(storeId) && storeId > 0;

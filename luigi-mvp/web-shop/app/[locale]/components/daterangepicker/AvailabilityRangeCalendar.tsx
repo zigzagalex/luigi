@@ -15,6 +15,7 @@ import {
 import { useLocale, useTranslations } from "next-intl";
 import styles from "./AvailabilityRangeCalendar.module.css";
 import { dateFnsLocaleForAppLocale } from "./dateFnsLocale";
+import { apiBase } from "@/lib/apiBase";
 
 export type RangeValue = { from?: Date; to?: Date };
 type CalendarDay = { date: string; available_quantity: number };
@@ -70,8 +71,7 @@ export function AvailabilityRangeCalendar({
 
     const ac = new AbortController();
 
-    const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? "http://localhost:8080";
-    const url = new URL("/v1/availability/calendar", API_BASE);
+    const url = new URL("/v1/availability/calendar", apiBase());
     url.searchParams.set("product_variant_id", String(variantId));
     url.searchParams.set("store_id", String(storeId));
     url.searchParams.set("from", iso(fromFetch));

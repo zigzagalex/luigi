@@ -7,11 +7,11 @@ import type { ReservationView } from "@/lib/reservationClient";
 import { cookies } from "next/headers";
 import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
+import { SHOP_ID } from "@/lib/shopId";
 
 export default async function ReservationsPage() {
   const t = await getTranslations("reservationsPage");
   try {
-    const SHOP_ID = 1; 
 
     const cookieStore = await cookies();
     const cookieHeader = cookieStore

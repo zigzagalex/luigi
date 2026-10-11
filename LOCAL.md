@@ -1,102 +1,97 @@
-# Setting up a local dev environment
-0. Install go, goose, npm
-```
-brew install go
-go version
+# Local development
 
-echo 'export GOPATH=$(go env GOPATH)' >> ~/.zshrc
-echo 'export PATH="$PATH:$GOPATH/bin"' >> ~/.zshrc
-source ~/.zshrc
+Postgres, the API, and SeaweedFS run in Docker. The shop and admin stay on the host so `pnpm dev` stays fast. No Google credentials.
 
-echo $GOPATH
+## One-time setup
 
-go install github.com/pressly/goose/v3/cmd/goose@latest
-
-which goose
-
-brew install libpq
-
-
-echo 'export PATH="/opt/homebrew/opt/libpq/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
+Install Go, Node, and pnpm. Docker Desktop (or another engine) must be running.
 
 ```
-
-1. Create a .env file with
-
-    POSTGRES_DB=
-    POSTGRES_USER=
-    POSTGRES_PASSWORD=
-    POSTGRES_PORT=
-    POSTGRES_HOST=
-
-    DATABASE_URL=postgres://user:password@localhost:port/db?sslmode=disable
-
-1.1. Load the env variable into your shell. 
-
-```
-set -a
-source .env
-set +a
-```
-
-2. Run the docker compose to create the pg database 
-```docker compose -f docker-compose.dev.yml up -d postgres```
-```docker ps```
-
-3. Migrate the database and get args from .env first
-```export $(grep -v '^#' .env | xargs)```
-```
-echo $POSTGRES_DB
-echo $DATABASE_URL
-```
-
-```
-cd api
-goose -dir ./migrations postgres "$DATABASE_URL" up
-
-```
-
-4. Once db is migrated build the api
-```
-docker compose -f docker-compose.dev.yml build api
-docker compose -f docker-compose.dev.yml up -d postgres
-
-# or start both
-
-docker compose -f docker-compose.dev.yml up -d api
-
-# rebuilding api after changes
-docker compose -f docker-compose.dev.yml up -d --build api
-```
-
-5. Seed the database using the api and scripts
-```
-chmod +x /luigi/luigi-mvp/api/scripts/dev_seed_all.sh
-./luigi/luigi-mvp/api/scripts/dev_seed_all.sh
-```
-
-6. Install node and run the web app locally 
-```
-brew install node
-node -v
-npm -v
-brew install corepack
+brew install go node
 corepack enable
 corepack prepare pnpm@latest --activate
-pnpm -v
+```
+
+From `luigi-mvp/`:
+
+```
+cp .env.example .env
+cp web-shop/.env.example web-shop/.env.local
+cp web-admin/.env.example web-admin/.env.local
+```
+
+The example values are enough for a laptop. `SHOP_ID` and `NEXT_PUBLIC_SHOP_ID` must be the same number (default `1`).
+
+Install frontend dependencies once:
+
+```
+cd web-shop && pnpm install
+cd ../web-admin && pnpm install
+```
+
+## Start
+
+From `luigi-mvp/`:
+
+```
+docker compose -f docker-compose.dev.yml up --build
+```
+
+That starts Postgres, applies goose migrations, seeds an admin, then starts the API on http://localhost:8080 and SeaweedFS S3 on http://localhost:8333. Master, filer, and admin ports are not published.
+
+In two other terminals:
+
+```
+cd luigi-mvp/web-shop && pnpm dev
 ```
 
 ```
-cd /luigi/luigi-mvp/web-shop
-pnpm install
-pnpm dev
+cd luigi-mvp/web-admin && pnpm dev
 ```
 
-7. Restarting api docker container after changes
+Shop is http://localhost:3000. Admin is http://localhost:3001.
+
+Log in to admin with the seed user (override these in `.env`):
+
+- email: `admin@localhost`
+- password: `Admin123!`
+
+Each `up` writes that password again, so a change made in the admin UI is replaced the next time the seed service runs.
+
+Catalog data is still loaded with `api/scripts/dev_seed_all.sh` when you want products. Login does not need that script.
+
+## After API code changes
+
 ```
-docker stop luigi-api-dev
-docker rm luigi-api-dev
-docker compose -f docker-compose.dev.yml up -d --build api
+docker compose -f docker-compose.dev.yml up --build api
 ```
 
+SQL files are mounted into the migrate service, so a migration change is:
+
+```
+docker compose -f docker-compose.dev.yml up migrate
+```
+
+## Reset
+
+Deleting the volumes drops Postgres and SeaweedFS data. The next `up` migrates and seeds again.
+
+```
+docker compose -f docker-compose.dev.yml down -v
+```
+
+## Run the API on the host instead
+
+Compose can run Postgres only. Point `DATABASE_URL` in `.env` at `localhost`, then:
+
+```
+docker compose -f docker-compose.dev.yml up -d postgres
+set -a && source .env && set +a
+cd api && go run ./cmd/api
+```
+
+Migrations and the admin user are applied when the full Compose project runs. To apply them without the API container:
+
+```
+docker compose -f docker-compose.dev.yml up migrate seed
+```

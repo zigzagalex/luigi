@@ -3,6 +3,7 @@ package config
 import (
 	"fmt"
 	"os"
+	"strconv"
 	"strings"
 	"time"
 )
@@ -22,6 +23,10 @@ type Config struct {
 	SessionSecret string
 
 	CORSOrigins []string
+
+	// ShopID is the deploy's shop when SHOP_ID is set. Requests still carry shop_id;
+	// this value is what seed and the Next apps use for the one shop on this machine.
+	ShopID int64
 }
 
 // soft-get with default
@@ -42,34 +47,22 @@ func must(k string) string {
 }
 
 func Load() Config {
-	env := get("ENV", "prod")   // default prod on Cloud Run
-	port := get("PORT", "8080") // Cloud Run injects PORT=8080 anyway
+	// Local Compose sets ENV=dev. Unset stays prod so a deploy that still
+	// expects the GCS client does not silently switch to noop storage.
+	env := get("ENV", "prod")
+	port := get("PORT", "8080")
 
-	// 1) If DATABASE_URL provided, trust it (works for both URL and DSN forms with pgx).
 	if url := os.Getenv("DATABASE_URL"); url != "" {
 		return base(env, port, url)
 	}
 
-	// 2) If Cloud SQL SOCKET variables are present, build a Unix socket DSN.
-	// Required: DB_INSTANCE, DB_USER, DB_PASSWORD, DB_NAME
-	if os.Getenv("DB_INSTANCE") != "" {
-		url := fmt.Sprintf(
-			"host=/cloudsql/%s user=%s password=%s dbname=%s sslmode=disable",
-			must("DB_INSTANCE"), must("DB_USER"), must("DB_PASSWORD"), must("DB_NAME"),
-		)
-		return base(env, port, url)
-	}
-
-	// 3) Fall back to TCP (local dev, Docker, or public IP Cloud SQL)
-	// Use DB_HOST (default 127.0.0.1), DB_PORT (default 5432)
+	// TCP fallback for a laptop or a VPS. Host, port, and database name come from env.
 	host := get("DB_HOST", "127.0.0.1")
 	dbport := get("DB_PORT", "5432")
 	user := must("DB_USER")
 	pass := must("DB_PASSWORD")
 	name := must("DB_NAME")
 
-	// For pgx stdlib you can use URL or DSN. URL is cleaner:
-	// If you need SSL on public IP, change sslmode=require.
 	url := fmt.Sprintf("postgres://%s:%s@%s:%s/%s?sslmode=disable", user, pass, host, dbport, name)
 	return base(env, port, url)
 }
@@ -94,18 +87,31 @@ func base(env, port, url string) Config {
 	}
 
 	return Config{
-		Env:               env,
-		Port:              port,
-		DatabaseURL:       url,
-		MaxOpenConns:      10,
-		MaxIdleConns:      5,
-		ConnMaxIdle:       5 * time.Minute,
-		ConnMaxLifetime:   30 * time.Minute,
-		GCSBucketName:     gcsBucket,
-		MediaBaseURL:      mediaBaseURL,
-		SessionSecret: must("SESSION_SECRET"),
-		CORSOrigins:   loadCORSOrigins(),
+		Env:             env,
+		Port:            port,
+		DatabaseURL:     url,
+		MaxOpenConns:    10,
+		MaxIdleConns:    5,
+		ConnMaxIdle:     5 * time.Minute,
+		ConnMaxLifetime: 30 * time.Minute,
+		GCSBucketName:   gcsBucket,
+		MediaBaseURL:    mediaBaseURL,
+		SessionSecret:   must("SESSION_SECRET"),
+		CORSOrigins:     loadCORSOrigins(),
+		ShopID:          loadShopID(),
 	}
+}
+
+func loadShopID() int64 {
+	raw := strings.TrimSpace(os.Getenv("SHOP_ID"))
+	if raw == "" {
+		return 0
+	}
+	n, err := strconv.ParseInt(raw, 10, 64)
+	if err != nil || n <= 0 {
+		panic("SHOP_ID must be a positive integer")
+	}
+	return n
 }
 
 func loadCORSOrigins() []string {
