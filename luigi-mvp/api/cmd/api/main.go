@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/zigzagalex/luigi/api/internal/auth"
 	"github.com/zigzagalex/luigi/api/internal/config"
 	dbpool "github.com/zigzagalex/luigi/api/internal/db"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
@@ -34,10 +33,8 @@ func main() {
 	var store storage.Client
 
 	if cfg.Env == "dev" {
-		// Local dev: no GCP, just a noop client
 		store = storage.NewNoopClient()
 	} else {
-		// Prod/staging: GCS.
 		gcsClient, err := storage.NewGCSClient(ctx, cfg.GCSBucketName)
 		if err != nil {
 			log.Fatalf("failed to init GCS client: %v", err)
@@ -45,20 +42,14 @@ func main() {
 		store = gcsClient
 	}
 
-	// Firebase Admin
-	fbAuth, err := auth.NewFirebaseAuthClient(ctx, cfg.FirebaseProjectID)
-	if err != nil {
-		log.Fatalf("failed to init firebase auth: %v", err)
-	}
-
 	r := router.New(router.Deps{
-		Q:            q,
-		Storage:      store,
-		MediaBaseURL: cfg.MediaBaseURL,
-		SQLDB:        sqlDB,
-		FirebaseAuth: fbAuth,
-		Env:          cfg.Env,
-		CORSOrigins:  cfg.CORSOrigins,
+		Q:             q,
+		Storage:       store,
+		MediaBaseURL:  cfg.MediaBaseURL,
+		SQLDB:         sqlDB,
+		SessionSecret: cfg.SessionSecret,
+		Env:           cfg.Env,
+		CORSOrigins:   cfg.CORSOrigins,
 	})
 
 	log.Printf("CORS allowlist: %v", cfg.CORSOrigins)

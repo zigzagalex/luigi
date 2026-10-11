@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "firebase": "^11.1.0",
     "libphonenumber-js": "^1.12.41",
     "next": "16.2.3",
     "next-intl": "^4.8.3",

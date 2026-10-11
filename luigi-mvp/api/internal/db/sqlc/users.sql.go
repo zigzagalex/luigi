@@ -15,16 +15,16 @@ const createUser = `-- name: CreateUser :one
 INSERT INTO users (
     shop_id,
     store_id,
-    firebase_uid,
     email,
     phone,
     display_name,
+    password_hash,
     role,
     is_active
 ) VALUES (
     $1,
     $2,
-    $3::text,
+    $3,
     $4,
     $5,
     $6,
@@ -35,7 +35,6 @@ RETURNING
     id,
     shop_id,
     store_id,
-    firebase_uid,
     email,
     phone,
     display_name,
@@ -46,22 +45,21 @@ RETURNING
 `
 
 type CreateUserParams struct {
-	ShopID      sql.NullInt64  `json:"shop_id"`
-	StoreID     sql.NullInt64  `json:"store_id"`
-	FirebaseUid sql.NullString `json:"firebase_uid"`
-	Email       sql.NullString `json:"email"`
-	Phone       sql.NullString `json:"phone"`
-	DisplayName sql.NullString `json:"display_name"`
-	Role        sql.NullString `json:"role"`
-	IsActive    sql.NullBool   `json:"is_active"`
+	ShopID       sql.NullInt64  `json:"shop_id"`
+	StoreID      sql.NullInt64  `json:"store_id"`
+	Email        string         `json:"email"`
+	Phone        sql.NullString `json:"phone"`
+	DisplayName  sql.NullString `json:"display_name"`
+	PasswordHash string         `json:"password_hash"`
+	Role         sql.NullString `json:"role"`
+	IsActive     sql.NullBool   `json:"is_active"`
 }
 
 type CreateUserRow struct {
 	ID          int64          `json:"id"`
 	ShopID      sql.NullInt64  `json:"shop_id"`
 	StoreID     sql.NullInt64  `json:"store_id"`
-	FirebaseUid string         `json:"firebase_uid"`
-	Email       sql.NullString `json:"email"`
+	Email       string         `json:"email"`
 	Phone       sql.NullString `json:"phone"`
 	DisplayName sql.NullString `json:"display_name"`
 	Role        sql.NullString `json:"role"`
@@ -74,10 +72,10 @@ func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (Create
 	row := q.db.QueryRowContext(ctx, createUser,
 		arg.ShopID,
 		arg.StoreID,
-		arg.FirebaseUid,
 		arg.Email,
 		arg.Phone,
 		arg.DisplayName,
+		arg.PasswordHash,
 		arg.Role,
 		arg.IsActive,
 	)
@@ -86,7 +84,6 @@ func (q *Queries) CreateUser(ctx context.Context, arg *CreateUserParams) (Create
 		&i.ID,
 		&i.ShopID,
 		&i.StoreID,
-		&i.FirebaseUid,
 		&i.Email,
 		&i.Phone,
 		&i.DisplayName,
@@ -102,24 +99,23 @@ const deleteUser = `-- name: DeleteUser :one
 DELETE FROM users
 WHERE id = $1
 RETURNING
-  id, 
-  shop_id, 
-  store_id, 
-  firebase_uid, 
-  email, 
-  phone,
-  display_name,
-  role, 
-  is_active, 
-  created_at, updated_at
+    id,
+    shop_id,
+    store_id,
+    email,
+    phone,
+    display_name,
+    role,
+    is_active,
+    created_at,
+    updated_at
 `
 
 type DeleteUserRow struct {
 	ID          int64          `json:"id"`
 	ShopID      sql.NullInt64  `json:"shop_id"`
 	StoreID     sql.NullInt64  `json:"store_id"`
-	FirebaseUid string         `json:"firebase_uid"`
-	Email       sql.NullString `json:"email"`
+	Email       string         `json:"email"`
 	Phone       sql.NullString `json:"phone"`
 	DisplayName sql.NullString `json:"display_name"`
 	Role        sql.NullString `json:"role"`
@@ -135,7 +131,6 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) (DeleteUserRow, erro
 		&i.ID,
 		&i.ShopID,
 		&i.StoreID,
-		&i.FirebaseUid,
 		&i.Email,
 		&i.Phone,
 		&i.DisplayName,
@@ -147,38 +142,108 @@ func (q *Queries) DeleteUser(ctx context.Context, id int64) (DeleteUserRow, erro
 	return i, err
 }
 
-const getUserByFirebaseUID = `-- name: GetUserByFirebaseUID :one
+const getUserByEmail = `-- name: GetUserByEmail :one
 SELECT
-    id, shop_id, store_id, firebase_uid, email, display_name, role, is_active, created_at, updated_at, phone
+    id,
+    shop_id,
+    store_id,
+    email,
+    phone,
+    display_name,
+    password_hash,
+    role,
+    is_active,
+    created_at,
+    updated_at
 FROM users
-WHERE firebase_uid = $1
+WHERE email = $1
 `
 
-func (q *Queries) GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (User, error) {
-	row := q.db.QueryRowContext(ctx, getUserByFirebaseUID, firebaseUid)
-	var i User
+type GetUserByEmailRow struct {
+	ID           int64          `json:"id"`
+	ShopID       sql.NullInt64  `json:"shop_id"`
+	StoreID      sql.NullInt64  `json:"store_id"`
+	Email        string         `json:"email"`
+	Phone        sql.NullString `json:"phone"`
+	DisplayName  sql.NullString `json:"display_name"`
+	PasswordHash string         `json:"password_hash"`
+	Role         sql.NullString `json:"role"`
+	IsActive     bool           `json:"is_active"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+}
+
+func (q *Queries) GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserByEmail, email)
+	var i GetUserByEmailRow
 	err := row.Scan(
 		&i.ID,
 		&i.ShopID,
 		&i.StoreID,
-		&i.FirebaseUid,
 		&i.Email,
+		&i.Phone,
+		&i.DisplayName,
+		&i.PasswordHash,
+		&i.Role,
+		&i.IsActive,
+		&i.CreatedAt,
+		&i.UpdatedAt,
+	)
+	return i, err
+}
+
+const getUserByID = `-- name: GetUserByID :one
+SELECT
+    id,
+    shop_id,
+    store_id,
+    email,
+    phone,
+    display_name,
+    role,
+    is_active,
+    created_at,
+    updated_at
+FROM users
+WHERE id = $1
+`
+
+type GetUserByIDRow struct {
+	ID          int64          `json:"id"`
+	ShopID      sql.NullInt64  `json:"shop_id"`
+	StoreID     sql.NullInt64  `json:"store_id"`
+	Email       string         `json:"email"`
+	Phone       sql.NullString `json:"phone"`
+	DisplayName sql.NullString `json:"display_name"`
+	Role        sql.NullString `json:"role"`
+	IsActive    bool           `json:"is_active"`
+	CreatedAt   time.Time      `json:"created_at"`
+	UpdatedAt   time.Time      `json:"updated_at"`
+}
+
+func (q *Queries) GetUserByID(ctx context.Context, id int64) (GetUserByIDRow, error) {
+	row := q.db.QueryRowContext(ctx, getUserByID, id)
+	var i GetUserByIDRow
+	err := row.Scan(
+		&i.ID,
+		&i.ShopID,
+		&i.StoreID,
+		&i.Email,
+		&i.Phone,
 		&i.DisplayName,
 		&i.Role,
 		&i.IsActive,
 		&i.CreatedAt,
 		&i.UpdatedAt,
-		&i.Phone,
 	)
 	return i, err
 }
 
 const listUsers = `-- name: ListUsers :many
-SELECT 
+SELECT
     id,
     shop_id,
     store_id,
-    firebase_uid,
     email,
     phone,
     display_name,
@@ -196,7 +261,7 @@ WHERE (
         AND role IN ('admin', 'staff')
     )
 )
-ORDER BY id 
+ORDER BY id
 LIMIT $3 OFFSET $2
 `
 
@@ -210,8 +275,7 @@ type ListUsersRow struct {
 	ID          int64          `json:"id"`
 	ShopID      sql.NullInt64  `json:"shop_id"`
 	StoreID     sql.NullInt64  `json:"store_id"`
-	FirebaseUid string         `json:"firebase_uid"`
-	Email       sql.NullString `json:"email"`
+	Email       string         `json:"email"`
 	Phone       sql.NullString `json:"phone"`
 	DisplayName sql.NullString `json:"display_name"`
 	Role        sql.NullString `json:"role"`
@@ -233,7 +297,6 @@ func (q *Queries) ListUsers(ctx context.Context, arg *ListUsersParams) ([]ListUs
 			&i.ID,
 			&i.ShopID,
 			&i.StoreID,
-			&i.FirebaseUid,
 			&i.Email,
 			&i.Phone,
 			&i.DisplayName,
@@ -256,11 +319,10 @@ func (q *Queries) ListUsers(ctx context.Context, arg *ListUsersParams) ([]ListUs
 }
 
 const listUsersStaffAdmin = `-- name: ListUsersStaffAdmin :many
-SELECT 
+SELECT
     id,
     shop_id,
     store_id,
-    firebase_uid,
     email,
     phone,
     display_name,
@@ -279,7 +341,7 @@ WHERE (
     )
 )
 AND role IN ('admin', 'staff')
-ORDER BY id 
+ORDER BY id
 LIMIT $3 OFFSET $2
 `
 
@@ -293,8 +355,7 @@ type ListUsersStaffAdminRow struct {
 	ID          int64          `json:"id"`
 	ShopID      sql.NullInt64  `json:"shop_id"`
 	StoreID     sql.NullInt64  `json:"store_id"`
-	FirebaseUid string         `json:"firebase_uid"`
-	Email       sql.NullString `json:"email"`
+	Email       string         `json:"email"`
 	Phone       sql.NullString `json:"phone"`
 	DisplayName sql.NullString `json:"display_name"`
 	Role        sql.NullString `json:"role"`
@@ -316,7 +377,6 @@ func (q *Queries) ListUsersStaffAdmin(ctx context.Context, arg *ListUsersStaffAd
 			&i.ID,
 			&i.ShopID,
 			&i.StoreID,
-			&i.FirebaseUid,
 			&i.Email,
 			&i.Phone,
 			&i.DisplayName,
@@ -340,19 +400,18 @@ func (q *Queries) ListUsersStaffAdmin(ctx context.Context, arg *ListUsersStaffAd
 
 const updateUser = `-- name: UpdateUser :one
 UPDATE users
-SET 
-    email = COALESCE($1::text,        email),
-    phone = COALESCE($2::text,        phone),
-    display_name = COALESCE($3::text,        display_name),
-    role = COALESCE($4::text,        role),
-    is_active  = COALESCE($5::bool,   is_active),
-    updated_at  = now()
+SET
+    email = COALESCE($1::text, email),
+    phone = COALESCE($2::text, phone),
+    display_name = COALESCE($3::text, display_name),
+    role = COALESCE($4::text, role),
+    is_active = COALESCE($5::bool, is_active),
+    updated_at = now()
 WHERE id = $6
 RETURNING
     id,
     shop_id,
     store_id,
-    firebase_uid,
     email,
     phone,
     display_name,
@@ -375,8 +434,7 @@ type UpdateUserRow struct {
 	ID          int64          `json:"id"`
 	ShopID      sql.NullInt64  `json:"shop_id"`
 	StoreID     sql.NullInt64  `json:"store_id"`
-	FirebaseUid string         `json:"firebase_uid"`
-	Email       sql.NullString `json:"email"`
+	Email       string         `json:"email"`
 	Phone       sql.NullString `json:"phone"`
 	DisplayName sql.NullString `json:"display_name"`
 	Role        sql.NullString `json:"role"`
@@ -399,7 +457,6 @@ func (q *Queries) UpdateUser(ctx context.Context, arg *UpdateUserParams) (Update
 		&i.ID,
 		&i.ShopID,
 		&i.StoreID,
-		&i.FirebaseUid,
 		&i.Email,
 		&i.Phone,
 		&i.DisplayName,

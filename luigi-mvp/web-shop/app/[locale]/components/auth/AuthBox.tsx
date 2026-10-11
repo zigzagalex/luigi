@@ -2,16 +2,12 @@
 
 import { useMemo, useState } from "react";
 import { useTranslations } from "next-intl";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebaseClient";
-import { exchangeIdTokenForSessionCookie } from "@/lib/AuthSession";
+import { loginSession, registerSession, SHOP_ID } from "@/lib/AuthSession";
 import PhoneField from "./PhoneField";
 import styles from "./AuthBox.module.css";
 import { useAuth } from "@/[locale]/components/auth/AuthContext";
 
 type Mode = "login" | "signup";
-
-const SHOP_ID = 1;
 
 function clean(s: string) {
   return s.trim();
@@ -32,11 +28,11 @@ export function AuthBox() {
   const [msg, setMsg] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
-  const { refresh } = useAuth();
+  const { onLoginSuccess } = useAuth();
 
   const canSubmit = useMemo(() => {
     const e = clean(email);
-    const p = password; 
+    const p = password;
     if (!e || !p) return false;
 
     if (mode === "login") return true;
@@ -55,8 +51,8 @@ export function AuthBox() {
     try {
       await fn();
       setMsg(t("success"));
-    } catch (e: any) {
-      setMsg(e?.message ?? t("failed"));
+    } catch (e: unknown) {
+      setMsg(e instanceof Error ? e.message : t("failed"));
     } finally {
       setBusy(false);
     }
@@ -66,9 +62,8 @@ export function AuthBox() {
     const e = clean(email);
     if (!e || !password) throw new Error(t("emailPasswordRequired"));
 
-    await signInWithEmailAndPassword(auth, e, password);
-    await exchangeIdTokenForSessionCookie({ shop_id: SHOP_ID });
-    await refresh();
+    await loginSession(e, password);
+    await onLoginSuccess();
   }
 
   async function doSignup() {
@@ -81,19 +76,19 @@ export function AuthBox() {
     if (!phoneValid) throw new Error(t("invalidPhone"));
     if (!e || !password) throw new Error(t("emailPasswordRequired"));
 
-    await createUserWithEmailAndPassword(auth, e, password);
-    await exchangeIdTokenForSessionCookie({
+    await registerSession({
+      email: e,
+      password,
       shop_id: SHOP_ID,
       first_name: fn,
       last_name: ln,
       phone: ph,
     });
-    await refresh();
+    await onLoginSuccess();
   }
 
   return (
     <div className={styles.wrap}>
-      {/* Mode switch */}
       <div className={styles.actions}>
         <button
           type="button"

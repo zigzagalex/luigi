@@ -5,7 +5,6 @@ import (
 	"log"
 	"net/http"
 
-	fbauth "firebase.google.com/go/v4/auth"
 	"github.com/go-chi/chi/v5"
 	chiMw "github.com/go-chi/chi/v5/middleware"
 	"github.com/rs/cors"
@@ -42,9 +41,9 @@ type Deps struct {
 	MediaBaseURL string
 	SQLDB        *sql.DB
 
-	FirebaseAuth *fbauth.Client
-	Env          string
-	CORSOrigins  []string
+	SessionSecret string
+	Env           string
+	CORSOrigins   []string
 }
 
 func New(d Deps) http.Handler {
@@ -72,7 +71,7 @@ func New(d Deps) http.Handler {
 		imageSvc := imagesvc.NewService(d.Q, d.Storage, d.MediaBaseURL)
 
 		// Auth routes (public + /me protected inside the module)
-		v1auth.RegisterRoutes(r, d.FirebaseAuth, d.Q, d.SQLDB, d.Env, avService, stService)
+		v1auth.RegisterRoutes(r, d.Q, d.SQLDB, d.Env, d.SessionSecret, avService, stService)
 
 		// Public routes (shop browsing — GET only for catalog resources)
 		v1shops.RegisterRoutesPublic(r, d.Q)
@@ -85,10 +84,12 @@ func New(d Deps) http.Handler {
 		v1inventory.RegisterRoutesPublic(r, d.Q)
 		v1pricepoints.RegisterRoutesPublic(r, d.Q)
 
+		secureCookie := d.Env != "dev"
+
 		r.Group(func(r chi.Router) {
 			us := usersvc.NewService(d.Q)
 			cartSvc := cartsvc.NewService(d.Q, d.SQLDB, avService, stService)
-			r.Use(middleware.OptionalSessionCookie(d.FirebaseAuth, us, "luigi_session"))
+			r.Use(middleware.OptionalSessionCookie(d.SessionSecret, d.Q, us, "luigi_session", secureCookie))
 			v1cart.RegisterRoutes(r, d.Q, d.SQLDB, avService, stService)
 			v1reservations.RegisterRoutes(r, d.Q, d.SQLDB, cartSvc, imageSvc)
 		})
@@ -99,7 +100,7 @@ func New(d Deps) http.Handler {
 			cartSvc := cartsvc.NewService(d.Q, d.SQLDB, avService, stService)
 			imageSvc := imagesvc.NewService(d.Q, d.Storage, d.MediaBaseURL)
 			reservationCore := reservationsvc.NewService(d.Q, d.SQLDB, cartSvc, imageSvc)
-			r.Use(middleware.RequireSessionCookie(d.FirebaseAuth, us, "luigi_session"))
+			r.Use(middleware.RequireSessionCookie(d.SessionSecret, d.Q, us, "luigi_session"))
 			r.Use(middleware.RequireStaffOrAdmin())
 
 			v1shops.RegisterRoutesPrivate(r, d.Q)
@@ -110,7 +111,7 @@ func New(d Deps) http.Handler {
 			v1productvariantimages.RegisterRoutesPrivate(r, d.Q, d.Storage, d.MediaBaseURL)
 			v1inventory.RegisterRoutesPrivate(r, d.Q)
 			v1pricepoints.RegisterRoutesPrivate(r, d.Q)
-			v1users.RegisterRoutes(r, d.Q, d.FirebaseAuth)
+			v1users.RegisterRoutes(r, d.Q)
 			v1customers.RegisterRoutes(r, d.Q)
 			v1adminreservations.RegisterRoutes(r, d.SQLDB, reservationCore)
 		})

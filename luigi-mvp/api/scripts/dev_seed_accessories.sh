@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=seed_common.sh
+source "${SCRIPT_DIR}/seed_common.sh"
+
 API_BASE_URL="${API_BASE_URL:-http://localhost:8080}"
 SHOP_ID="${SHOP_ID:-1}"
 ACCESSORY_STORE_IDS="${ACCESSORY_STORE_IDS:-1,2,3}"
@@ -31,12 +35,11 @@ if [ ! -d "${MEDIA_ROOT}" ]; then
   exit 1
 fi
 
-echo "-> Checking API health..."
-if ! curl -sSf "${API_BASE_URL}/health" >/dev/null 2>&1; then
-  echo "Error: API health check failed at ${API_BASE_URL}/health" >&2
-  exit 1
+seed_require_cmds curl jq
+seed_wait_api
+if [[ ! -f "${COOKIE_JAR}" ]]; then
+  seed_login
 fi
-echo "   API is up ✅"
 
 shopt -s nullglob
 
@@ -47,7 +50,7 @@ json_escape() {
 CATS_JSON=""
 fetch_categories_if_needed() {
   if [ -z "${CATS_JSON}" ]; then
-    CATS_JSON="$(curl -sS "${API_BASE_URL}/v1/categories?shop_id=${SHOP_ID}")"
+    CATS_JSON="$(api_curl "${API_BASE_URL}/v1/categories?shop_id=${SHOP_ID}")"
   fi
 }
 
@@ -62,7 +65,7 @@ assign_product_categories() {
   local cat_ids_json="$2"
 
   HTTP_CODE="$(
-    curl -sS -o /dev/null -w "%{http_code}" \
+    api_curl -o /dev/null -w "%{http_code}" \
       -X PUT "${API_BASE_URL}/v1/products/${product_id}/categories" \
       -H "Content-Type: application/json" \
       -d "{\"category_ids\": ${cat_ids_json}}"
@@ -76,7 +79,7 @@ assign_product_categories() {
 find_accessory_product_id_by_sku() {
   local sku="$1"
   # sku may be a JSON string (normal) or legacy sql.NullString shape {"String","Valid"}
-  curl -sS "${API_BASE_URL}/v1/products?shop_id=${SHOP_ID}&is_accessory=true&limit=500&offset=0" \
+  api_curl "${API_BASE_URL}/v1/products?shop_id=${SHOP_ID}&is_accessory=true&limit=500&offset=0" \
     | jq -r --arg sku "$sku" '
         .[]?
         | select(
@@ -94,7 +97,7 @@ ensure_product_price_category() {
 
   local http_code
   http_code="$(
-    curl -sS -o /dev/null -w "%{http_code}" \
+    api_curl -o /dev/null -w "%{http_code}" \
       -X PUT "${API_BASE_URL}/v1/products/${product_id}" \
       -H "Content-Type: application/json" \
       -d "{\"price_category\": $(json_escape "$price_category")}"
@@ -115,7 +118,7 @@ create_accessory_product() {
 
   local resp http_code
   resp="$(
-    curl -sS -w "\n%{http_code}" -X POST "${API_BASE_URL}/v1/products" \
+    api_curl -w "\n%{http_code}" -X POST "${API_BASE_URL}/v1/products" \
       -H "Content-Type: application/json" \
       -d @- <<JSON
 {
@@ -145,7 +148,7 @@ upsert_product_translation_en() {
   local description="$3"
   local detailed_description="$4"
 
-  curl -sS -X PUT "${API_BASE_URL}/v1/products/${product_id}/translations/en" \
+  api_curl -X PUT "${API_BASE_URL}/v1/products/${product_id}/translations/en" \
     -H "Content-Type: application/json" \
     -d @- <<JSON >/dev/null
 {
@@ -160,7 +163,7 @@ find_variant_id() {
   local product_id="$1"
   local label="$2"
 
-  curl -sS "${API_BASE_URL}/v1/product_variants?product_id=${product_id}&limit=500&offset=0" \
+  api_curl "${API_BASE_URL}/v1/product_variants?product_id=${product_id}&limit=500&offset=0" \
     | jq -r --arg label "$label" '
         if type == "array" then
           .[] | select(.label == $label) | .id
@@ -175,7 +178,7 @@ create_variant() {
 
   local resp http_code
   resp="$(
-    curl -sS -w "\n%{http_code}" -X POST "${API_BASE_URL}/v1/product_variants" \
+    api_curl -w "\n%{http_code}" -X POST "${API_BASE_URL}/v1/product_variants" \
       -H "Content-Type: application/json" \
       -d @- <<JSON
 {
@@ -198,7 +201,7 @@ JSON
 
 list_inventory_for_variant() {
   local variant_id="$1"
-  curl -sS "${API_BASE_URL}/v1/inventory_items?shop_id=${SHOP_ID}&product_variant_id=${variant_id}&limit=1000&offset=0"
+  api_curl "${API_BASE_URL}/v1/inventory_items?shop_id=${SHOP_ID}&product_variant_id=${variant_id}&limit=1000&offset=0"
 }
 
 create_inventory_item() {
@@ -207,7 +210,7 @@ create_inventory_item() {
   local index="$3"
   local tag_code="ACC${store_id}-PV${variant_id}-${index}"
 
-  curl -sS -X POST "${API_BASE_URL}/v1/inventory_items" \
+  api_curl -X POST "${API_BASE_URL}/v1/inventory_items" \
     -H "Content-Type: application/json" \
     -d @- <<JSON >/dev/null
 {
@@ -265,7 +268,7 @@ upload_variant_images_once() {
   local image_paths=("$@")
 
   local existing_json existing_count has_broken_urls has_placeholder_urls
-  existing_json="$(curl -sS "${API_BASE_URL}/v1/product_variants/${variant_id}/images")"
+  existing_json="$(api_curl "${API_BASE_URL}/v1/product_variants/${variant_id}/images")"
   existing_count="$(echo "${existing_json}" | jq 'length')"
   has_broken_urls="$(
     echo "${existing_json}" | jq -r 'any(.[]; (.url | contains("/accessory-variants/")))'
@@ -279,7 +282,7 @@ upload_variant_images_once() {
     if [ "${has_broken_urls}" = "true" ] || [ "${has_placeholder_urls}" = "true" ]; then
       echo "      resetting variant ${variant_id} images (legacy upload path or placeholder URLs)"
       echo "${existing_json}" | jq -r '.[].id' | while read -r image_id; do
-        curl -sS -X DELETE "${API_BASE_URL}/v1/product_variants/${variant_id}/images/${image_id}" >/dev/null
+        api_curl -X DELETE "${API_BASE_URL}/v1/product_variants/${variant_id}/images/${image_id}" >/dev/null
       done
       existing_count=0
     else
@@ -300,7 +303,7 @@ upload_variant_images_once() {
       rel_path="${path#${MEDIA_ROOT}/}"
       object_key="media/Accessories/${rel_path}"
       echo "      upload image -> $(basename "${path}")"
-      curl -sS -X POST "${API_BASE_URL}/v1/product_variants/${variant_id}/images" \
+      api_curl -X POST "${API_BASE_URL}/v1/product_variants/${variant_id}/images" \
         -F "file=@${path}" \
         -F "object_key=${object_key}" >/dev/null
     fi

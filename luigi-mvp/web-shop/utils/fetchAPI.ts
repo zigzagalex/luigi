@@ -1,42 +1,19 @@
 // utils/fetchAPI.ts
-import { GoogleAuth, IdTokenClient } from "google-auth-library";
-
-const auth = new GoogleAuth();
-
-let idTokenClient: IdTokenClient | null = null;
-let idTokenAudience: string | null = null;
-
-async function getIdTokenClient(audience: string): Promise<IdTokenClient> {
-  if (!idTokenClient || idTokenAudience !== audience) {
-    idTokenClient = await auth.getIdTokenClient(audience);
-    idTokenAudience = audience;
-  }
-  return idTokenClient;
-}
 
 function getApiBase(): string {
   const base =
     process.env.API_BASE_URL ??
-    process.env.NEXT_PUBLIC_API_BASE_URL ?? 
-    process.env.NEXT_PUBLIC_API_BASE ??    
-    "http://localhost:8080/v1";             
+    process.env.NEXT_PUBLIC_API_BASE_URL ??
+    process.env.NEXT_PUBLIC_API_BASE ??
+    "http://localhost:8080/v1";
 
-  // normalize: no trailing slash
   return base.replace(/\/+$/, "");
-}
-
-function isLocalBase(base: string): boolean {
-  return (
-    base.startsWith("http://localhost") ||
-    base.startsWith("http://127.0.0.1")
-  );
 }
 
 /**
  * Server-side helper to call the API.
- *
- * - In dev/local (API_BASE_URL = http://localhost:8080), uses plain fetch.
- * - In prod/stage (Cloud Run), uses GoogleAuth + IdTokenClient for IAM auth.
+ * Cookie auth is handled by the browser for client fetches; this helper is for
+ * Next server components / route handlers talking to the Go API.
  */
 export async function fetchApi(
   path: string,
@@ -44,47 +21,13 @@ export async function fetchApi(
 ): Promise<Response> {
   const base = getApiBase();
   const url = new URL(path, base).toString();
-  console.log("fetchApi url:", url);
-  // Local dev: plain fetch
-  if (isLocalBase(base)) {
-    return fetch(url, {
-      ...init,
-      headers: {
-        "Content-Type": "application/json",
-        ...(init.headers || {}),
-      },
-      cache: "no-store",
-    });
-  }
-
-  // Cloud Run / IAM-protected
-  const client = await getIdTokenClient(base);
-
-  const nodeRes = await client.request({
-    url,
-    method: init.method ?? "GET",
-    headers: init.headers as any,
-    data: init.body as any,
-    validateStatus: () => true,
-  });
-
-  const status = nodeRes.status ?? 200;
-  const rawData = nodeRes.data;
-
-  let body: string;
-  if (typeof rawData === "string") {
-    body = rawData;
-  } else if (rawData === undefined || rawData === null) {
-    body = "";
-  } else {
-    body = JSON.stringify(rawData);
-  }
-
-  return new Response(body, {
-    status,
+  return fetch(url, {
+    ...init,
     headers: {
-      "content-type": "application/json",
+      "Content-Type": "application/json",
+      ...(init.headers || {}),
     },
+    cache: "no-store",
   });
 }
 
