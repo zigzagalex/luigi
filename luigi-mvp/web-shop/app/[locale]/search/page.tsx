@@ -1,6 +1,6 @@
 // app/search/page.tsx
 import ProductGrid from "../components/products/ProductGrid";
-import { fetchApi } from "utils/fetchAPI";
+import { fetchApi } from "../../../utils/fetchAPI";
 import { fetchProducts, type Product } from "@/../utils/products";
 import { getTranslations } from "next-intl/server";
 

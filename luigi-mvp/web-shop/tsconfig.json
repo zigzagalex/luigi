@@ -23,10 +23,9 @@
       "react",
       "react-dom"
     ],
-    "baseUrl": ".",
     "paths": {
       "@/*": [
-        "app/*"
+        "./app/*"
       ]
     },
     "allowJs": true,
