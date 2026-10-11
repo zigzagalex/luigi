@@ -1,5 +1,3 @@
-import { auth } from "@/lib/firebaseClient";
-
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE;
 if (!API_BASE) throw new Error("NEXT_PUBLIC_API_BASE is not set");
 
@@ -14,33 +12,27 @@ export type Me = {
   store_id: number | null;
 };
 
-export type Provisioning = {
-  shop_id: number;
-  first_name?: string;
-  last_name?: string;
-  phone?: string;
-};
+async function readApiError(res: Response): Promise<string> {
+  const text = await res.text();
+  try {
+    const j = JSON.parse(text) as { error?: string; details?: unknown };
+    if (!j.error) return text || `${res.status}`;
+    if (j.details === undefined || j.details === null) return j.error;
+    if (typeof j.details === "string") return `${j.error}: ${j.details}`;
+    return `${j.error}: ${JSON.stringify(j.details)}`;
+  } catch {
+    return text || `${res.status}`;
+  }
+}
 
-export async function exchangeIdTokenForSessionCookie(input?: Provisioning) {
-  const user = auth.currentUser;
-  if (!user) throw new Error("No Firebase currentUser");
-
-  const idToken = await user.getIdToken();
-
-  const res = await fetch(`${API_BASE}/v1/auth/session`, {
+export async function loginSession(email: string, password: string): Promise<void> {
+  const res = await fetch(`${API_BASE}/v1/auth/login`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     credentials: "include",
-    body: JSON.stringify({
-      idToken,
-      ...(input ?? {}),
-    }),
+    body: JSON.stringify({ email, password }),
   });
-
-  if (!res.ok) {
-    const body = await res.text();
-    throw new Error(`Session exchange failed: ${res.status} ${body}`);
-  }
+  if (!res.ok) throw new Error(await readApiError(res));
 }
 
 /** Go `sql.NullString` may JSON-encode as `{ String, Valid }` instead of a plain string. */

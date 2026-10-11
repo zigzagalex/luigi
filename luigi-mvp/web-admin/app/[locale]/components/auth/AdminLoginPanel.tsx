@@ -3,11 +3,9 @@
 import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useTranslations } from "next-intl";
-import { signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebaseClient";
 import {
-  exchangeIdTokenForSessionCookie,
   isStaffOrAdminRole,
+  loginSession,
   logoutSession,
   SHOP_ID,
 } from "@/lib/AuthSession";
@@ -46,8 +44,7 @@ export function AdminLoginPanel() {
         return;
       }
 
-      await signInWithEmailAndPassword(auth, eMail, password);
-      await exchangeIdTokenForSessionCookie({ shop_id: SHOP_ID });
+      await loginSession(eMail, password);
       const me = await refresh();
       if (!me || !isStaffOrAdminRole(me.role)) {
         setStatus(ta("accessDenied"));
@@ -56,7 +53,6 @@ export function AdminLoginPanel() {
         } catch {
           /* ignore */
         }
-        await auth.signOut();
         return;
       }
 

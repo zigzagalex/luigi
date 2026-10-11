@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=seed_common.sh
+source "${SCRIPT_DIR}/seed_common.sh"
+
 API_BASE_URL="${API_BASE_URL:-http://localhost:8080}"
 
 # By default we assume the first shop created (Luigi's Bike Shop) has id 1.
@@ -19,12 +23,11 @@ require_cmd curl
 require_cmd jq
 
 # Optional: quick health check
-echo "-> Checking API health..."
-if ! curl -sSf "${API_BASE_URL}/health" >/dev/null 2>&1; then
-  echo "Error: API health check failed at ${API_BASE_URL}/health" >&2
-  exit 1
+seed_require_cmds curl jq
+seed_wait_api
+if [[ ! -f "${COOKIE_JAR}" ]]; then
+  seed_login
 fi
-echo "   API is up ✅"
 
 BASE="${API_BASE_URL}"
 
@@ -34,7 +37,7 @@ BASE="${API_BASE_URL}"
 
 echo "-> Creating Mountain Bikes root category..."
 MTB_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -56,7 +59,7 @@ export CAT_MTB_ID="$(echo "${MTB_JSON}" | jq -r '.id')"
 ########################################
 echo "-> Creating subcategory: Fully..."
 MTB_FULLY_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -78,7 +81,7 @@ export CAT_MTB_FULLY_ID="$(echo "${MTB_FULLY_JSON}" | jq -r '.id')"
 ########################################
 echo "-> Creating subcategory: Hardtail..."
 MTB_HARDTAIL_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -100,7 +103,7 @@ export CAT_MTB_HARDTAIL_ID="$(echo "${MTB_HARDTAIL_JSON}" | jq -r '.id')"
 ########################################
 echo "-> Creating subcategory: Electric (MTB)..."
 MTB_E_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -123,7 +126,7 @@ export CAT_MTB_E_ID="$(echo "${MTB_E_JSON}" | jq -r '.id')"
 
 echo "-> Creating Road Bikes root category..."
 ROAD_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -144,7 +147,7 @@ export CAT_ROAD_ID="$(echo "${ROAD_JSON}" | jq -r '.id')"
 ########################################
 echo "-> Creating subcategory: Road Race..."
 ROAD_RACE_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -166,7 +169,7 @@ export CAT_ROAD_RACE_ID="$(echo "${ROAD_RACE_JSON}" | jq -r '.id')"
 ########################################
 echo "-> Creating subcategory: Touring..."
 ROAD_TOURING_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -188,7 +191,7 @@ export CAT_ROAD_TOURING_ID="$(echo "${ROAD_TOURING_JSON}" | jq -r '.id')"
 ########################################
 echo "-> Creating subcategory: Triathlon..."
 ROAD_TRI_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -210,7 +213,7 @@ export CAT_ROAD_TRI_ID="$(echo "${ROAD_TRI_JSON}" | jq -r '.id')"
 ########################################
 echo "-> Creating subcategory: City..."
 ROAD_CITY_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -232,7 +235,7 @@ export CAT_ROAD_CITY_ID="$(echo "${ROAD_CITY_JSON}" | jq -r '.id')"
 ########################################
 echo "-> Creating subcategory: Electric (Road)..."
 ROAD_E_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -255,7 +258,7 @@ export CAT_ROAD_E_ID="$(echo "${ROAD_E_JSON}" | jq -r '.id')"
 
 echo "-> Creating Accessories root category..."
 ACC_ROOT_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -272,7 +275,7 @@ export CAT_ACC_ID="$(echo "${ACC_ROOT_JSON}" | jq -r '.id')"
 
 echo "-> Creating accessory group: Shoes..."
 ACC_SHOES_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -290,7 +293,7 @@ export CAT_ACC_SHOES_ID="$(echo "${ACC_SHOES_JSON}" | jq -r '.id')"
 
 echo "-> Creating accessory group: Helmets..."
 ACC_HELMETS_JSON="$(
-  curl -sS -X POST "${BASE}/v1/categories" \
+  api_curl -X POST "${BASE}/v1/categories" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -326,7 +329,7 @@ for pair in \
   desc="${rest2#*:}"
   echo "-> Creating accessory subcategory: ${name}..."
   sub_json="$(
-    curl -sS -X POST "${BASE}/v1/categories" \
+    api_curl -X POST "${BASE}/v1/categories" \
       -H "Content-Type: application/json" \
       -d @- <<JSON
 {

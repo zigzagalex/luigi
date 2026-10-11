@@ -10,13 +10,16 @@ import (
 	u "github.com/zigzagalex/luigi/api/internal/utils"
 )
 
+var ErrNotFound = errors.New("user_not_found")
+
 type userQuerier interface {
 	ListUsers(ctx context.Context, arg *db.ListUsersParams) ([]db.ListUsersRow, error)
 	ListUsersStaffAdmin(ctx context.Context, arg *db.ListUsersStaffAdminParams) ([]db.ListUsersStaffAdminRow, error)
 	CreateUser(ctx context.Context, arg *db.CreateUserParams) (db.CreateUserRow, error)
 	UpdateUser(ctx context.Context, arg *db.UpdateUserParams) (db.UpdateUserRow, error)
 	DeleteUser(ctx context.Context, id int64) (db.DeleteUserRow, error)
-	GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (db.User, error)
+	GetUserByEmail(ctx context.Context, email string) (db.GetUserByEmailRow, error)
+	GetUserByID(ctx context.Context, id int64) (db.GetUserByIDRow, error)
 }
 
 type Service struct {
@@ -58,7 +61,6 @@ func (s *Service) List(ctx context.Context, in ListInput) ([]db.User, error) {
 			ID:          row.ID,
 			ShopID:      row.ShopID,
 			StoreID:     row.StoreID,
-			FirebaseUid: row.FirebaseUid,
 			Email:       row.Email,
 			Phone:       row.Phone,
 			DisplayName: row.DisplayName,
@@ -72,25 +74,31 @@ func (s *Service) List(ctx context.Context, in ListInput) ([]db.User, error) {
 }
 
 type CreateInput struct {
-	ShopID      *int64
-	StoreID     *int64
-	FirebaseUID *string
-	Email       *string
-	Phone       *string
-	DisplayName *string
-	Role        *string // nil -> default "customer" via SQL COALESCE
-	IsActive    *bool   // nil -> default TRUE via SQL COALESCE
+	ShopID       *int64
+	StoreID      *int64
+	Email        string
+	Phone        *string
+	DisplayName  *string
+	PasswordHash string
+	Role         *string // nil -> default "customer" via SQL COALESCE
+	IsActive     *bool   // nil -> default TRUE via SQL COALESCE
 }
 
 func (s *Service) Create(ctx context.Context, in CreateInput) (db.User, error) {
-	// Default is_active
+	email := strings.TrimSpace(in.Email)
+	if email == "" {
+		return db.User{}, errors.New("email is required")
+	}
+	if strings.TrimSpace(in.PasswordHash) == "" {
+		return db.User{}, errors.New("password_hash is required")
+	}
+
 	isActive := in.IsActive
 	if isActive == nil {
 		v := true
 		isActive = &v
 	}
 
-	// Default role
 	role := in.Role
 	if role == nil || strings.TrimSpace(*role) == "" {
 		v := "customer"
@@ -98,31 +106,19 @@ func (s *Service) Create(ctx context.Context, in CreateInput) (db.User, error) {
 	}
 
 	row, err := s.q.CreateUser(ctx, &db.CreateUserParams{
-		ShopID:      u.ToNullInt64(in.ShopID),
-		StoreID:     u.ToNullInt64(in.StoreID),
-		FirebaseUid: u.ToNullString(in.FirebaseUID),
-		Email:       u.ToNullString(in.Email),
-		Phone:       u.ToNullString(in.Phone),
-		DisplayName: u.ToNullString(in.DisplayName),
-		Role:        u.ToNullString(role),
-		IsActive:    u.ToNullBool(isActive),
+		ShopID:       u.ToNullInt64(in.ShopID),
+		StoreID:      u.ToNullInt64(in.StoreID),
+		Email:        email,
+		Phone:        u.ToNullString(in.Phone),
+		DisplayName:  u.ToNullString(in.DisplayName),
+		PasswordHash: in.PasswordHash,
+		Role:         u.ToNullString(role),
+		IsActive:     u.ToNullBool(isActive),
 	})
 	if err != nil {
 		return db.User{}, err
 	}
-	return db.User{
-		ID:          row.ID,
-		ShopID:      row.ShopID,
-		StoreID:     row.StoreID,
-		FirebaseUid: row.FirebaseUid,
-		Email:       row.Email,
-		Phone:       row.Phone,
-		DisplayName: row.DisplayName,
-		Role:        row.Role,
-		IsActive:    row.IsActive,
-		CreatedAt:   row.CreatedAt,
-		UpdatedAt:   row.UpdatedAt,
-	}, nil
+	return userFromCreateRow(row), nil
 }
 
 type UpdateInput struct {
@@ -144,50 +140,32 @@ func (s *Service) Update(ctx context.Context, in UpdateInput) (db.User, error) {
 		ID:          in.ID,
 	})
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return db.User{}, ErrNotFound
+		}
 		return db.User{}, err
 	}
-	return db.User{
-		ID:          row.ID,
-		ShopID:      row.ShopID,
-		StoreID:     row.StoreID,
-		FirebaseUid: row.FirebaseUid,
-		Email:       row.Email,
-		Phone:       row.Phone,
-		DisplayName: row.DisplayName,
-		Role:        row.Role,
-		IsActive:    row.IsActive,
-		CreatedAt:   row.CreatedAt,
-		UpdatedAt:   row.UpdatedAt,
-	}, nil
+	return userFromUpdateRow(row), nil
 }
 
 func (s *Service) Delete(ctx context.Context, id int64) (db.User, error) {
 	row, err := s.q.DeleteUser(ctx, id)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return db.User{}, ErrNotFound
+		}
 		return db.User{}, err
 	}
-	return db.User{
-		ID:          row.ID,
-		ShopID:      row.ShopID,
-		StoreID:     row.StoreID,
-		FirebaseUid: row.FirebaseUid,
-		Email:       row.Email,
-		Phone:       row.Phone,
-		DisplayName: row.DisplayName,
-		Role:        row.Role,
-		IsActive:    row.IsActive,
-		CreatedAt:   row.CreatedAt,
-		UpdatedAt:   row.UpdatedAt,
-	}, nil
+	return userFromDeleteRow(row), nil
 }
 
-func (s *Service) GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (db.User, error) {
-	uid := strings.TrimSpace(firebaseUid)
-	if uid == "" {
+func (s *Service) GetByEmail(ctx context.Context, email string) (db.User, error) {
+	email = strings.TrimSpace(email)
+	if email == "" {
 		return db.User{}, ErrNotFound
 	}
 
-	user, err := s.q.GetUserByFirebaseUID(ctx, uid)
+	row, err := s.q.GetUserByEmail(ctx, email)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			return db.User{}, ErrNotFound
@@ -195,7 +173,85 @@ func (s *Service) GetUserByFirebaseUID(ctx context.Context, firebaseUid string) 
 		return db.User{}, err
 	}
 
-	return user, nil
+	return db.User{
+		ID:           row.ID,
+		ShopID:       row.ShopID,
+		StoreID:      row.StoreID,
+		Email:        row.Email,
+		Phone:        row.Phone,
+		DisplayName:  row.DisplayName,
+		PasswordHash: row.PasswordHash,
+		Role:         row.Role,
+		IsActive:     row.IsActive,
+		CreatedAt:    row.CreatedAt,
+		UpdatedAt:    row.UpdatedAt,
+	}, nil
 }
 
-var ErrNotFound = errors.New("user_not_found")
+func (s *Service) GetByID(ctx context.Context, id int64) (db.User, error) {
+	row, err := s.q.GetUserByID(ctx, id)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return db.User{}, ErrNotFound
+		}
+		return db.User{}, err
+	}
+
+	return db.User{
+		ID:          row.ID,
+		ShopID:      row.ShopID,
+		StoreID:     row.StoreID,
+		Email:       row.Email,
+		Phone:       row.Phone,
+		DisplayName: row.DisplayName,
+		Role:        row.Role,
+		IsActive:    row.IsActive,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}, nil
+}
+
+func userFromCreateRow(row db.CreateUserRow) db.User {
+	return db.User{
+		ID:          row.ID,
+		ShopID:      row.ShopID,
+		StoreID:     row.StoreID,
+		Email:       row.Email,
+		Phone:       row.Phone,
+		DisplayName: row.DisplayName,
+		Role:        row.Role,
+		IsActive:    row.IsActive,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}
+}
+
+func userFromUpdateRow(row db.UpdateUserRow) db.User {
+	return db.User{
+		ID:          row.ID,
+		ShopID:      row.ShopID,
+		StoreID:     row.StoreID,
+		Email:       row.Email,
+		Phone:       row.Phone,
+		DisplayName: row.DisplayName,
+		Role:        row.Role,
+		IsActive:    row.IsActive,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}
+}
+
+func userFromDeleteRow(row db.DeleteUserRow) db.User {
+	return db.User{
+		ID:          row.ID,
+		ShopID:      row.ShopID,
+		StoreID:     row.StoreID,
+		Email:       row.Email,
+		Phone:       row.Phone,
+		DisplayName: row.DisplayName,
+		Role:        row.Role,
+		IsActive:    row.IsActive,
+		CreatedAt:   row.CreatedAt,
+		UpdatedAt:   row.UpdatedAt,
+	}
+}

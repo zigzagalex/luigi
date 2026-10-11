@@ -1,9 +1,8 @@
 -- name: ListUsers :many
-SELECT 
+SELECT
     id,
     shop_id,
     store_id,
-    firebase_uid,
     email,
     phone,
     display_name,
@@ -21,16 +20,15 @@ WHERE (
         AND role IN ('admin', 'staff')
     )
 )
-ORDER BY id 
+ORDER BY id
 LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
 
 
 -- name: ListUsersStaffAdmin :many
-SELECT 
+SELECT
     id,
     shop_id,
     store_id,
-    firebase_uid,
     email,
     phone,
     display_name,
@@ -49,7 +47,7 @@ WHERE (
     )
 )
 AND role IN ('admin', 'staff')
-ORDER BY id 
+ORDER BY id
 LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
 
 
@@ -57,19 +55,19 @@ LIMIT sqlc.arg(page_limit) OFFSET sqlc.arg(page_offset);
 INSERT INTO users (
     shop_id,
     store_id,
-    firebase_uid,
     email,
     phone,
     display_name,
+    password_hash,
     role,
     is_active
 ) VALUES (
     sqlc.arg(shop_id),
     sqlc.arg(store_id),
-    sqlc.narg(firebase_uid)::text,
     sqlc.arg(email),
     sqlc.arg(phone),
     sqlc.arg(display_name),
+    sqlc.arg(password_hash),
     COALESCE(NULLIF(sqlc.narg(role)::text, ''), 'customer'),
     COALESCE(sqlc.narg(is_active)::bool, TRUE)
 )
@@ -77,7 +75,6 @@ RETURNING
     id,
     shop_id,
     store_id,
-    firebase_uid,
     email,
     phone,
     display_name,
@@ -89,19 +86,18 @@ RETURNING
 
 -- name: UpdateUser :one
 UPDATE users
-SET 
-    email = COALESCE(sqlc.narg(email)::text,        email),
-    phone = COALESCE(sqlc.narg(phone)::text,        phone),
-    display_name = COALESCE(sqlc.narg(display_name)::text,        display_name),
-    role = COALESCE(sqlc.narg(role)::text,        role),
-    is_active  = COALESCE(sqlc.narg(is_active)::bool,   is_active),
-    updated_at  = now()
+SET
+    email = COALESCE(sqlc.narg(email)::text, email),
+    phone = COALESCE(sqlc.narg(phone)::text, phone),
+    display_name = COALESCE(sqlc.narg(display_name)::text, display_name),
+    role = COALESCE(sqlc.narg(role)::text, role),
+    is_active = COALESCE(sqlc.narg(is_active)::bool, is_active),
+    updated_at = now()
 WHERE id = sqlc.arg(id)
 RETURNING
     id,
     shop_id,
     store_id,
-    firebase_uid,
     email,
     phone,
     display_name,
@@ -115,20 +111,46 @@ RETURNING
 DELETE FROM users
 WHERE id = sqlc.arg(id)
 RETURNING
-  id, 
-  shop_id, 
-  store_id, 
-  firebase_uid, 
-  email, 
-  phone,
-  display_name,
-  role, 
-  is_active, 
-  created_at, updated_at;
+    id,
+    shop_id,
+    store_id,
+    email,
+    phone,
+    display_name,
+    role,
+    is_active,
+    created_at,
+    updated_at;
 
 
--- name: GetUserByFirebaseUID :one
+-- name: GetUserByEmail :one
 SELECT
-    *
+    id,
+    shop_id,
+    store_id,
+    email,
+    phone,
+    display_name,
+    password_hash,
+    role,
+    is_active,
+    created_at,
+    updated_at
 FROM users
-WHERE firebase_uid = sqlc.arg(firebase_uid);
+WHERE email = sqlc.arg(email);
+
+
+-- name: GetUserByID :one
+SELECT
+    id,
+    shop_id,
+    store_id,
+    email,
+    phone,
+    display_name,
+    role,
+    is_active,
+    created_at,
+    updated_at
+FROM users
+WHERE id = sqlc.arg(id);

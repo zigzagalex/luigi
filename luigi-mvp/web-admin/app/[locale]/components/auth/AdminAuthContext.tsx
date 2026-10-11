@@ -8,8 +8,6 @@ import {
   useMemo,
   useState,
 } from "react";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebaseClient";
 import {
   fetchMe,
   isStaffOrAdminRole,
@@ -38,7 +36,6 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
       const data = await fetchMe();
       if (data && !isStaffOrAdminRole(data.role)) {
         await logoutSession(SHOP_ID);
-        await signOut(auth);
         setMe(null);
         return null;
       }
@@ -54,7 +51,6 @@ export function AdminAuthProvider({ children }: { children: React.ReactNode }) {
 
   const logout = useCallback(async () => {
     await logoutSession(SHOP_ID);
-    await signOut(auth);
     setMe(null);
   }, []);
 

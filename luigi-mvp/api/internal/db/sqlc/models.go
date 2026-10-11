@@ -229,6 +229,15 @@ type ReservationItem struct {
 	Currency        string        `json:"currency"`
 }
 
+type Session struct {
+	ID        int64     `json:"id"`
+	UserID    int64     `json:"user_id"`
+	TokenHash string    `json:"token_hash"`
+	ExpiresAt time.Time `json:"expires_at"`
+	CreatedAt time.Time `json:"created_at"`
+	UpdatedAt time.Time `json:"updated_at"`
+}
+
 type Shop struct {
 	ID        int64     `json:"id"`
 	Name      string    `json:"name"`
@@ -271,15 +280,15 @@ type StoreOpeningTime struct {
 }
 
 type User struct {
-	ID          int64          `json:"id"`
-	ShopID      sql.NullInt64  `json:"shop_id"`
-	StoreID     sql.NullInt64  `json:"store_id"`
-	FirebaseUid string         `json:"firebase_uid"`
-	Email       sql.NullString `json:"email"`
-	DisplayName sql.NullString `json:"display_name"`
-	Role        sql.NullString `json:"role"`
-	IsActive    bool           `json:"is_active"`
-	CreatedAt   time.Time      `json:"created_at"`
-	UpdatedAt   time.Time      `json:"updated_at"`
-	Phone       sql.NullString `json:"phone"`
+	ID           int64          `json:"id"`
+	ShopID       sql.NullInt64  `json:"shop_id"`
+	StoreID      sql.NullInt64  `json:"store_id"`
+	Email        string         `json:"email"`
+	DisplayName  sql.NullString `json:"display_name"`
+	PasswordHash string         `json:"password_hash"`
+	Role         sql.NullString `json:"role"`
+	IsActive     bool           `json:"is_active"`
+	CreatedAt    time.Time      `json:"created_at"`
+	UpdatedAt    time.Time      `json:"updated_at"`
+	Phone        sql.NullString `json:"phone"`
 }

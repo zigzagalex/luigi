@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=seed_common.sh
+source "${SCRIPT_DIR}/seed_common.sh"
+
 API_BASE_URL="${API_BASE_URL:-http://localhost:8080}"
 SHOP_ID="${SHOP_ID:-1}"
 
@@ -17,19 +21,18 @@ require_cmd curl
 require_cmd jq
 
 # Health check
-echo "-> Checking API health..."
-if ! curl -sSf "${API_BASE_URL}/health" >/dev/null 2>&1; then
-  echo "Error: API health check failed at ${API_BASE_URL}/health" >&2
-  exit 1
+seed_require_cmds curl jq
+seed_wait_api
+if [[ ! -f "${COOKIE_JAR}" ]]; then
+  seed_login
 fi
-echo "   API is up ✅"
 
 ########################################
 # 1) Fetch categories and resolve IDs by slug
 ########################################
 
 echo "-> Fetching categories for shop_id=${SHOP_ID}..."
-CATS_JSON="$(curl -sS "${API_BASE_URL}/v1/categories?shop_id=${SHOP_ID}")"
+CATS_JSON="$(api_curl "${API_BASE_URL}/v1/categories?shop_id=${SHOP_ID}")"
 
 # Helper to get category id by slug
 get_cat_id() {
@@ -79,7 +82,7 @@ assign_cats() {
   echo "-> Assigning product ${product_id} to categories ${cat_ids_json}"
 
   HTTP_CODE="$(
-    curl -sS -o /dev/null -w "%{http_code}" \
+    api_curl -o /dev/null -w "%{http_code}" \
       -X PUT "${API_BASE_URL}/v1/products/${product_id}/categories" \
       -H "Content-Type: application/json" \
       -d "{\"category_ids\": ${cat_ids_json}}"

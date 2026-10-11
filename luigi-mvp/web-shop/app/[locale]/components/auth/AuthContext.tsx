@@ -8,8 +8,6 @@ import React, {
   useMemo,
   useState,
 } from "react";
-import { signOut } from "firebase/auth";
-import { auth } from "@/lib/firebaseClient";
 import {
   ensureGuestSession,
   fetchMe,
@@ -34,31 +32,27 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   /**
    * Ensure we always have *some* session identity:
-   * - logged-in users: luigi_session cookie (Firebase session cookie)
-   * - guests: luigi_guest cookie (anonymous id) so carts can persist
+   * - logged-in users: luigi_session cookie
+   * - guests: luigi_guest cookie so carts can persist
    */
   const refresh = useCallback(async () => {
     setLoading(true);
 
     try {
-      // If the user is logged in, this returns a user object.
-      // If not logged in, fetchMe() returns null (or throws 401 depending on implementation).
       const data = await fetchMe();
 
       if (data) {
         setMe(data);
       } else {
         setMe(null);
-        // Not logged in → bootstrap guest session cookie (no-op if it already exists)
         await ensureGuestSession();
       }
-    } catch (err) {
-      // Treat any failure as logged out, but still try to ensure guest session.
+    } catch {
       setMe(null);
       try {
         await ensureGuestSession();
       } catch {
-        // If this fails, browsing still works but cart persistence may not.
+        // browsing still works; cart persistence may not
       }
     } finally {
       setLoading(false);
@@ -66,33 +60,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const onLoginSuccess = useCallback(async () => {
-    // 1) Attach guest cart → user cart (idempotent endpoint)
     await fetch(`/api/cart/attach-guest-cart?shop_id=${SHOP_ID}`, {
       method: "POST",
       credentials: "include",
     });
-  
-    // 2) Refresh user state
     await refresh();
   }, [refresh]);
 
-  /**
-   * Logs out the user session (server cookie) and Firebase client auth.
-   */
   const logout = useCallback(async () => {
-    await logoutSession(SHOP_ID); // clears luigi_session cookie on the API
-    await signOut(auth);   // clears Firebase client auth state
+    await logoutSession(SHOP_ID);
     setMe(null);
-
-    // After logout, ensure guest session exists so cart can persist
     try {
       await ensureGuestSession();
     } catch {
-      // Ignore - non-critical
+      // ignore
     }
   }, []);
 
-  // Bootstrap on first mount
   useEffect(() => {
     void refresh();
   }, [refresh]);

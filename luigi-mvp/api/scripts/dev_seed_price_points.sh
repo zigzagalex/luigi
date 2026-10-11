@@ -1,7 +1,18 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-BASE_URL="${BASE_URL:-http://localhost:8080}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=seed_common.sh
+source "${SCRIPT_DIR}/seed_common.sh"
+
+API_BASE_URL="${API_BASE_URL:-http://localhost:8080}"
+BASE_URL="${API_BASE_URL}"
+
+seed_require_cmds curl jq
+seed_wait_api
+if [[ ! -f "${COOKIE_JAR}" ]]; then
+  seed_login
+fi
 
 create_price_point() {
   local category="$1"
@@ -10,7 +21,7 @@ create_price_point() {
 
   echo "Upserting price point: category=${category}, day_count=${day_count}, total=${price_total_cents} cents"
 
-  curl -sS -X PUT "${BASE_URL}/v1/price_points/${category}/${day_count}" \
+  api_curl -X PUT "${BASE_URL}/v1/price_points/${category}/${day_count}" \
     -H "Content-Type: application/json" \
     -d "{\"price_total_cents\": ${price_total_cents}}" \
     >/dev/null

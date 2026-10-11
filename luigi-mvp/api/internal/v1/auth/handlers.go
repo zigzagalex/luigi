@@ -3,86 +3,81 @@ package authv1
 import (
 	"database/sql"
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strings"
 	"time"
 
-	"github.com/google/uuid"
-
-	customersvc "github.com/zigzagalex/luigi/api/internal/customers"
-
-	fbauth "firebase.google.com/go/v4/auth"
 	"github.com/go-chi/chi/v5"
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgconn"
+
+	"github.com/zigzagalex/luigi/api/internal/auth"
 	avsvc "github.com/zigzagalex/luigi/api/internal/availability"
 	cartsvc "github.com/zigzagalex/luigi/api/internal/cart"
+	customersvc "github.com/zigzagalex/luigi/api/internal/customers"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
+	"github.com/zigzagalex/luigi/api/internal/stores"
 	usersvc "github.com/zigzagalex/luigi/api/internal/users"
 	u "github.com/zigzagalex/luigi/api/internal/utils"
-	"github.com/zigzagalex/luigi/api/internal/stores"
 )
 
 const cookieName = "luigi_session"
 const guestCookieName = "luigi_guest"
 
-type Handler struct {
-	fb      *fbauth.Client
-	env     string
-	q       *db.Queries
-	db      *sql.DB
-	users   *usersvc.Service
-	cartSvc *cartsvc.Service
+const sessionTTL = 7 * 24 * time.Hour
 
-	customers *customersvc.Service // NEW
+type Handler struct {
+	env           string
+	sessionSecret string
+	q             *db.Queries
+	db            *sql.DB
+	users         *usersvc.Service
+	cartSvc       *cartsvc.Service
+	customers     *customersvc.Service
 }
 
-func RegisterRoutes(r chi.Router, fb *fbauth.Client, q *db.Queries, sqlDB *sql.DB, env string, av *avsvc.Service, st *stores.Service) {
+func RegisterRoutes(r chi.Router, q *db.Queries, sqlDB *sql.DB, env, sessionSecret string, av *avsvc.Service, st *stores.Service) {
 	us := usersvc.NewService(q)
-
 	cartSvc := cartsvc.NewService(q, sqlDB, av, st)
 	cs := customersvc.NewService(q)
 
 	h := &Handler{
-		fb:        fb,
-		env:       env,
-		q:         q,
-		db:        sqlDB,
-		users:     us,
-		cartSvc:   cartSvc,
-		customers: cs,
+		env:           env,
+		sessionSecret: sessionSecret,
+		q:             q,
+		db:            sqlDB,
+		users:         us,
+		cartSvc:       cartSvc,
+		customers:     cs,
 	}
 
-	// -------------------------
-	// Public auth endpoints
-	// -------------------------
+	authLimit := middleware.RateLimit(20, time.Minute)
+
 	r.Route("/auth", func(r chi.Router) {
 		r.Post("/guest", h.GuestSession)
-		r.Post("/session", h.CreateSession)
+		r.With(authLimit).Post("/register", h.Register)
+		r.With(authLimit).Post("/login", h.Login)
 		r.Post("/logout", h.Logout)
 
-		// Protected endpoints (must have valid session cookie)
 		r.Group(func(r chi.Router) {
-			r.Use(middleware.RequireSessionCookie(fb, us, cookieName))
+			r.Use(middleware.RequireSessionCookie(sessionSecret, q, us, cookieName))
 			r.Get("/me", h.Me)
 		})
 	})
 
-	// -------------------------
-	// Protected "me" endpoints (NOT under /auth)
-	// so the path is /me/customer rather than /auth/me/customer
-	// -------------------------
 	r.Group(func(r chi.Router) {
-		r.Use(middleware.RequireSessionCookie(fb, us, cookieName))
+		r.Use(middleware.RequireSessionCookie(sessionSecret, q, us, cookieName))
 		r.Get("/me/customer", h.GetMyCustomer)
 		r.Put("/me/customer", h.UpsertMyCustomer)
 	})
 }
 
-type createSessionReq struct {
-	IDToken string `json:"idToken"`
-
-	// provisioning fields (only used if user doesn't exist)
+type registerReq struct {
+	Email      string `json:"email"`
+	Password   string `json:"password"`
 	ShopID     int64  `json:"shop_id"`
 	FirstName  string `json:"first_name"`
 	LastName   string `json:"last_name"`
@@ -94,46 +89,57 @@ type createSessionReq struct {
 	Country    string `json:"country,omitempty"`
 }
 
+type loginReq struct {
+	Email    string `json:"email"`
+	Password string `json:"password"`
+}
+
 type logoutReq struct {
 	ShopID int64 `json:"shop_id"`
 }
 
-func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
+func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 
-	var req createSessionReq
-	if err := json.NewDecoder(r.Body).Decode(&req); err != nil || strings.TrimSpace(req.IDToken) == "" {
+	var req registerReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 		httpx.Fail(w, http.StatusBadRequest, "invalid_json", nil)
 		return
 	}
 
-	// 1) Verify Firebase ID token (proves identity)
-	tok, err := h.fb.VerifyIDToken(ctx, req.IDToken)
+	email := strings.TrimSpace(req.Email)
+	password := req.Password
+	firstName := strings.TrimSpace(req.FirstName)
+	lastName := strings.TrimSpace(req.LastName)
+	phone := strings.TrimSpace(req.Phone)
+
+	if email == "" {
+		httpx.Fail(w, http.StatusBadRequest, "email_required", nil)
+		return
+	}
+	if req.ShopID <= 0 || firstName == "" || lastName == "" || phone == "" {
+		httpx.Fail(w, http.StatusBadRequest, "missing_profile_fields", map[string]any{
+			"shop_id":    req.ShopID,
+			"first_name": firstName,
+			"last_name":  lastName,
+			"phone":      phone,
+		})
+		return
+	}
+
+	hash, err := auth.HashPassword(password)
 	if err != nil {
-		httpx.Fail(w, http.StatusUnauthorized, "invalid_id_token", err.Error())
-		return
-	}
-
-	uid := strings.TrimSpace(tok.UID)
-	if uid == "" {
-		httpx.Fail(w, http.StatusUnauthorized, "missing_uid", nil)
-		return
-	}
-
-	// Pull email from token claims (required for your flow)
-	var emailPtr *string
-	if v, ok := tok.Claims["email"].(string); ok {
-		e := strings.TrimSpace(v)
-		if e != "" {
-			emailPtr = &e
+		if errors.Is(err, auth.ErrWeakPassword) {
+			httpx.Fail(w, http.StatusBadRequest, "weak_password", err.Error())
+			return
 		}
-	}
-	if emailPtr == nil {
-		httpx.Fail(w, http.StatusBadRequest, "email_missing", "firebase token has no email claim")
+		httpx.Fail(w, http.StatusInternalServerError, "hash_password_failed", nil)
 		return
 	}
 
-	// 2) Transaction: ensure BOTH user + customer exist (atomic)
+	display := firstName + " " + lastName
+	role := "customer"
+
 	tx, err := h.db.BeginTx(ctx, nil)
 	if err != nil {
 		httpx.Fail(w, http.StatusInternalServerError, "tx_begin_failed", err.Error())
@@ -145,138 +151,137 @@ func (h *Handler) CreateSession(w http.ResponseWriter, r *http.Request) {
 	us := usersvc.NewService(qtx)
 	cs := customersvc.NewService(qtx)
 
-	// 2a) Ensure user exists
-	user, err := us.GetUserByFirebaseUID(ctx, uid)
+	user, err := us.Create(ctx, usersvc.CreateInput{
+		ShopID:       &req.ShopID,
+		Email:        email,
+		Phone:        &phone,
+		DisplayName:  &display,
+		PasswordHash: hash,
+		Role:         &role,
+	})
 	if err != nil {
-		if err != usersvc.ErrNotFound {
-			httpx.Fail(w, http.StatusInternalServerError, "get_user_failed", err.Error())
+		if isPostgresUniqueViolation(err) {
+			httpx.Fail(w, http.StatusConflict, "email_already_exists", nil)
 			return
 		}
-
-		// provisioning required
-		if req.ShopID <= 0 ||
-			strings.TrimSpace(req.FirstName) == "" ||
-			strings.TrimSpace(req.LastName) == "" ||
-			strings.TrimSpace(req.Phone) == "" {
-			httpx.Fail(w, http.StatusBadRequest, "missing_profile_fields", map[string]any{
-				"shop_id":    req.ShopID,
-				"first_name": req.FirstName,
-				"last_name":  req.LastName,
-				"phone":      req.Phone,
-				"email":      *emailPtr,
-			})
+		if isPostgresFKViolation(err) {
+			httpx.Fail(w, http.StatusBadRequest, "shop_id_not_found", nil)
 			return
 		}
-
-		uidCopy := uid
-		display := strings.TrimSpace(req.FirstName) + " " + strings.TrimSpace(req.LastName)
-
-		user, err = us.Create(ctx, usersvc.CreateInput{
-			ShopID:      &req.ShopID,
-			FirebaseUID: &uidCopy,
-			Email:       emailPtr,
-			DisplayName: &display,
-		})
-		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "user_autoprovision_failed", err.Error())
-			return
-		}
+		httpx.Fail(w, http.StatusInternalServerError, "register_failed", err.Error())
+		return
 	}
 
-	// Choose shop_id for customer creation:
-	// - prefer request (frontend sends it)
-	// - otherwise fallback to user's shop_id
-	shopID := req.ShopID
-	if shopID <= 0 {
-		if user.ShopID.Valid {
-			shopID = user.ShopID.Int64
+	emailCopy := email
+	_, err = cs.Create(ctx, customersvc.CreateInput{
+		ShopID:    req.ShopID,
+		UserID:    &user.ID,
+		Email:     &emailCopy,
+		Phone:     &phone,
+		FirstName: &firstName,
+		LastName:  &lastName,
+		IsActive:  ptrBool(true),
+	})
+	if err != nil {
+		httpx.Fail(w, http.StatusInternalServerError, "customer_create_failed", err.Error())
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
+		httpx.Fail(w, http.StatusInternalServerError, "tx_commit_failed", err.Error())
+		return
+	}
+
+	if err := h.issueSession(w, r, user.ID); err != nil {
+		httpx.Fail(w, http.StatusInternalServerError, "session_create_failed", err.Error())
+		return
+	}
+
+	httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
+func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+
+	var req loginReq
+	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+		httpx.Fail(w, http.StatusBadRequest, "invalid_json", nil)
+		return
+	}
+
+	email := strings.TrimSpace(req.Email)
+	if email == "" || req.Password == "" {
+		httpx.Fail(w, http.StatusUnauthorized, "invalid_credentials", nil)
+		return
+	}
+
+	user, err := h.users.GetByEmail(ctx, email)
+	if err != nil {
+		if errors.Is(err, usersvc.ErrNotFound) {
+			httpx.Fail(w, http.StatusUnauthorized, "invalid_credentials", nil)
+			return
 		}
+		httpx.Fail(w, http.StatusInternalServerError, "login_failed", err.Error())
+		return
+	}
+
+	ok, err := auth.CheckPassword(user.PasswordHash, req.Password)
+	if err != nil || !ok {
+		httpx.Fail(w, http.StatusUnauthorized, "invalid_credentials", nil)
+		return
 	}
 	if !user.IsActive {
 		httpx.Fail(w, http.StatusForbidden, "user_inactive", nil)
 		return
 	}
 
-	// 2b) Ensure customer exists for this user (shop customers; staff/admin skip — no shop customer row)
-	if !middleware.IsStaffOrAdmin(user) {
-		_, err = cs.GetCustomerByUserID(ctx, user.ID)
-		if err != nil {
-			if err != customersvc.ErrNotFound {
-				httpx.Fail(w, http.StatusInternalServerError, "get_customer_failed", err.Error())
-				return
-			}
-
-			// provisioning customer profile (strict fields)
-			if shopID <= 0 ||
-				strings.TrimSpace(req.FirstName) == "" ||
-				strings.TrimSpace(req.LastName) == "" ||
-				strings.TrimSpace(req.Phone) == "" {
-				httpx.Fail(w, http.StatusBadRequest, "missing_profile_fields", map[string]any{
-					"shop_id":    shopID,
-					"first_name": req.FirstName,
-					"last_name":  req.LastName,
-					"phone":      req.Phone,
-				})
-				return
-			}
-
-			_, err = cs.Create(ctx, customersvc.CreateInput{
-				ShopID:    shopID,
-				UserID:    &user.ID,
-				Email:     emailPtr,
-				Phone:     ptr(strings.TrimSpace(req.Phone)),
-				FirstName: ptr(strings.TrimSpace(req.FirstName)),
-				LastName:  ptr(strings.TrimSpace(req.LastName)),
-				// address fields optional for now => leave nil
-				IsActive: ptrBool(true),
-			})
-			if err != nil {
-				httpx.Fail(w, http.StatusInternalServerError, "customer_autoprovision_failed", err.Error())
-				return
-			}
-		}
-	}
-
-	// 2c) Commit DB work first
-	if err := tx.Commit(); err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "tx_commit_failed", err.Error())
+	if err := h.issueSession(w, r, user.ID); err != nil {
+		httpx.Fail(w, http.StatusInternalServerError, "session_create_failed", err.Error())
 		return
 	}
 
-	// 3) Create Firebase session cookie AFTER DB is consistent
-	expiresIn := 7 * 24 * time.Hour
-	sessionCookie, err := h.fb.SessionCookie(ctx, req.IDToken, expiresIn)
+	httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
+}
+
+func (h *Handler) issueSession(w http.ResponseWriter, r *http.Request, userID int64) error {
+	token, err := auth.NewSessionToken()
 	if err != nil {
-		httpx.Fail(w, http.StatusUnauthorized, "session_cookie_create_failed", err.Error())
-		return
+		return err
+	}
+	expiresAt := time.Now().UTC().Add(sessionTTL)
+	_, err = h.q.CreateSession(r.Context(), &db.CreateSessionParams{
+		UserID:    userID,
+		TokenHash: auth.HashToken(h.sessionSecret, token),
+		ExpiresAt: expiresAt,
+	})
+	if err != nil {
+		return err
 	}
 
 	secure := h.env != "dev"
 	http.SetCookie(w, &http.Cookie{
 		Name:     cookieName,
-		Value:    sessionCookie,
+		Value:    token,
 		Path:     "/",
 		HttpOnly: true,
 		Secure:   secure,
 		SameSite: http.SameSiteLaxMode,
-		MaxAge:   int(expiresIn.Seconds()),
+		MaxAge:   int(sessionTTL.Seconds()),
 	})
-
-	httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
+	return nil
 }
-
-func ptr(s string) *string { return &s }
-func ptrBool(v bool) *bool { return &v }
 
 func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	secure := h.env != "dev"
 
-	// Optional body: { "shop_id": 1 }
 	var req logoutReq
 	_ = json.NewDecoder(r.Body).Decode(&req)
 
-	// 1) Clear auth cookie
+	if c, err := r.Cookie(cookieName); err == nil && strings.TrimSpace(c.Value) != "" {
+		_ = h.q.DeleteSessionByTokenHash(ctx, auth.HashToken(h.sessionSecret, c.Value))
+	}
+
 	http.SetCookie(w, &http.Cookie{
 		Name:     cookieName,
 		Value:    "",
@@ -287,10 +292,8 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   -1,
 	})
 
-	// 2) Rotate guest cookie (fresh identity => empty cart)
 	sid := uuid.NewString()
 	maxAge := int((30 * 24 * time.Hour).Seconds())
-
 	http.SetCookie(w, &http.Cookie{
 		Name:     guestCookieName,
 		Value:    sid,
@@ -301,7 +304,6 @@ func (h *Handler) Logout(w http.ResponseWriter, r *http.Request) {
 		MaxAge:   maxAge,
 	})
 
-	// 3) Optional warm-up: create empty guest cart now
 	if h.cartSvc != nil && req.ShopID > 0 {
 		owner := cartsvc.Owner{SessionID: &sid}
 		_, _ = h.cartSvc.GetCart(ctx, owner, req.ShopID)
@@ -319,7 +321,7 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 
 	httpx.JSON(w, http.StatusOK, map[string]any{
 		"id":           user.ID,
-		"email":        nullStringAny(user.Email),
+		"email":        user.Email,
 		"display_name": nullStringAny(user.DisplayName),
 		"role":         nullStringAny(user.Role),
 		"is_active":    user.IsActive,
@@ -331,7 +333,6 @@ func (h *Handler) Me(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) GuestSession(w http.ResponseWriter, r *http.Request) {
 	secure := h.env != "dev"
 
-	// If already present, no-op
 	if c, err := r.Cookie(guestCookieName); err == nil {
 		if strings.TrimSpace(c.Value) != "" {
 			httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
@@ -339,12 +340,8 @@ func (h *Handler) GuestSession(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	// Create new guest session id
 	sid := uuid.NewString()
-
-	// Keep guest sessions reasonably long-lived (e.g., 30 days)
 	maxAge := int((30 * 24 * time.Hour).Seconds())
-
 	http.SetCookie(w, &http.Cookie{
 		Name:     guestCookieName,
 		Value:    sid,
@@ -358,12 +355,6 @@ func (h *Handler) GuestSession(w http.ResponseWriter, r *http.Request) {
 	httpx.JSON(w, http.StatusOK, map[string]any{"ok": true})
 }
 
-// -------------------------
-// /me/customer (profile)
-// -------------------------
-
-// Public contract for "my customer profile".
-// No IDs, no shop_id, no user_id, no is_active.
 type CustomerProfilePayload struct {
 	Email     string `json:"email"`
 	Phone     string `json:"phone"`
@@ -387,7 +378,7 @@ func (h *Handler) GetMyCustomer(w http.ResponseWriter, r *http.Request) {
 
 	c, err := h.customers.GetCustomerByUserID(r.Context(), user.ID)
 	if err != nil {
-		if err == customersvc.ErrNotFound {
+		if errors.Is(err, customersvc.ErrNotFound) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
@@ -411,7 +402,6 @@ func (h *Handler) UpsertMyCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Normalize required fields
 	req.Email = strings.TrimSpace(req.Email)
 	req.Phone = strings.TrimSpace(req.Phone)
 	req.FirstName = strings.TrimSpace(req.FirstName)
@@ -426,7 +416,6 @@ func (h *Handler) UpsertMyCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Optional fields: treat "" as nil
 	address1 := u.TrimOrNil(req.Address1)
 	address2 := u.TrimOrNil(req.Address2)
 	postal := u.TrimOrNil(req.PostalCode)
@@ -434,15 +423,13 @@ func (h *Handler) UpsertMyCustomer(w http.ResponseWriter, r *http.Request) {
 	country := u.TrimOrNil(req.Country)
 	notes := u.TrimOrNil(req.Notes)
 
-	// Try load existing customer by user_id
 	existing, err := h.customers.GetCustomerByUserID(r.Context(), user.ID)
-	if err != nil && err != customersvc.ErrNotFound {
+	if err != nil && !errors.Is(err, customersvc.ErrNotFound) {
 		httpx.Fail(w, http.StatusInternalServerError, "get_customer_failed", err.Error())
 		return
 	}
 
-	// Create if missing
-	if err == customersvc.ErrNotFound {
+	if errors.Is(err, customersvc.ErrNotFound) {
 		if !user.ShopID.Valid || user.ShopID.Int64 <= 0 {
 			httpx.Fail(w, http.StatusBadRequest, "shop_id_missing", nil)
 			return
@@ -450,22 +437,19 @@ func (h *Handler) UpsertMyCustomer(w http.ResponseWriter, r *http.Request) {
 		shopID := user.ShopID.Int64
 
 		item, err := h.customers.Create(r.Context(), customersvc.CreateInput{
-			ShopID: shopID,
-			UserID: &user.ID,
-
-			Email:     &req.Email,
-			Phone:     &req.Phone,
-			FirstName: &req.FirstName,
-			LastName:  &req.LastName,
-
+			ShopID:     shopID,
+			UserID:     &user.ID,
+			Email:      &req.Email,
+			Phone:      &req.Phone,
+			FirstName:  &req.FirstName,
+			LastName:   &req.LastName,
 			Address1:   address1,
 			Address2:   address2,
 			PostalCode: postal,
 			City:       city,
 			Country:    country,
 			Notes:      notes,
-
-			IsActive: ptrBool(true),
+			IsActive:   ptrBool(true),
 		})
 		if err != nil {
 			httpx.Fail(w, http.StatusInternalServerError, "create_customer_failed", err.Error())
@@ -476,27 +460,19 @@ func (h *Handler) UpsertMyCustomer(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Update existing
-	//
-	// IMPORTANT:
-	// This requires your customers service UpdateInput + Update() to include address fields,
-	// since your SQL UpdateCustomer supports them.
 	item, err := h.customers.Update(r.Context(), customersvc.UpdateInput{
-		ID: existing.ID,
-
-		Email:     &req.Email,
-		Phone:     &req.Phone,
-		FirstName: &req.FirstName,
-		LastName:  &req.LastName,
-
+		ID:         existing.ID,
+		Email:      &req.Email,
+		Phone:      &req.Phone,
+		FirstName:  &req.FirstName,
+		LastName:   &req.LastName,
 		Address1:   address1,
 		Address2:   address2,
 		PostalCode: postal,
 		City:       city,
 		Country:    country,
-
-		Notes:    notes,
-		IsActive: nil,
+		Notes:      notes,
+		IsActive:   nil,
 	})
 	if err != nil {
 		httpx.Fail(w, http.StatusInternalServerError, "update_customer_failed", err.Error())
@@ -505,6 +481,8 @@ func (h *Handler) UpsertMyCustomer(w http.ResponseWriter, r *http.Request) {
 
 	httpx.JSON(w, http.StatusOK, item)
 }
+
+func ptrBool(v bool) *bool { return &v }
 
 func nullStringAny(ns sql.NullString) any {
 	if ns.Valid {
@@ -518,4 +496,21 @@ func nullInt64Any(ni sql.NullInt64) any {
 		return ni.Int64
 	}
 	return nil
+}
+
+func isPostgresFKViolation(err error) bool {
+	var pg *pgconn.PgError
+	if errors.As(err, &pg) && pg.Code == "23503" {
+		return true
+	}
+	s := err.Error()
+	return strings.Contains(s, "23503") || strings.Contains(s, "foreign key constraint")
+}
+
+func isPostgresUniqueViolation(err error) bool {
+	var pg *pgconn.PgError
+	if errors.As(err, &pg) && pg.Code == "23505" {
+		return true
+	}
+	return strings.Contains(err.Error(), "23505") || strings.Contains(err.Error(), "unique constraint")
 }

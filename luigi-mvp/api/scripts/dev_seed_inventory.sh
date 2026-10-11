@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=seed_common.sh
+source "${SCRIPT_DIR}/seed_common.sh"
+
 API_BASE_URL="${API_BASE_URL:-http://localhost:8080}"
 SHOP_ID="${SHOP_ID:-1}"
 
@@ -23,12 +27,11 @@ require_cmd curl
 require_cmd jq
 
 # Health check
-echo "-> Checking API health..."
-if ! curl -sSf "${API_BASE_URL}/health" >/dev/null 2>&1; then
-  echo "Error: API health check failed at ${API_BASE_URL}/health" >&2
-  exit 1
+seed_require_cmds curl jq
+seed_wait_api
+if [[ ! -f "${COOKIE_JAR}" ]]; then
+  seed_login
 fi
-echo "   API is up ✅"
 
 ########################################
 # 1) Fetch all product variants
@@ -37,7 +40,7 @@ echo "   API is up ✅"
 VARIANTS_URL="${API_BASE_URL}/v1/product_variants?limit=1000&offset=0"
 
 echo "-> Fetching product variants..."
-VARIANTS_JSON="$(curl -sS "${VARIANTS_URL}")"
+VARIANTS_JSON="$(api_curl "${VARIANTS_URL}")"
 
 # Sanity check: must be a JSON array
 if ! echo "${VARIANTS_JSON}" | jq '.[0]' >/dev/null 2>&1; then
@@ -66,7 +69,7 @@ create_inventory_item() {
   echo "   -> Creating inventory item: variant_id=${variant_id}, store_id=${store_id}, tag=${tag_code}"
 
   RESP="$(
-    curl -sS -X POST "${API_BASE_URL}/v1/inventory_items" \
+    api_curl -X POST "${API_BASE_URL}/v1/inventory_items" \
       -H "Content-Type: application/json" \
       -d @- <<JSON
 {
