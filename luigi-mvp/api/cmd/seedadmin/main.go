@@ -26,6 +26,7 @@ func main() {
 	displayName := get("SEED_ADMIN_NAME", "Local Admin")
 	phone := get("SEED_ADMIN_PHONE", "+41000000000")
 
+	resetPassword := strings.EqualFold(strings.TrimSpace(os.Getenv("SEED_ADMIN_RESET")), "true")
 	hash, err := auth.HashPassword(password)
 	if err != nil {
 		log.Fatalf("hash password: %v", err)
@@ -49,8 +50,12 @@ func main() {
 		log.Fatalf("ensure shop: %v", err)
 	}
 
+	passwordUpdate := ""
+	if resetPassword {
+		passwordUpdate = "password_hash = EXCLUDED.password_hash,"
+	}
 	var userID int64
-	err = db.QueryRowContext(ctx, `
+	err = db.QueryRowContext(ctx, fmt.Sprintf(`
 INSERT INTO users (
   shop_id, email, phone, display_name, password_hash, role, is_active
 ) VALUES (
@@ -60,18 +65,17 @@ ON CONFLICT (email) DO UPDATE SET
   shop_id = EXCLUDED.shop_id,
   phone = EXCLUDED.phone,
   display_name = EXCLUDED.display_name,
-  password_hash = EXCLUDED.password_hash,
+  %s
   role = 'admin',
   is_active = TRUE,
   updated_at = now()
 RETURNING id
-`, shopID, email, phone, displayName, hash).Scan(&userID)
+`, passwordUpdate), shopID, email, phone, displayName, hash).Scan(&userID)
 	if err != nil {
 		log.Fatalf("upsert admin: %v", err)
 	}
 
 	fmt.Printf("seeded admin id=%d email=%s shop_id=%d\n", userID, email, shopID)
-	fmt.Printf("password: %s\n", password)
 }
 
 func ensureShop(ctx context.Context, db *sql.DB) (int64, error) {

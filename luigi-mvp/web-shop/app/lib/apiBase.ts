@@ -1,11 +1,26 @@
-const DEFAULT_API_BASE = "http://localhost:8080";
+const DEV_API_BASE = "http://localhost:8080";
 
-/** Origin of the Go API. Local default is localhost; override per deploy. */
+function readEnv(name: string): string {
+  const value = process.env[name];
+  return typeof value === "string" ? value.trim() : "";
+}
+
+/**
+ * Base URL for browser calls. Production leaves this empty so fetches stay
+ * on the page origin (`/v1/...`). Dev falls back to the local API.
+ */
 export function apiBase(): string {
-  const raw =
-    process.env.NEXT_PUBLIC_API_BASE ??
-    process.env.NEXT_PUBLIC_API_BASE_URL ??
-    process.env.API_BASE_URL ??
-    DEFAULT_API_BASE;
-  return raw.replace(/\/+$/, "");
+  const configured = readEnv("NEXT_PUBLIC_API_BASE") || readEnv("NEXT_PUBLIC_API_BASE_URL");
+  if (configured) return configured.replace(/\/+$/, "");
+  if (process.env.NODE_ENV !== "production") return DEV_API_BASE;
+  return "";
+}
+
+/** Base URL for Next server code. In production this is the API on the Docker network. */
+export function serverApiBase(): string {
+  const internal = readEnv("API_BASE_URL");
+  if (internal) return internal.replace(/\/+$/, "");
+  const pub = apiBase();
+  if (pub) return pub;
+  return DEV_API_BASE;
 }

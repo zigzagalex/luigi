@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server";
-import { apiBase } from "@/lib/apiBase";
+import { serverApiBase } from "@/lib/apiBase";
 
 export async function POST(req: Request) {
   const body = await req.json().catch(() => ({}));
   const shopId = body?.shop_id;
 
-  const res = await fetch(`${apiBase()}/v1/auth/logout`, {
+  const res = await fetch(`${serverApiBase()}/v1/auth/logout`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

@@ -93,12 +93,30 @@ func TestLoadProdReadsS3AndMediaBase(t *testing.T) {
 	t.Setenv("CORS_ORIGINS", "http://localhost:3000")
 	t.Setenv("MEDIA_BASE_URL", "http://localhost:8333/luigi")
 	setS3Env(t)
+	t.Setenv("S3_SECRET_KEY", "prod-secret")
 
 	cfg := Load()
 	if cfg.MediaBaseURL != "http://localhost:8333/luigi" {
 		t.Fatalf("media base = %q", cfg.MediaBaseURL)
 	}
-	if cfg.S3AccessKey != "luigi" || cfg.S3SecretKey != "luigi-dev-secret" {
+	if cfg.S3AccessKey != "luigi" || cfg.S3SecretKey != "prod-secret" {
 		t.Fatal("s3 credentials were not loaded")
 	}
+}
+
+func TestLoadProdRejectsDevDefaults(t *testing.T) {
+	t.Setenv("ENV", "prod")
+	t.Setenv("DATABASE_URL", "postgres://u:p@db:5432/luigi?sslmode=disable")
+	t.Setenv("SESSION_SECRET", "dev-only-session-secret-change-me")
+	t.Setenv("CORS_ORIGINS", "https://shop.example")
+	t.Setenv("MEDIA_BASE_URL", "https://media.example/luigi")
+	setS3Env(t)
+	t.Setenv("S3_SECRET_KEY", "prod-secret")
+
+	defer func() {
+		if recover() == nil {
+			t.Fatal("expected panic for dev session secret")
+		}
+	}()
+	Load()
 }

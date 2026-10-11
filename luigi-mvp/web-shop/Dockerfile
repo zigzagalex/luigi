@@ -18,6 +18,8 @@ FROM base AS build
 RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+ARG NEXT_PUBLIC_SHOP_ID=1
+ENV NEXT_PUBLIC_SHOP_ID=$NEXT_PUBLIC_SHOP_ID
 # next.config.js has output: 'standalone'
 RUN pnpm build
 
@@ -27,17 +29,12 @@ WORKDIR /app
 ENV NODE_ENV=production
 ENV PORT=8080
 ENV HOSTNAME=0.0.0.0
+RUN addgroup -g 1001 -S nodejs && adduser -S -u 1001 -G nodejs nextjs
 
-# 1) Copy standalone server bundle (this includes server.js)
-COPY --from=build /app/.next/standalone ./
+COPY --from=build --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=build --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=build --chown=nextjs:nodejs /app/public ./public
 
-# 2) Copy static assets where server.js expects them
-COPY --from=build /app/.next/static ./.next/static
-
-# 3) Copy public assets
-COPY --from=build /app/public ./public
-
+USER nextjs
 EXPOSE 8080
-
-# server.js is at /app/server.js in the standalone output
 CMD ["node", "server.js"]

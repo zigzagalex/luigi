@@ -83,6 +83,9 @@ func base(env, port, url string) Config {
 		mediaBaseURL = strings.TrimRight(get("MEDIA_BASE_URL", "http://localhost:8333/"+bucket), "/")
 	}
 
+	sessionSecret := must("SESSION_SECRET")
+	rejectProdDefaults(env, url, sessionSecret, secretKey)
+
 	return Config{
 		Env:             env,
 		Port:            port,
@@ -97,9 +100,23 @@ func base(env, port, url string) Config {
 		S3AccessKey:     accessKey,
 		S3SecretKey:     secretKey,
 		S3Region:        region,
-		SessionSecret:   must("SESSION_SECRET"),
+		SessionSecret:   sessionSecret,
 		CORSOrigins:     loadCORSOrigins(),
 		ShopID:          loadShopID(),
+	}
+}
+
+func rejectProdDefaults(env, databaseURL, sessionSecret, s3Secret string) {
+	if env != "prod" {
+		return
+	}
+	switch {
+	case sessionSecret == "dev-only-session-secret-change-me":
+		panic("SESSION_SECRET is still the dev default")
+	case s3Secret == "luigi-dev-secret":
+		panic("S3_SECRET_KEY is still the dev default")
+	case strings.Contains(databaseURL, "://luigi:luigi@"):
+		panic("DATABASE_URL still uses the dev database password")
 	}
 }
 

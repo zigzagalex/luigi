@@ -1,9 +1,9 @@
 // utils/fetchAPI.ts
 
-import { apiBase } from "../app/lib/apiBase";
+import { serverApiBase } from "../app/lib/apiBase";
 
 function getApiBase(): string {
-  return apiBase();
+  return serverApiBase();
 }
 
 /**

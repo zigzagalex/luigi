@@ -71,7 +71,7 @@ export function AvailabilityRangeCalendar({
 
     const ac = new AbortController();
 
-    const url = new URL("/v1/availability/calendar", apiBase());
+    const url = new URL("/v1/availability/calendar", apiBase() || window.location.origin);
     url.searchParams.set("product_variant_id", String(variantId));
     url.searchParams.set("store_id", String(storeId));
     url.searchParams.set("from", iso(fromFetch));

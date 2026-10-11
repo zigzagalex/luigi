@@ -1,0 +1,64 @@
+{
+	admin off
+	email {$ACME_EMAIL}
+}
+
+(security) {
+	header {
+		Strict-Transport-Security "max-age=31536000; includeSubDomains"
+		X-Content-Type-Options "nosniff"
+		Referrer-Policy "no-referrer"
+		X-Frame-Options "DENY"
+		Content-Security-Policy "frame-ancestors 'none'; base-uri 'self'; object-src 'none'; img-src 'self' https://{$MEDIA_DOMAIN}"
+	}
+}
+
+{$SHOP_DOMAIN} {
+	encode gzip
+	import security
+	handle /v1* {
+		reverse_proxy api:8080 {
+			# Drop the client-supplied address and set the real peer. The API trusts
+			# this only when the socket peer is a private Docker address.
+			header_up -X-Forwarded-For
+			header_up -X-Real-IP
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+	handle {
+		reverse_proxy web-shop:8080
+	}
+}
+
+{$ADMIN_DOMAIN} {
+	encode gzip
+	import security
+	handle /v1* {
+		reverse_proxy api:8080 {
+			header_up -X-Forwarded-For
+			header_up -X-Real-IP
+			header_up X-Forwarded-For {remote_host}
+			header_up X-Real-IP {remote_host}
+		}
+	}
+	handle {
+		reverse_proxy web-admin:8080
+	}
+}
+
+{$MEDIA_DOMAIN} {
+	import security
+	@read method GET HEAD
+	handle @read {
+		# Public objects are path-style. Drop the query so credentials cannot ride along.
+		rewrite * {http.request.uri.path}?
+		reverse_proxy seaweedfs:8333 {
+			header_up -Authorization
+			header_up -Cookie
+		}
+	}
+	handle {
+		respond "Method Not Allowed" 405
+	}
+}

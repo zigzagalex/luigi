@@ -52,21 +52,38 @@ func RateLimit(limit int, window time.Duration) func(http.Handler) http.Handler 
 }
 
 func clientIP(r *http.Request) string {
-	if xff := strings.TrimSpace(r.Header.Get("X-Forwarded-For")); xff != "" {
-		parts := strings.Split(xff, ",")
-		if ip := strings.TrimSpace(parts[0]); ip != "" {
-			return ip
+	host := remoteHost(r)
+	// Caddy overwrites these headers, and it is the only peer on the Docker network.
+	// A public client can set them too, so they are ignored unless the socket peer is private.
+	if isTrustedProxy(host) {
+		if xff := strings.TrimSpace(r.Header.Get("X-Forwarded-For")); xff != "" {
+			parts := strings.Split(xff, ",")
+			if ip := strings.TrimSpace(parts[len(parts)-1]); ip != "" {
+				return ip
+			}
+		}
+		if xri := strings.TrimSpace(r.Header.Get("X-Real-IP")); xri != "" {
+			return xri
 		}
 	}
-	if xri := strings.TrimSpace(r.Header.Get("X-Real-IP")); xri != "" {
-		return xri
+	if host != "" {
+		return host
 	}
+	return "unknown"
+}
+
+func remoteHost(r *http.Request) string {
 	host, _, err := net.SplitHostPort(strings.TrimSpace(r.RemoteAddr))
 	if err == nil && host != "" {
 		return host
 	}
-	if r.RemoteAddr != "" {
-		return r.RemoteAddr
+	return strings.TrimSpace(r.RemoteAddr)
+}
+
+func isTrustedProxy(host string) bool {
+	ip := net.ParseIP(host)
+	if ip == nil {
+		return false
 	}
-	return "unknown"
+	return ip.IsPrivate() || ip.IsLoopback()
 }

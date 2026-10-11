@@ -1,6 +1,4 @@
-import { apiBase } from "@/lib/apiBase";
-
-const API_BASE = apiBase();
+import { serverApiBase } from "@/lib/apiBase";
 
 export async function GET(
   req: Request,
@@ -17,7 +15,7 @@ export async function GET(
     const query = shopId ? `?shop_id=${encodeURIComponent(shopId)}` : "";
     const cookieHeader = req.headers.get("cookie") ?? "";
 
-    const upstream = await fetch(`${API_BASE}/v1/admin/reservations/${reservationId}/invoice${query}`, {
+    const upstream = await fetch(`${serverApiBase()}/v1/admin/reservations/${reservationId}/invoice${query}`, {
       method: "GET",
       headers: {
         cookie: cookieHeader,
