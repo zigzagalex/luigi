@@ -213,7 +213,7 @@ jobs:
       contains(fromJSON('["success","skipped"]'), needs.build-shop.result) &&
       contains(fromJSON('["success","skipped"]'), needs.build-admin.result)
     runs-on: ubuntu-latest
-    environment: production
+    environment: prod
     steps:
       - uses: tailscale/github-action@d1b6cd204f8dceda5b3eaad7f1f767be390056cd # v4.2.0
         with:
