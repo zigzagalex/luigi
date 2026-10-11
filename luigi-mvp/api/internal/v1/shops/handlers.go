@@ -16,17 +16,16 @@ import (
 
 func RegisterRoutesPublic(r chi.Router, q db.Querier) {
 	svc := shopsvc.NewService(q)
-	r.Route("/shops", func(r chi.Router) {
-		r.Get("/", listHandler(svc))
-	})
+	// Method routes (not Route/Mount) so public + private can share the /shops prefix.
+	r.Get("/shops", listHandler(svc))
+	r.Get("/shops/", listHandler(svc))
 }
 
 func RegisterRoutesPrivate(r chi.Router, q db.Querier) {
 	svc := shopsvc.NewService(q)
-	r.Route("/shops", func(r chi.Router) {
-		r.Post("/", createHandler(svc))
-		r.Put("/{shopID}", updateHandler(svc))
-	})
+	r.Post("/shops", createHandler(svc))
+	r.Post("/shops/", createHandler(svc))
+	r.Put("/shops/{shopID}", updateHandler(svc))
 }
 
 func listHandler(svc *shopsvc.Service) http.HandlerFunc {

@@ -16,7 +16,7 @@ function pickLocale(req: NextRequest) {
   return defaultLocale;
 }
 
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
   // Ignore Next internals + assets

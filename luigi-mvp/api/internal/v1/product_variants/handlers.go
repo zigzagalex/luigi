@@ -18,20 +18,18 @@ import (
 func RegisterRoutesPublic(r chi.Router, q db.Querier) {
 	svc := variantsvc.NewService(q)
 
-	r.Route("/product_variants", func(r chi.Router) {
-		r.Get("/", listHandler(svc)) // GET /product_variants?limit=&offset=&product_id=
-		r.Get("/{variantID}", GetByID(svc))
-	})
+	r.Get("/product_variants", listHandler(svc))
+	r.Get("/product_variants/", listHandler(svc))
+	r.Get("/product_variants/{variantID}", GetByID(svc))
 }
 
 func RegisterRoutesPrivate(r chi.Router, q db.Querier) {
 	svc := variantsvc.NewService(q)
 
-	r.Route("/product_variants", func(r chi.Router) {
-		r.Post("/", createHandler(svc))              // POST /product_variants
-		r.Put("/{variantID}", updateHandler(svc))    // PUT /product_variants/{variantID}
-		r.Delete("/{variantID}", deleteHandler(svc)) // DELETE /product_variants/{variantID}
-	})
+	r.Post("/product_variants", createHandler(svc))
+	r.Post("/product_variants/", createHandler(svc))
+	r.Put("/product_variants/{variantID}", updateHandler(svc))
+	r.Delete("/product_variants/{variantID}", deleteHandler(svc))
 }
 
 func listHandler(svc *variantsvc.Service) http.HandlerFunc {

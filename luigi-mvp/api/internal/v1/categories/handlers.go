@@ -18,24 +18,20 @@ import (
 func RegisterRoutesPublic(r chi.Router, q db.Querier) {
 	svc := categoriessvc.NewService(q)
 
-	r.Route("/categories", func(r chi.Router) {
-		r.Get("/", listHandler(svc))     // GET  /categories?shop_id=
-		r.Get("/tree", treeHandler(svc)) // GET  /categories/tree?shop_id=
-	})
-
-	r.Get("/products/{productID}/categories", listProductCategoriesHandler(svc)) // GET /products/{productID}/categories
+	r.Get("/categories", listHandler(svc))
+	r.Get("/categories/", listHandler(svc))
+	r.Get("/categories/tree", treeHandler(svc))
+	r.Get("/products/{productID}/categories", listProductCategoriesHandler(svc))
 }
 
 func RegisterRoutesPrivate(r chi.Router, q db.Querier) {
 	svc := categoriessvc.NewService(q)
 
-	r.Route("/categories", func(r chi.Router) {
-		r.Post("/", createHandler(svc))               // POST /categories
-		r.Put("/{categoryID}", updateHandler(svc))    // PUT  /categories/{categoryID}
-		r.Delete("/{categoryID}", deleteHandler(svc)) // DELETE /categories/{categoryID}
-	})
-
-	r.Put("/products/{productID}/categories", replaceProductCategoriesHandler(svc)) // PUT /products/{productID}/categories
+	r.Post("/categories", createHandler(svc))
+	r.Post("/categories/", createHandler(svc))
+	r.Put("/categories/{categoryID}", updateHandler(svc))
+	r.Delete("/categories/{categoryID}", deleteHandler(svc))
+	r.Put("/products/{productID}/categories", replaceProductCategoriesHandler(svc))
 }
 
 func parseIDParam(r *http.Request, name string) (int64, bool) {

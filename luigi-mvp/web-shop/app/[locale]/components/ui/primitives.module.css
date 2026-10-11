@@ -97,51 +97,7 @@
   min-height: var(--control-min-height);
 }
 
-.modalGhostButton {
-  composes: buttonSecondary;
-}
-
-.modalPrimaryButton {
-  composes: buttonPrimary;
-}
-
-.cartIconButton {
-  font-family: var(--font-sans);
-  position: relative;
-  width: var(--control-min-height);
-  height: var(--control-min-height);
-  border-radius: 999px;
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  background: rgba(255, 255, 255, 0.06);
-  backdrop-filter: blur(10px);
-  display: grid;
-  place-items: center;
-  cursor: pointer;
-}
-
-.cartIconBadge {
-  font-family: var(--font-sans);
-  position: absolute;
-  top: 6px;
-  right: 6px;
-  min-width: 18px;
-  height: 18px;
-  padding: 0 var(--space-2);
-  border-radius: 999px;
-  background: white;
-  color: black;
-  font-size: var(--text-meta-size);
-  display: grid;
-  place-items: center;
-}
-
-.darkPrimaryCta {
-  composes: buttonPrimary;
-  width: 100%;
-  border-radius: var(--control-radius-pill);
-  box-shadow: 0 8px 20px rgba(29, 78, 216, 0.25);
-}
-
+/* Defined before any class that `composes` them (CSS Modules requirement). */
 .buttonBase {
   font-family: var(--font-sans);
   min-height: var(--control-min-height);
@@ -191,6 +147,51 @@
 .buttonTertiary:hover {
   color: var(--color-secondary-hover);
   background: rgba(55, 65, 81, 0.08);
+}
+
+.modalGhostButton {
+  composes: buttonSecondary;
+}
+
+.modalPrimaryButton {
+  composes: buttonPrimary;
+}
+
+.cartIconButton {
+  font-family: var(--font-sans);
+  position: relative;
+  width: var(--control-min-height);
+  height: var(--control-min-height);
+  border-radius: 999px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(10px);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+}
+
+.cartIconBadge {
+  font-family: var(--font-sans);
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 var(--space-2);
+  border-radius: 999px;
+  background: white;
+  color: black;
+  font-size: var(--text-meta-size);
+  display: grid;
+  place-items: center;
+}
+
+.darkPrimaryCta {
+  composes: buttonPrimary;
+  width: 100%;
+  border-radius: var(--control-radius-pill);
+  box-shadow: 0 8px 20px rgba(29, 78, 216, 0.25);
 }
 
 .buttonPrimary:focus-visible,

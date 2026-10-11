@@ -17,19 +17,16 @@ import (
 func RegisterRoutesPublic(r chi.Router, q db.Querier) {
 	svc := pricepoints.NewService(q)
 
-	r.Route("/price_points", func(r chi.Router) {
-		r.Get("/", listHandler(svc))
-		r.Get("/{priceCategory}/{dayCount}", getHandler(svc))
-	})
+	r.Get("/price_points", listHandler(svc))
+	r.Get("/price_points/", listHandler(svc))
+	r.Get("/price_points/{priceCategory}/{dayCount}", getHandler(svc))
 }
 
 func RegisterRoutesPrivate(r chi.Router, q db.Querier) {
 	svc := pricepoints.NewService(q)
 
-	r.Route("/price_points", func(r chi.Router) {
-		r.Put("/{priceCategory}/{dayCount}", upsertHandler(svc))
-		r.Delete("/{priceCategory}/{dayCount}", deleteHandler(svc))
-	})
+	r.Put("/price_points/{priceCategory}/{dayCount}", upsertHandler(svc))
+	r.Delete("/price_points/{priceCategory}/{dayCount}", deleteHandler(svc))
 }
 
 func listHandler(svc *pricepoints.Service) http.HandlerFunc {

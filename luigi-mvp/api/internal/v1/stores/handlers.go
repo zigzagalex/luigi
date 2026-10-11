@@ -16,18 +16,16 @@ import (
 
 func RegisterRoutesPublic(r chi.Router, q db.Querier) {
 	svc := storesvc.NewService(q)
-	r.Route("/stores", func(r chi.Router) {
-		r.Get("/", listHandler(svc))
-	})
+	r.Get("/stores", listHandler(svc))
+	r.Get("/stores/", listHandler(svc))
 }
 
 func RegisterRoutesPrivate(r chi.Router, q db.Querier) {
 	svc := storesvc.NewService(q)
-	r.Route("/stores", func(r chi.Router) {
-		r.Post("/", createHandler(svc))
-		r.Put("/{storeID}", updateHandler(svc))
-		r.Delete("/{storeID}", deleteHandler(svc))
-	})
+	r.Post("/stores", createHandler(svc))
+	r.Post("/stores/", createHandler(svc))
+	r.Put("/stores/{storeID}", updateHandler(svc))
+	r.Delete("/stores/{storeID}", deleteHandler(svc))
 }
 
 type openingTimeInput struct {

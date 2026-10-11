@@ -17,19 +17,17 @@ import (
 func RegisterRoutesPublic(r chi.Router, q db.Querier) {
 	svc := inventorysvc.NewService(q)
 
-	r.Route("/inventory_items", func(r chi.Router) {
-		r.Get("/", listHandler(svc)) // GET /inventory_items?shop_id=&limit=&offset=
-	})
+	r.Get("/inventory_items", listHandler(svc))
+	r.Get("/inventory_items/", listHandler(svc))
 }
 
 func RegisterRoutesPrivate(r chi.Router, q db.Querier) {
 	svc := inventorysvc.NewService(q)
 
-	r.Route("/inventory_items", func(r chi.Router) {
-		r.Post("/", createHandler(svc))           // POST /inventory_items
-		r.Put("/{itemID}", updateHandler(svc))    // PUT /inventory_items/{itemID}
-		r.Delete("/{itemID}", deleteHandler(svc)) // DELETE /inventory_items/{itemID}
-	})
+	r.Post("/inventory_items", createHandler(svc))
+	r.Post("/inventory_items/", createHandler(svc))
+	r.Put("/inventory_items/{itemID}", updateHandler(svc))
+	r.Delete("/inventory_items/{itemID}", deleteHandler(svc))
 }
 
 func listHandler(svc *inventorysvc.Service) http.HandlerFunc {
