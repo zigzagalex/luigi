@@ -1,59 +1,50 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-API_BASE_URL="${API_BASE_URL:-http://localhost:8080}"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=seed_common.sh
+source "${SCRIPT_DIR}/seed_common.sh"
 
-echo "==> Seeding Luigi dev data against ${API_BASE_URL}"
+echo "==> Seeding shop/stores against ${API_BASE_URL}"
 
-# --- Helpers -------------------------------------------------------------
+seed_require_cmds curl jq
+seed_wait_api
 
-require_cmd() {
-  if ! command -v "$1" >/dev/null 2>&1; then
-    echo "Error: required command '$1' not found. Install it first." >&2
-    exit 1
-  fi
-}
-
-require_cmd curl
-require_cmd jq
-
-# Optional: quick health check
-echo "-> Checking API health..."
-if ! curl -sSf "${API_BASE_URL}/health" >/dev/null 2>&1; then
-  echo "Error: API health check failed at ${API_BASE_URL}/health" >&2
-  exit 1
+if [[ ! -f "${COOKIE_JAR}" ]]; then
+  seed_login
 fi
-echo "   API is up ✅"
 
-# --- 1) Create shop: Luigi's Bike Shop -----------------------------------
+# Prefer the shop created by seedadmin (usually id=1 on a fresh DB).
+SHOP_ID="${SHOP_ID:-}"
+if [[ -z "${SHOP_ID}" ]]; then
+  SHOP_ID="$(api_curl "${API_BASE_URL}/v1/shops?limit=1" | jq -r '.[0].id // empty')"
+fi
 
-echo "-> Creating shop 'Luigi's Bike Shop'..."
-
-SHOP_RESP="$(
-  curl -sS -X POST "${API_BASE_URL}/v1/shops/" \
-    -H "Content-Type: application/json" \
-    -d @- <<'JSON'
+if [[ -z "${SHOP_ID}" || "${SHOP_ID}" == "null" ]]; then
+  echo "-> No shop found; creating 'Luigi's Bike Shop'..."
+  SHOP_RESP="$(
+    api_curl -X POST "${API_BASE_URL}/v1/shops/" \
+      -H "Content-Type: application/json" \
+      -d @- <<'JSON'
 {
   "name": "Luigi's Bike Shop",
   "timezone": "Europe/Zurich",
   "is_active": true
 }
 JSON
-)"
-
-echo "   Shop response: ${SHOP_RESP}"
-
-# Adjust .id here if your JSON uses a different field name
-SHOP_ID="$(echo "${SHOP_RESP}" | jq -r '.id')"
-
-if [ -z "${SHOP_ID}" ] || [ "${SHOP_ID}" = "null" ]; then
-  echo "Error: could not extract shop id from response" >&2
-  exit 1
+  )"
+  echo "   Shop response: ${SHOP_RESP}"
+  SHOP_ID="$(echo "${SHOP_RESP}" | jq -r '.id')"
+  if [[ -z "${SHOP_ID}" || "${SHOP_ID}" == "null" ]]; then
+    echo "Error: could not extract shop id from response" >&2
+    exit 1
+  fi
+else
+  echo "-> Reusing shop id=${SHOP_ID}"
 fi
 
-echo "   Created shop with id: ${SHOP_ID}"
-
-# --- 2) Create stores for Luigi's Bike Shop ------------------------------
+export SHOP_ID
+echo "   Using shop_id=${SHOP_ID}"
 
 echo "-> Creating stores for shop ${SHOP_ID}..."
 
@@ -67,7 +58,7 @@ create_store() {
 
   echo "   -> Creating store: ${name} (${city})"
 
-  curl -sS -X POST "${API_BASE_URL}/v1/stores" \
+  api_curl -X POST "${API_BASE_URL}/v1/stores" \
     -H "Content-Type: application/json" \
     -d @- <<JSON
 {
@@ -83,10 +74,9 @@ create_store() {
 }
 JSON
 
-  echo    # newline for readability
+  echo
 }
 
-# Geneva
 create_store \
   "Luigi's Bike Shop Geneva" \
   "Rue du Rhône 1" \
@@ -95,7 +85,6 @@ create_store \
   "Switzerland" \
   "Europe/Zurich"
 
-# Zurich
 create_store \
   "Luigi's Bike Shop Zürich" \
   "Bahnhofstrasse 10" \
@@ -104,7 +93,6 @@ create_store \
   "Switzerland" \
   "Europe/Zurich"
 
-# Bern
 create_store \
   "Luigi's Bike Shop Bern" \
   "Marktgasse 5" \
@@ -113,4 +101,5 @@ create_store \
   "Switzerland" \
   "Europe/Zurich"
 
-echo "==> Seeding shop and stores finished 🎉"
+echo "==> Seeding shop and stores finished"
+echo "${SHOP_ID}" > "${SCRIPT_DIR}/.seed_shop_id"

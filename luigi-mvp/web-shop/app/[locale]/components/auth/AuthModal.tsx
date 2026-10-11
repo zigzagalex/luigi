@@ -2,36 +2,23 @@
 
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useTranslations } from "next-intl";
-import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from "firebase/auth";
-import { auth } from "@/lib/firebaseClient";
-import { exchangeIdTokenForSessionCookie } from "@/lib/AuthSession";
+import { loginSession, registerSession, SHOP_ID } from "@/lib/AuthSession";
 import PhoneField from "./PhoneField";
 import styles from "./AuthModal.module.css";
 import { useAuth } from "@/[locale]/components/auth/AuthContext";
 
 type Mode = "login" | "signup";
 
-const SHOP_ID = 1;
-
 type Props = {
   open: boolean;
   onClose: () => void;
-
-  onLogin?: (input: { email: string; password: string }) => Promise<void> | void;
-  onSignup?: (input: {
-    firstName: string;
-    lastName: string;
-    phone: string;
-    email: string;
-    password: string;
-  }) => Promise<void> | void;
 };
 
 function clean(s: string) {
   return s.trim();
 }
 
-export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
+export default function AuthModal({ open, onClose }: Props) {
   const t = useTranslations("authModal");
   const [mode, setMode] = useState<Mode>("login");
   const [status, setStatus] = useState<string>("");
@@ -48,14 +35,14 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
 
   const firstFieldRef = useRef<HTMLInputElement | null>(null);
 
-  const { refresh, onLoginSuccess } = useAuth();
+  const { onLoginSuccess } = useAuth();
 
   useEffect(() => setStatus(""), [open, mode]);
 
   useEffect(() => {
     if (!open) return;
-    const t = window.setTimeout(() => firstFieldRef.current?.focus(), 0);
-    return () => window.clearTimeout(t);
+    const id = window.setTimeout(() => firstFieldRef.current?.focus(), 0);
+    return () => window.clearTimeout(id);
   }, [open, mode]);
 
   useEffect(() => {
@@ -67,12 +54,12 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
 
-  const title = useMemo(() => (mode === "login" ? t("welcomeBack") : t("createAccountTitle")), [mode, t]);
+  const title = useMemo(
+    () => (mode === "login" ? t("welcomeBack") : t("createAccountTitle")),
+    [mode, t]
+  );
   const subtitle = useMemo(
-    () =>
-      mode === "login"
-        ? t("loginSubtitle")
-        : t("signupSubtitle"),
+    () => (mode === "login" ? t("loginSubtitle") : t("signupSubtitle")),
     [mode, t]
   );
 
@@ -94,18 +81,13 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
           return;
         }
 
-        if (onLogin) await onLogin({ email: eMail, password });
-        else await signInWithEmailAndPassword(auth, eMail, password);
-
-        await exchangeIdTokenForSessionCookie({ shop_id: SHOP_ID });
-
+        await loginSession(eMail, password);
         setStatus(t("loginSuccess"));
         await onLoginSuccess();
         onClose();
         return;
       }
 
-      // signup
       const fn = clean(firstName);
       const ln = clean(lastName);
       const ph = clean(phone);
@@ -120,10 +102,9 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
         return;
       }
 
-      if (onSignup) await onSignup({ firstName: fn, lastName: ln, phone: ph, email: eMail, password });
-      else await createUserWithEmailAndPassword(auth, eMail, password);
-
-      await exchangeIdTokenForSessionCookie({
+      await registerSession({
+        email: eMail,
+        password,
         shop_id: SHOP_ID,
         first_name: fn,
         last_name: ln,
@@ -133,8 +114,8 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
       setStatus(t("signupSuccess"));
       await onLoginSuccess();
       onClose();
-    } catch (err: any) {
-      setStatus(err?.message ?? t("somethingWentWrong"));
+    } catch (err: unknown) {
+      setStatus(err instanceof Error ? err.message : t("somethingWentWrong"));
     } finally {
       setBusy(false);
     }
@@ -145,7 +126,6 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
     setStatus("");
     setPassword("");
 
-    // optional cleanup: don’t drag signup junk into login and vice versa
     if (next === "login") {
       setFirstName("");
       setLastName("");
@@ -168,8 +148,12 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
           ×
         </button>
 
-        <h2 id="auth-title" className={styles.title}>{title}</h2>
-        <p id="auth-subtitle" className={styles.subtitle}>{subtitle}</p>
+        <h2 id="auth-title" className={styles.title}>
+          {title}
+        </h2>
+        <p id="auth-subtitle" className={styles.subtitle}>
+          {subtitle}
+        </p>
 
         <form className={styles.form} onSubmit={handleSubmit} noValidate>
           {mode === "signup" && (
@@ -184,7 +168,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
                     onChange={(e) => setFirstName(e.target.value)}
                     autoComplete="given-name"
                     disabled={busy}
-                    id="first_name" 
+                    id="first_name"
                     name="first_name"
                   />
                 </label>
@@ -197,7 +181,7 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
                     onChange={(e) => setLastName(e.target.value)}
                     autoComplete="family-name"
                     disabled={busy}
-                    id="last_name" 
+                    id="last_name"
                     name="last_name"
                   />
                 </label>
@@ -225,8 +209,8 @@ export default function AuthModal({ open, onClose, onLogin, onSignup }: Props) {
               onChange={(e) => setEmail(e.target.value)}
               autoComplete="email"
               disabled={busy}
-              id="email" 
-              name="email" 
+              id="email"
+              name="email"
             />
           </label>
 

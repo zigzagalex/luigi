@@ -10,7 +10,6 @@ export type ApiUser = {
   id: number;
   shop_id?: number | null;
   store_id?: number | null;
-  firebase_uid?: string | null;
   email?: string | null;
   phone?: string | null;
   display_name?: string | null;
@@ -25,8 +24,7 @@ function normalizeApiUser(raw: Record<string, unknown>): ApiUser {
     id: raw.id as number,
     shop_id: normalizeSqlNullInt64(raw.shop_id),
     store_id: normalizeSqlNullInt64(raw.store_id),
-    firebase_uid: normalizeSqlNullString(raw.firebase_uid),
-    email: normalizeSqlNullString(raw.email),
+    email: typeof raw.email === "string" ? raw.email : normalizeSqlNullString(raw.email),
     phone: normalizeSqlNullString(raw.phone),
     display_name: normalizeSqlNullString(raw.display_name),
     role: normalizeSqlNullString(raw.role),
@@ -80,8 +78,7 @@ export async function createUser(body: CreateUserBody): Promise<ApiUser> {
       shop_id: body.shop_id,
       email: body.email,
       phone: body.phone,
-      // Always send the key so the API does not treat the request as "manual" (firebase_uid-only).
-      password: body.password ?? "",
+      password: body.password,
       first_name: body.first_name,
       last_name: body.last_name,
       role: body.role,

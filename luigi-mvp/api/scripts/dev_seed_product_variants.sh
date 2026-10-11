@@ -1,6 +1,10 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# shellcheck source=seed_common.sh
+source "${SCRIPT_DIR}/seed_common.sh"
+
 API_BASE_URL="${API_BASE_URL:-http://localhost:8080}"
 VARIANTS_PATH="${VARIANTS_PATH:-/v1/product_variants}"
 
@@ -17,12 +21,11 @@ require_cmd curl
 require_cmd jq
 
 # Optional: health check
-echo "-> Checking API health..."
-if ! curl -sSf "${API_BASE_URL}/health" >/dev/null 2>&1; then
-  echo "Error: API health check failed at ${API_BASE_URL}/health" >&2
-  exit 1
+seed_require_cmds curl jq
+seed_wait_api
+if [[ ! -f "${COOKIE_JAR}" ]]; then
+  seed_login
 fi
-echo "   API is up ✅"
 
 BASE="${API_BASE_URL}${VARIANTS_PATH}"
 
@@ -34,7 +37,7 @@ create_variant() {
   echo "   -> Creating variant for product ${product_id}: ${label} with attrs ${attributes_json}"
 
   RESP="$(
-    curl -sS -X POST "${BASE}" \
+    api_curl -X POST "${BASE}" \
       -H "Content-Type: application/json" \
       -d @- <<JSON
 {

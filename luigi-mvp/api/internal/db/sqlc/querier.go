@@ -40,6 +40,7 @@ type Querier interface {
 	CreateProductCategory(ctx context.Context, arg *CreateProductCategoryParams) (ProductCategory, error)
 	CreateProductVariant(ctx context.Context, arg *CreateProductVariantParams) (ProductVariant, error)
 	CreateProductVariantImage(ctx context.Context, arg *CreateProductVariantImageParams) (ProductVariantImage, error)
+	CreateSession(ctx context.Context, arg *CreateSessionParams) (Session, error)
 	CreateShop(ctx context.Context, arg *CreateShopParams) (Shop, error)
 	CreateStore(ctx context.Context, arg *CreateStoreParams) (Store, error)
 	CreateStoreHoliday(ctx context.Context, arg *CreateStoreHolidayParams) error
@@ -57,6 +58,8 @@ type Querier interface {
 	DeleteProductTranslation(ctx context.Context, arg *DeleteProductTranslationParams) error
 	DeleteProductVariant(ctx context.Context, id int64) (ProductVariant, error)
 	DeleteProductVariantImage(ctx context.Context, id int64) error
+	DeleteSessionByTokenHash(ctx context.Context, tokenHash string) error
+	DeleteSessionsByUserID(ctx context.Context, userID int64) error
 	DeleteStore(ctx context.Context, id int64) (Store, error)
 	DeleteStoreHolidays(ctx context.Context, storeID int64) error
 	DeleteStoreOpeningTimes(ctx context.Context, storeID int64) error
@@ -79,8 +82,10 @@ type Querier interface {
 	GetProductVariantByID(ctx context.Context, id int64) (ProductVariant, error)
 	GetProductVariantImage(ctx context.Context, id int64) (ProductVariantImage, error)
 	GetReservationByShop(ctx context.Context, arg *GetReservationByShopParams) (Reservation, error)
+	GetSessionByTokenHash(ctx context.Context, tokenHash string) (Session, error)
 	GetStoreById(ctx context.Context, storeID int64) (Store, error)
-	GetUserByFirebaseUID(ctx context.Context, firebaseUid string) (User, error)
+	GetUserByEmail(ctx context.Context, email string) (GetUserByEmailRow, error)
+	GetUserByID(ctx context.Context, id int64) (GetUserByIDRow, error)
 	// One full calendar day after reservation end (Europe/Zurich), per active line item.
 	// Idempotent: skips rows already linked for this reservation + inventory item.
 	InsertPostRentalMaintenanceWindows(ctx context.Context, arg *InsertPostRentalMaintenanceWindowsParams) error

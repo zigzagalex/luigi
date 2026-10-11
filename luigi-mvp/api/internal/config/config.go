@@ -19,7 +19,7 @@ type Config struct {
 	GCSBucketName string
 	MediaBaseURL  string
 
-	FirebaseProjectID string
+	SessionSecret string
 
 	CORSOrigins []string
 }
@@ -76,9 +76,8 @@ func Load() Config {
 
 func base(env, port, url string) Config {
 	var (
-		gcsBucket          string
-		mediaBaseURL       string
-		firebaseProdjectId string
+		gcsBucket    string
+		mediaBaseURL string
 	)
 
 	if env == "prod" {
@@ -92,7 +91,6 @@ func base(env, port, url string) Config {
 		// must be the public origin that serves web-shop/public (Next dev server default).
 		// Do not append "/media" here or URLs become ".../media/media/..." and 404.
 		mediaBaseURL = get("MEDIA_BASE_URL", "http://localhost:3000")
-		firebaseProdjectId = must("FIREBASE_PROJECT_ID")
 	}
 
 	return Config{
@@ -105,8 +103,8 @@ func base(env, port, url string) Config {
 		ConnMaxLifetime:   30 * time.Minute,
 		GCSBucketName:     gcsBucket,
 		MediaBaseURL:      mediaBaseURL,
-		FirebaseProjectID: firebaseProdjectId,
-		CORSOrigins:       loadCORSOrigins(),
+		SessionSecret: must("SESSION_SECRET"),
+		CORSOrigins:   loadCORSOrigins(),
 	}
 }
 
