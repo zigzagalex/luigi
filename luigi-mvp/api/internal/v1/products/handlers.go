@@ -17,23 +17,21 @@ import (
 func RegisterRoutesPublic(r chi.Router, q db.Querier, mediaBaseURL string) {
 	svc := productsvc.NewService(q)
 
-	r.Route("/products", func(r chi.Router) {
-		r.Get("/", listHandler(svc, mediaBaseURL))
-		r.Get("/{productID}", getHandler(svc))
-		r.Get("/{productID}/translations", listTranslationsHandler(svc))
-	})
+	r.Get("/products", listHandler(svc, mediaBaseURL))
+	r.Get("/products/", listHandler(svc, mediaBaseURL))
+	r.Get("/products/{productID}", getHandler(svc))
+	r.Get("/products/{productID}/translations", listTranslationsHandler(svc))
 }
 
 func RegisterRoutesPrivate(r chi.Router, q db.Querier) {
 	svc := productsvc.NewService(q)
 
-	r.Route("/products", func(r chi.Router) {
-		r.Post("/", createHandler(svc))
-		r.Put("/{productID}", updateHandler(svc))
-		r.Delete("/{productID}", deleteHandler(svc))
-		r.Put("/{productID}/translations/{locale}", upsertTranslationHandler(svc))
-		r.Delete("/{productID}/translations/{locale}", deleteTranslationHandler(svc))
-	})
+	r.Post("/products", createHandler(svc))
+	r.Post("/products/", createHandler(svc))
+	r.Put("/products/{productID}", updateHandler(svc))
+	r.Delete("/products/{productID}", deleteHandler(svc))
+	r.Put("/products/{productID}/translations/{locale}", upsertTranslationHandler(svc))
+	r.Delete("/products/{productID}/translations/{locale}", deleteTranslationHandler(svc))
 }
 
 func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc {
