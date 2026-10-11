@@ -10,6 +10,8 @@ import {
   isPickupDayLocal,
 } from "@/lib/rentalRelativeTiming";
 import { useLocale, useTranslations } from "next-intl";
+import { localeHref } from "@/../i18n/localeHref";
+import { formatRentalDay } from "@/lib/rentalDates";
 import styles from "./ReservationRow.module.css";
 import ReservationItemsPreview from "./ReservationItemsPreview";
 import ReservationStatusBadge from "./ReservationStatusBadge";
@@ -26,9 +28,9 @@ export default function ReservationRow({ reservation }: Props) {
   const items = reservation.items;
 
   const cancelled = isReservationCancelled(r);
-  const createdLabel = new Date(r.created_at).toLocaleDateString(locale);
-  const startLabel = new Date(r.start_at).toLocaleDateString(locale);
-  const endLabel = new Date(r.end_at).toLocaleDateString(locale);
+  const createdLabel = formatRentalDay(r.created_at, locale);
+  const startLabel = formatRentalDay(r.start_at, locale);
+  const endLabel = formatRentalDay(r.end_at, locale, true);
   const currency = r.currency || "CHF";
   const totalFormatted = formatMoneyCents(r.total_price_cents, locale, currency);
 
@@ -66,7 +68,7 @@ export default function ReservationRow({ reservation }: Props) {
     isPickupDayLocal(r.start_at, cancelled);
 
   const primaryLabel = showPickup ? t("pickup") : t("viewDetails");
-  const primaryHref = `/reservations/${r.id}`;
+  const primaryHref = localeHref(locale, `/reservations/${r.id}`);
 
   const showManageLinks = !cancelled;
 
@@ -78,11 +80,11 @@ export default function ReservationRow({ reservation }: Props) {
           <div className={styles.periodDatesRow}>
             <div className={styles.periodDates}>
               <time dateTime={r.start_at}>{startLabel}</time>
-              <span className={styles.visuallyHidden}>{t("dateRangeTo")}</span>
               <span aria-hidden="true" className={styles.rangeArrow}>
                 {" "}
                 →{" "}
               </span>
+              <span className={styles.visuallyHidden}>{t("dateRangeTo")}</span>
               <time dateTime={r.end_at}>{endLabel}</time>
             </div>
             {relativeLabel && (
@@ -141,7 +143,7 @@ export default function ReservationRow({ reservation }: Props) {
                   ·
                 </span>
                 <Link
-                  href={`/reservations/${r.id}/edit`}
+                  href={localeHref(locale, `/reservations/${r.id}/edit`)}
                   className={styles.secondaryLink}
                 >
                   {t("editLink")}

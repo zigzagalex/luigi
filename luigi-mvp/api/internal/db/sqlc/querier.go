@@ -13,6 +13,7 @@ type Querier interface {
 	AllocateInventoryItemsForHold(ctx context.Context, arg *AllocateInventoryItemsForHoldParams) ([]int64, error)
 	AssignProductToCategory(ctx context.Context, arg *AssignProductToCategoryParams) error
 	AttachCartToCustomer(ctx context.Context, arg *AttachCartToCustomerParams) error
+	AttachHoldsToCustomerByCart(ctx context.Context, arg *AttachHoldsToCustomerByCartParams) error
 	CancelMyReservation(ctx context.Context, arg *CancelMyReservationParams) (Reservation, error)
 	CancelMyReservationItem(ctx context.Context, arg *CancelMyReservationItemParams) (CancelMyReservationItemRow, error)
 	CartTotals(ctx context.Context, cartID int64) (CartTotalsRow, error)
@@ -48,6 +49,7 @@ type Querier interface {
 	DeactivateReservationItems(ctx context.Context, reservationID int64) error
 	DeleteCartItem(ctx context.Context, cartItemID int64) error
 	DeleteCustomer(ctx context.Context, id int64) (Customer, error)
+	DeleteHoldsByCart(ctx context.Context, cartID int64) error
 	DeleteHoldsByCartItem(ctx context.Context, cartItemID int64) error
 	DeleteInventoryItem(ctx context.Context, id int64) (InventoryItem, error)
 	DeleteMaintenanceWindowForReservationItem(ctx context.Context, arg *DeleteMaintenanceWindowForReservationItemParams) error

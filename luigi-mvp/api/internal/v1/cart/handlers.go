@@ -15,6 +15,7 @@ import (
 
 	"github.com/zigzagalex/luigi/api/internal/cart"
 	"github.com/zigzagalex/luigi/api/internal/customers"
+	"github.com/zigzagalex/luigi/api/internal/daterange"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
 	"github.com/zigzagalex/luigi/api/internal/middleware"
 	"github.com/zigzagalex/luigi/api/internal/stores"
@@ -248,15 +249,14 @@ func (h *Handler) AttachGuestCart(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) ownerFromRequest(r *http.Request) (cart.Owner, error) {
 	ctx := r.Context()
 
-	// 1) Logged-in user → resolve customer_id
+	// 1) Logged-in user with a customer profile → own cart by customer_id
 	if u, ok := middleware.UserFromContext(ctx); ok {
 		cust, err := h.custSvc.GetCustomerByUserID(ctx, u.ID)
 		if err == nil {
 			id := cust.ID
 			return cart.Owner{CustomerID: &id}, nil
 		}
-		// If user exists but no customer yet → treat as no owner
-		return cart.Owner{}, cart.ErrNoOwner
+		// Staff/admin (or any user without a customer row) can still shop as a guest.
 	}
 
 	// 2) Guest session (cookie)
@@ -271,26 +271,7 @@ func (h *Handler) ownerFromRequest(r *http.Request) (cart.Owner, error) {
 }
 
 func parseDateRangeZurich(startDate, endDate string) (time.Time, time.Time, error) {
-	startDate = strings.TrimSpace(startDate)
-	endDate = strings.TrimSpace(endDate)
-	if startDate == "" || endDate == "" {
-		return time.Time{}, time.Time{}, errors.New("start_date and end_date required")
-	}
-
-	start, err := time.Parse("2006-01-02", startDate)
-	if err != nil {
-		return time.Time{}, time.Time{}, err
-	}
-	end, err := time.Parse("2006-01-02", endDate)
-	if err != nil {
-		return time.Time{}, time.Time{}, err
-	}
-
-	loc, _ := time.LoadLocation("Europe/Zurich")
-	startAt := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, loc)
-	endAt := time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, loc)
-
-	return startAt, endAt, nil
+	return daterange.ParseInclusiveZurich(startDate, endDate)
 }
 
 func parseCartItemIDParam(r *http.Request) (int64, error) {

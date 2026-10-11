@@ -467,6 +467,10 @@ func (s *Service) CheckoutFromCart(ctx context.Context, in CheckoutInput) ([]Res
 		return nil, err
 	}
 
+	if err := qtx.DeleteHoldsByCart(ctx, cv.Cart.ID); err != nil {
+		return nil, err
+	}
+
 	if err := tx.Commit(); err != nil {
 		return nil, err
 	}

@@ -3,12 +3,14 @@
 import * as React from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 
 import styles from "./checkout.module.css";
 
 import { useAuth } from "@/[locale]/components/auth/AuthContext";
 import { useCart } from "@/[locale]/components/cart/CartContext";
+import { localeHref } from "@/../i18n/localeHref";
+import { formatMoneyCents, formatRentalDay } from "@/lib/rentalDates";
 
 import { emptyCustomerProfile, type CustomerProfile } from "@/types/customer";
 
@@ -79,14 +81,6 @@ async function saveCustomer(next: CustomerProfile): Promise<CustomerProfile> {
   }
   const saved = await res.json().catch(() => null);
   return saved ? ({ ...next, ...saved, country: saved.country || next.country || "CH" }) : next;
-}
-
-function formatDate(d: string) {
-  return new Intl.DateTimeFormat("de-CH").format(new Date(d));
-}
-
-function formatMoneyCents(cents: number, currency: string) {
-  return new Intl.NumberFormat("de-CH", { style: "currency", currency }).format(cents / 100);
 }
 
 function SummaryRow({ label, value }: { label: string; value: React.ReactNode }) {
@@ -165,6 +159,7 @@ function Field({
 
 export default function CheckoutPage() {
   const t = useTranslations("checkout");
+  const locale = useLocale();
   const router = useRouter();
   const fieldId = React.useId();
   const { me, loading: authLoading } = useAuth();
@@ -364,9 +359,15 @@ export default function CheckoutPage() {
           return;
         }
 
+        try {
+          sessionStorage.setItem("luigi.checkout.reservations", JSON.stringify(data));
+        } catch {
+          // ignore storage failures; confirmation page still shows success
+        }
+
         await refresh();
 
-        router.push(`/checkout/confirmation?success=1`);
+        router.push(localeHref(locale, "/checkout/confirmation?success=1"));
       } catch (err) {
         console.error(err);
         setCheckoutBanner({ kind: "error", message: t("unexpectedError") });
@@ -380,7 +381,7 @@ export default function CheckoutPage() {
       <div className={styles.page}>
         <h1 className={styles.h1}>{t("title")}</h1>
         <p className={styles.muted}>{t("signInToContinue")}</p>
-        <Link className={styles.link} href="/cart">
+        <Link className={styles.link} href={localeHref(locale, "/cart")}>
           {t("backToCart")}
         </Link>
       </div>
@@ -391,7 +392,7 @@ export default function CheckoutPage() {
     <div className={styles.page}>
       <div className={styles.header}>
         <h1 className={styles.h1}>{t("title")}</h1>
-        <Link className={styles.link} href="/cart">
+        <Link className={styles.link} href={localeHref(locale, "/cart")}>
           {t("backToCart")}
         </Link>
       </div>
@@ -656,12 +657,14 @@ export default function CheckoutPage() {
                     <div className={styles.cartTitle}>{name}</div>
                     {variantLine ? <div className={styles.cartMeta}>{variantLine}</div> : null}
                     <div className={styles.cartMeta}>
-                      {start && end ? `${formatDate(start)} → ${formatDate(end)}` : t("datesFallback")}
+                      {start && end
+                        ? `${formatRentalDay(start, locale)} → ${formatRentalDay(end, locale, true)}`
+                        : t("datesFallback")}
                       {blocked ? ` · ${t("blocked")}` : ""}
                     </div>
                   </div>
 
-                  <div className={styles.cartPrice}>{formatMoneyCents(lineCents, currency)}</div>
+                  <div className={styles.cartPrice}>{formatMoneyCents(lineCents, locale, currency)}</div>
                 </div>
               );
             })}
@@ -669,7 +672,7 @@ export default function CheckoutPage() {
             <div className={styles.cartTotalRow}>
               <div className={styles.cartTotalLabel}>{t("total")}</div>
               <div className={styles.cartTotalValue}>
-                {formatMoneyCents(Number(cart?.subtotal_cents ?? 0), currency)}
+                {formatMoneyCents(Number(cart?.subtotal_cents ?? 0), locale, currency)}
               </div>
             </div>
           </div>
@@ -814,11 +817,11 @@ export default function CheckoutPage() {
           />
           <span>
             {t("agreePrefix")}{" "}
-            <Link className={styles.inlineLink} href="/agbs">
+            <Link className={styles.inlineLink} href={localeHref(locale, "/agbs")}>
               {t("agbs")}
             </Link>{" "}
             {t("agreeMiddle")}{" "}
-            <Link className={styles.inlineLink} href="/privacy">
+            <Link className={styles.inlineLink} href={localeHref(locale, "/privacy")}>
               {t("privacyTerms")}
             </Link>
             .

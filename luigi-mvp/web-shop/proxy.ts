@@ -16,6 +16,15 @@ function pickLocale(req: NextRequest) {
   return defaultLocale;
 }
 
+function withLocaleCookie(res: NextResponse, locale: string) {
+  res.cookies.set("locale", locale, {
+    path: "/",
+    maxAge: 60 * 60 * 24 * 365,
+    sameSite: "lax",
+  });
+  return res;
+}
+
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
@@ -28,15 +37,22 @@ export function proxy(req: NextRequest) {
     return NextResponse.next();
   }
 
-  // If already has locale prefix, continue
+  // If already has locale prefix, sync cookie and continue
   const seg = pathname.split("/")[1];
-  if (seg && isLocale(seg)) return NextResponse.next();
+  if (seg && isLocale(seg)) {
+    const res = NextResponse.next();
+    const cookieLocale = req.cookies.get("locale")?.value;
+    if (cookieLocale !== seg) {
+      withLocaleCookie(res, seg);
+    }
+    return res;
+  }
 
   // Otherwise redirect to best locale
   const locale = pickLocale(req);
   const url = req.nextUrl.clone();
   url.pathname = `/${locale}${pathname === "/" ? "" : pathname}`;
-  return NextResponse.redirect(url);
+  return withLocaleCookie(NextResponse.redirect(url), locale);
 }
 
 export const config = {

@@ -1204,6 +1204,7 @@ export default function ProductDetail({ product, variants, stores, inventory }: 
             >
               {adding ? t("adding") : t("addToCart")}
             </button>
+            {addError ? <div className={styles.priceError}>{addError}</div> : null}
           </div>
         </section>
       </div>

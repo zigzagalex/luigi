@@ -10,6 +10,8 @@ import {
   updateReservationDetails,
   cancelReservationItem,
 } from "@/lib/reservationClient";
+import { localeHref } from "@/../i18n/localeHref";
+import { formatRentalDay } from "@/lib/rentalDates";
 
 import styles from "./ReservationEditClient.module.css";
 import ReservationStatusBadge from "./ReservationStatusBadge";
@@ -33,8 +35,8 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
   const store = view.store ?? null;
 
   const createdDate = useMemo(() => new Date(r.created_at).toLocaleString(locale), [r.created_at, locale]);
-  const startDate = useMemo(() => new Date(r.start_at).toLocaleDateString(locale), [r.start_at, locale]);
-  const endDate = useMemo(() => new Date(r.end_at).toLocaleDateString(locale), [r.end_at, locale]);
+  const startDate = useMemo(() => formatRentalDay(r.start_at, locale), [r.start_at, locale]);
+  const endDate = useMemo(() => formatRentalDay(r.end_at, locale, true), [r.end_at, locale]);
 
   // form state
   const [pickupName, setPickupName] = useState(r.pickup_person_name ?? "");
@@ -117,11 +119,11 @@ export default function ReservationEditClient({ initialReservation, shopId }: Pr
     <div className={styles.wrapper}>
       <div className={styles.topRow}>
         <div className={styles.breadcrumb}>
-          <Link className={styles.backLink} href={`/reservations/${r.id}`}>
+          <Link className={styles.backLink} href={localeHref(locale, `/reservations/${r.id}`)}>
             {t("backToReservation")}
           </Link>
           <span className={styles.dot}>•</span>
-          <Link className={styles.backLinkMuted} href="/reservations">
+          <Link className={styles.backLinkMuted} href={localeHref(locale, "/reservations")}>
             {t("allReservations")}
           </Link>
         </div>

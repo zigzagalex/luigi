@@ -9,6 +9,7 @@ import (
 	"time"
 
 	"github.com/zigzagalex/luigi/api/internal/availability"
+	"github.com/zigzagalex/luigi/api/internal/daterange"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
 
@@ -58,14 +59,9 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	start, err := time.Parse("2006-01-02", req.StartDate)
+	startAt, endAt, err := daterange.ParseInclusiveZurich(req.StartDate, req.EndDate)
 	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_start_date", err.Error())
-		return
-	}
-	end, err := time.Parse("2006-01-02", req.EndDate)
-	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_end_date", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_date_range", err.Error())
 		return
 	}
 
@@ -74,8 +70,8 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 		StoreID:     req.StoreID,
 		ProductIDs:  req.ProductIDs,
 		CategoryIDs: req.CategoryIDs,
-		StartDate:   start,
-		EndDate:     end,
+		StartAt:     startAt,
+		EndAt:       endAt,
 		Quantity:    req.Quantity,
 	}
 
@@ -187,26 +183,12 @@ func (h *Handler) Quote(w http.ResponseWriter, r *http.Request) {
 	var endAt time.Time
 
 	if req.StartDate != "" && req.EndDate != "" {
-		start, err := time.Parse("2006-01-02", req.StartDate)
+		var err error
+		startAt, endAt, err = daterange.ParseInclusiveZurich(req.StartDate, req.EndDate)
 		if err != nil {
-			httpx.Fail(w, http.StatusBadRequest, "invalid_start_date", err.Error())
+			httpx.Fail(w, http.StatusBadRequest, "invalid_date_range", err.Error())
 			return
 		}
-		end, err := time.Parse("2006-01-02", req.EndDate)
-		if err != nil {
-			httpx.Fail(w, http.StatusBadRequest, "invalid_end_date", err.Error())
-			return
-		}
-
-		// Interpret as local shop day boundaries (simple version).
-		// If you want “Europe/Zurich”, use time.LoadLocation + time.Date with that location.
-		//
-		// For now: treat start/end as midnight UTC or local depending on how your service expects it.
-		// Better: use shop timezone (Europe/Zurich) consistently.
-		loc, _ := time.LoadLocation("Europe/Zurich")
-		startAt = time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, loc)
-		endAt = time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, loc).Add(24 * time.Hour)
-
 	} else {
 		// Fallback to legacy RFC3339
 		var err error

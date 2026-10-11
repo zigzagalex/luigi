@@ -195,7 +195,7 @@ export default function SearchPill({
 
     params.set("quantity", "1");
 
-    router.push(`/search?${params.toString()}`);
+    router.push(`/${appLocale}/search?${params.toString()}`);
     setActive(null);
   }
 

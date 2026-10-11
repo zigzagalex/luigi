@@ -42,6 +42,43 @@
   line-height: 1.6;
 }
 
+.reservationList {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  gap: var(--space-3);
+  text-align: left;
+}
+
+.reservationItem {
+  border: 1px solid var(--color-border);
+  border-radius: 14px;
+  padding: var(--space-4);
+  display: grid;
+  gap: var(--space-1);
+}
+
+.reservationId {
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
+  font-weight: 600;
+}
+
+.reservationName {
+  font-weight: 700;
+}
+
+.reservationMeta {
+  font-size: var(--text-meta-size);
+  color: var(--color-text-meta);
+}
+
+.reservationTotal {
+  font-weight: 700;
+  margin-top: var(--space-1);
+}
+
 .actions {
   margin-top: var(--space-3);
   display: grid;

@@ -7,6 +7,8 @@ import { useLocale, useTranslations } from "next-intl";
 
 import type { ReservationView } from "@/lib/reservationClient";
 import { cancelReservation, downloadReservationInvoice } from "@/lib/reservationClient";
+import { localeHref } from "@/../i18n/localeHref";
+import { formatRentalDay } from "@/lib/rentalDates";
 
 import styles from "./ReservationDetailsClient.module.css";
 import ReservationStatusBadge from "./ReservationStatusBadge";
@@ -39,8 +41,8 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
 
   const createdDate = useMemo(() => new Date(r.created_at).toLocaleString(locale), [r.created_at, locale]);
   const updatedDate = useMemo(() => new Date(r.updated_at).toLocaleString(locale), [r.updated_at, locale]);
-  const startDate = useMemo(() => new Date(r.start_at).toLocaleDateString(locale), [r.start_at, locale]);
-  const endDate = useMemo(() => new Date(r.end_at).toLocaleDateString(locale), [r.end_at, locale]);
+  const startDate = useMemo(() => formatRentalDay(r.start_at, locale), [r.start_at, locale]);
+  const endDate = useMemo(() => formatRentalDay(r.end_at, locale, true), [r.end_at, locale]);
 
   const cancelledAtLabel = useMemo(() => {
     return r.cancelled_at ? new Date(r.cancelled_at).toLocaleString(locale) : null;
@@ -92,7 +94,7 @@ export default function ReservationDetailsClient({ initialReservation, shopId }:
     <div className={styles.wrapper}>
       <div className={styles.topRow}>
         <div className={styles.breadcrumb}>
-          <Link className={styles.backLink} href="/reservations">
+          <Link className={styles.backLink} href={localeHref(locale, "/reservations")}>
             {t("backToReservations")}
           </Link>
         </div>

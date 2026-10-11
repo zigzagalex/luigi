@@ -145,7 +145,10 @@
     "title": "Reservation successful",
     "subtitle": "Your reservation has been created successfully. You can view and manage it anytime in your account.",
     "checkReservations": "Check my reservations",
-    "continueShopping": "Continue shopping"
+    "continueShopping": "Continue shopping",
+    "reservationNumber": "Reservation {id}",
+    "reservationFallback": "Rental",
+    "moreItems": "+{count} more"
   },
   "reservationsPage": {
     "title": "Your reservations",
@@ -398,9 +401,9 @@
     "specsSectionTitle": "Specs",
     "specsSectionBody": "Technical specifications for this bike will appear here.",
     "includedSectionTitle": "What’s included",
-    "includedSectionBody": "Details about accessories, locks, helmet options, and what’s included with your rental will appear here.",
+    "includedSectionBody": "Your rental includes a serviced bike, adjusted for your size when you pick it up. Basic safety checks are done before each ride. Helmets and other accessories can be added separately when available.",
     "pickupInfoSectionTitle": "Pickup & return",
-    "pickupInfoSectionBody": "Where to pick up your bike, return hours, and late-return policy will appear here.",
+    "pickupInfoSectionBody": "Pick up your bike at the store you selected. You pay at pickup — no online card charge. Return it to the same store on your return date during opening hours.",
     "priceHint": "Price updates with your dates & quantity.",
     "adding": "Adding…",
     "addToCart": "Add to cart",
@@ -488,9 +491,22 @@
     "products": "Products",
     "accessories": "Accessories",
     "search": "Search",
-    "agb": "AGB",
+    "agb": "Terms",
     "privacy": "Privacy",
     "imprint": "Imprint"
+  },
+  "categoryLabels": {
+    "mountain-bikes": "Mountain bikes",
+    "road-bikes": "Road bikes",
+    "electric-mountain-bikes": "E-mountain bikes",
+    "accessories": "Accessories",
+    "hardtail": "Hardtail",
+    "fully": "Full suspension",
+    "endurance": "Endurance",
+    "race": "Race",
+    "helmets": "Helmets",
+    "shoes": "Shoes",
+    "other": "Other bikes"
   },
   "customerProfile": {
     "firstName": "First name",

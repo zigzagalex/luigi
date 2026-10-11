@@ -93,7 +93,7 @@ function buildFromDailyPriceByCategory(
 
 export default async function SearchPage({ searchParams, params }: SearchPageProps) {
   const { locale } = await params;
-  const t = await getTranslations("searchPage");
+  const t = await getTranslations({ locale, namespace: "searchPage" });
   const sp: RawSearchParams = (await searchParams) ?? {};
 
   const shopId = Number(sp.shop_id ?? String(SHOP_ID));

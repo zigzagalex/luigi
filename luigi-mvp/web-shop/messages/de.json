@@ -145,7 +145,10 @@
     "title": "Reservation erfolgreich",
     "subtitle": "Deine Reservation wurde erfolgreich erstellt. Du kannst sie jederzeit in deinem Konto einsehen und verwalten.",
     "checkReservations": "Meine Reservationen ansehen",
-    "continueShopping": "Weiter einkaufen"
+    "continueShopping": "Weiter einkaufen",
+    "reservationNumber": "Reservation {id}",
+    "reservationFallback": "Miete",
+    "moreItems": "+{count} weitere"
   },
   "reservationsPage": {
     "title": "Deine Reservationen",
@@ -398,9 +401,9 @@
     "specsSectionTitle": "Spezifikationen",
     "specsSectionBody": "Technische Angaben zu diesem Bike erscheinen hier.",
     "includedSectionTitle": "Lieferumfang",
-    "includedSectionBody": "Infos zu Zubehör, Schlössern, Helm-Optionen und was in der Miete enthalten ist, erscheinen hier.",
+    "includedSectionBody": "Zur Miete gehört ein gewartetes Bike, das bei der Abholung auf deine Grösse eingestellt wird. Vor jeder Ausgabe prüfen wir die wichtigsten Punkte. Helme und weiteres Zubehör kannst du separat dazu buchen, wenn verfügbar.",
     "pickupInfoSectionTitle": "Abholung & Rückgabe",
-    "pickupInfoSectionBody": "Infos zu Abholort, Rückgabezeiten und Verspätungen erscheinen hier.",
+    "pickupInfoSectionBody": "Hole dein Bike in der gewählten Filiale ab. Du zahlst bei der Abholung — online wird keine Karte belastet. Gib es am Rückgabetag während der Öffnungszeiten in derselben Filiale zurück.",
     "priceHint": "Der Preis aktualisiert sich nach Daten & Menge.",
     "adding": "Wird hinzugefügt…",
     "addToCart": "In den Warenkorb",
@@ -491,6 +494,19 @@
     "agb": "AGB",
     "privacy": "Datenschutz",
     "imprint": "Impressum"
+  },
+  "categoryLabels": {
+    "mountain-bikes": "Mountainbikes",
+    "road-bikes": "Rennräder",
+    "electric-mountain-bikes": "E-Mountainbikes",
+    "accessories": "Zubehör",
+    "hardtail": "Hardtail",
+    "fully": "Fully",
+    "endurance": "Endurance",
+    "race": "Race",
+    "helmets": "Helme",
+    "shoes": "Schuhe",
+    "other": "Weitere Bikes"
   },
   "customerProfile": {
     "firstName": "Vorname",

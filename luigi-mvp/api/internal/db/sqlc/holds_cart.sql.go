@@ -11,6 +11,22 @@ import (
 	"time"
 )
 
+const attachHoldsToCustomerByCart = `-- name: AttachHoldsToCustomerByCart :exec
+UPDATE holds
+SET customer_id = $1::bigint
+WHERE cart_id = $2::bigint
+`
+
+type AttachHoldsToCustomerByCartParams struct {
+	CustomerID int64 `json:"customer_id"`
+	CartID     int64 `json:"cart_id"`
+}
+
+func (q *Queries) AttachHoldsToCustomerByCart(ctx context.Context, arg *AttachHoldsToCustomerByCartParams) error {
+	_, err := q.db.ExecContext(ctx, attachHoldsToCustomerByCart, arg.CustomerID, arg.CartID)
+	return err
+}
+
 const createHoldForCartItem = `-- name: CreateHoldForCartItem :one
 INSERT INTO holds (
   shop_id,
@@ -73,6 +89,16 @@ func (q *Queries) CreateHoldForCartItem(ctx context.Context, arg *CreateHoldForC
 		&i.CartItemID,
 	)
 	return i, err
+}
+
+const deleteHoldsByCart = `-- name: DeleteHoldsByCart :exec
+DELETE FROM holds
+WHERE cart_id = $1::bigint
+`
+
+func (q *Queries) DeleteHoldsByCart(ctx context.Context, cartID int64) error {
+	_, err := q.db.ExecContext(ctx, deleteHoldsByCart, cartID)
+	return err
 }
 
 const deleteHoldsByCartItem = `-- name: DeleteHoldsByCartItem :exec

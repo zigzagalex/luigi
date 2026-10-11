@@ -11,8 +11,13 @@ import pageShell from "../../PageShell.module.css";
 
 export const dynamic = "force-dynamic";
 
-export default async function LocationsPage() {
-  const t = await getTranslations("locationsPage");
+export default async function LocationsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "locationsPage" });
   let stores: StoreForLocation[];
   try {
     stores = await fetchStoresForLocations(SHOP_ID);
@@ -32,7 +37,7 @@ export default async function LocationsPage() {
           className={pageShell.section}
           aria-labelledby="location-stores-heading"
         >
-          <LocationsContent stores={stores} />
+          <LocationsContent stores={stores} locale={locale} />
         </section>
       </div>
     </main>

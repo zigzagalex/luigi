@@ -1,7 +1,12 @@
 import { getTranslations } from "next-intl/server";
 
-export default async function PrivacyPage() {
-  const t = await getTranslations("legalPages");
+export default async function PrivacyPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "legalPages" });
 
   return (
     <div style={{ padding: 24 }}>

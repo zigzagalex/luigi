@@ -9,8 +9,13 @@ import { notFound } from "next/navigation";
 import { getTranslations } from "next-intl/server";
 import { SHOP_ID } from "@/lib/shopId";
 
-export default async function ReservationsPage() {
-  const t = await getTranslations("reservationsPage");
+export default async function ReservationsPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "reservationsPage" });
   try {
 
     const cookieStore = await cookies();

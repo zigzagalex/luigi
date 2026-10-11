@@ -3,7 +3,8 @@
 import Link from "next/link";
 import { ReservationItemView } from "@/lib/reservationClient";
 import { formatMoneyCentsCodeFirst } from "@/lib/formatMoney";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { localeHref } from "@/../i18n/localeHref";
 import styles from "./ReservationItemsPreview.module.css";
 
 type Props = {
@@ -19,6 +20,7 @@ export default function ReservationItemsPreview({
   hideNameAtIndex = -1,
 }: Props) {
   const t = useTranslations("reservationItemsPreview");
+  const locale = useLocale();
   const preview = items.slice(0, 3);
 
   return (
@@ -49,7 +51,7 @@ export default function ReservationItemsPreview({
         const imageBody =
           productId != null ? (
             <Link
-              href={`/products/${productId}`}
+              href={localeHref(locale, `/products/${productId}`)}
               className={styles.imageLink}
               aria-label={t("viewProduct", {
                 name: item.product_name ?? t("alt"),

@@ -1,8 +1,9 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { IconArrowRight } from "@/[locale]/components/icons";
+import { localeHref } from "@/../i18n/localeHref";
 import type { Product } from "@/../utils/products";
 import styles from "./ProductCard.module.css";
 
@@ -23,10 +24,11 @@ const FALLBACK_IMAGE =
   "https://images.pexels.com/photos/276517/pexels-photo-276517.jpeg?auto=compress&cs=tinysrgb&w=800";
 
 function buildProductHref(
+    locale: string,
     productId: number,
     linkSearchParams?: Record<string, string | undefined>
   ) {
-    const base = `/products/${productId}`;
+    const base = localeHref(locale, `/products/${productId}`);
     if (!linkSearchParams) return base;
   
     const params = new URLSearchParams();
@@ -51,8 +53,9 @@ export default function ProductCard({
   linkSearchParams,
 }: Props) {
   const t = useTranslations("productCard");
+  const locale = useLocale();
   const imageUrl = product.primary_image_url ?? FALLBACK_IMAGE;
-  const href = buildProductHref(product.id, linkSearchParams);
+  const href = buildProductHref(locale, product.id, linkSearchParams);
   const displayFromPriceCents = minPriceCents ?? fromPricePerDayCents;
   const fromPriceLabel =
     displayFromPriceCents == null

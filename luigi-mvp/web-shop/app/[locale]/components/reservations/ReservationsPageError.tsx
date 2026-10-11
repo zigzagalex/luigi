@@ -2,11 +2,13 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { localeHref } from "@/../i18n/localeHref";
 import styles from "./ReservationsPageError.module.css";
 
 export default function ReservationsPageError() {
   const router = useRouter();
+  const locale = useLocale();
   const t = useTranslations("reservationsPage");
 
   return (
@@ -18,7 +20,7 @@ export default function ReservationsPageError() {
       >
         {t("retry")}
       </button>
-      <Link href="/contact" className={styles.helpLink}>
+      <Link href={localeHref(locale, "/contact")} className={styles.helpLink}>
         {t("getHelp")}
       </Link>
     </div>

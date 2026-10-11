@@ -10,10 +10,11 @@ import styles from "./locations.module.css";
 
 type Props = {
   stores: StoreForLocation[];
+  locale: string;
 };
 
-export default async function LocationsContent({ stores }: Props) {
-  const t = await getTranslations("locationsPage");
+export default async function LocationsContent({ stores, locale }: Props) {
+  const t = await getTranslations({ locale, namespace: "locationsPage" });
 
   const sortedStores = [...stores].sort((a, b) =>
     a.name.localeCompare(b.name),

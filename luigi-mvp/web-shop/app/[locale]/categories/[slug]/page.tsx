@@ -78,7 +78,10 @@ export default async function CategoryPage({
   params: Promise<{ locale: string; slug: string }>;
 }) {
   const { locale, slug } = await params;
-  const t = await getTranslations("categoryPage");
+  const t = await getTranslations({ locale, namespace: "categoryPage" });
+  const tCat = await getTranslations({ locale, namespace: "categoryLabels" });
+  const labelFor = (s: string, fallback: string) =>
+    tCat.has(s as never) ? tCat(s as never) : fallback;
 
   let tree;
   try {
@@ -107,7 +110,7 @@ export default async function CategoryPage({
     const byId = indexCategoriesById(tree);
     breadcrumbs = categoryBreadcrumbs(byId, node);
     subcategories = sortedActiveChildren(node);
-    pageTitle = node.name;
+    pageTitle = labelFor(node.slug, node.name);
     description =
       typeof node.description === "string" && node.description.trim()
         ? node.description.trim()
@@ -171,10 +174,10 @@ export default async function CategoryPage({
                 </span>{" "}
                 {i < breadcrumbs.length - 1 ? (
                   <Link href={`/${locale}/categories/${c.slug}`}>
-                    {c.name}
+                    {labelFor(c.slug, c.name)}
                   </Link>
                 ) : (
-                  <span aria-current="page">{c.name}</span>
+                  <span aria-current="page">{labelFor(c.slug, c.name)}</span>
                 )}
               </li>
             ))}
@@ -194,7 +197,7 @@ export default async function CategoryPage({
                 href={`/${locale}/categories/${c.slug}`}
                 className={styles.subcategoryLink}
               >
-                {c.name}
+                {labelFor(c.slug, c.name)}
               </Link>
             ))}
           </nav>

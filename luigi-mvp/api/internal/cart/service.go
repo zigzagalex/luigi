@@ -466,6 +466,13 @@ func (s *Service) AttachGuestCartToCustomer(
 			return err
 		}
 
+		if err := qtx.AttachHoldsToCustomerByCart(ctx, &db.AttachHoldsToCustomerByCartParams{
+			CartID:     guestCart.ID,
+			CustomerID: customerID,
+		}); err != nil {
+			return err
+		}
+
 		return tx.Commit()
 	}
 

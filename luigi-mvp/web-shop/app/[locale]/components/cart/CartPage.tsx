@@ -6,6 +6,12 @@ import { IconWarning } from "@/[locale]/components/icons";
 import { useAuth } from "@/[locale]/components/auth/AuthContext";
 import { useAuthModal } from "@/[locale]/components/auth/AuthModalContext";
 import { useCart } from "@/[locale]/components/cart/CartContext";
+import { localeHref } from "@/../i18n/localeHref";
+import {
+  countRentalDays,
+  formatMoneyCents as formatMoney,
+  formatRentalDay,
+} from "@/lib/rentalDates";
 import styles from "./CartPage.module.css";
 
 export default function CartPage() {
@@ -38,7 +44,7 @@ export default function CartPage() {
     <div className={styles.page}>
       <header className={styles.header}>
         <h1>{t("title")}</h1>
-        <Link href="/" className={styles.continue}>
+        <Link href={localeHref(locale, "/")} className={styles.continue}>
           {t("continueShopping")}
         </Link>
       </header>
@@ -85,7 +91,7 @@ export default function CartPage() {
             <div className={styles.empty}>
               <h2 className={styles.emptyTitle}>{t("emptyTitle")}</h2>
               <p className={styles.emptyBody}>{t("emptyBody")}</p>
-              <Link href="/" className={styles.emptyCta}>
+              <Link href={localeHref(locale, "/")} className={styles.emptyCta}>
                 {t("continueShopping")}
               </Link>
             </div>
@@ -121,11 +127,11 @@ export default function CartPage() {
                       <div className={styles.dateBlock}>
                         <div className={styles.dateRow}>
                           <span className={styles.dateLabel}>{tPd("dateSummaryInlinePickup")}</span>
-                          <span className={styles.dateValue}>{formatDate(item.start_at, locale)}</span>
+                          <span className={styles.dateValue}>{formatRentalDay(item.start_at, locale)}</span>
                         </div>
                         <div className={styles.dateRow}>
                           <span className={styles.dateLabel}>{tPd("dateSummaryInlineReturn")}</span>
-                          <span className={styles.dateValue}>{formatDate(item.end_at, locale)}</span>
+                          <span className={styles.dateValue}>{formatRentalDay(item.end_at, locale, true)}</span>
                         </div>
                       </div>
 
@@ -167,7 +173,7 @@ export default function CartPage() {
                     {t("checkout")}
                   </button>
                 ) : me ? (
-                  <Link href="/checkout" className={styles.checkout}>
+                  <Link href={localeHref(locale, "/checkout")} className={styles.checkout}>
                     {t("checkout")}
                   </Link>
                 ) : (
@@ -210,28 +216,6 @@ function CartSkeleton({ label }: { label: string }) {
       </div>
     </div>
   );
-}
-
-function formatDate(d: string, locale: string) {
-  return new Intl.DateTimeFormat(locale).format(new Date(d));
-}
-
-function formatMoney(cents: number, locale: string, currency: string) {
-  return new Intl.NumberFormat(locale, {
-    style: "currency",
-    currency,
-    minimumFractionDigits: 2,
-    maximumFractionDigits: 2,
-  }).format(cents / 100);
-}
-
-function countRentalDays(startIso: string, endIso: string): number {
-  const from = new Date(startIso);
-  const to = new Date(endIso);
-  const a = Date.UTC(from.getUTCFullYear(), from.getUTCMonth(), from.getUTCDate());
-  const b = Date.UTC(to.getUTCFullYear(), to.getUTCMonth(), to.getUTCDate());
-  const diff = Math.floor((b - a) / 86400000) + 1;
-  return Math.max(1, diff);
 }
 
 function blockedLabel(reason: string | undefined, t: ReturnType<typeof useTranslations>) {

@@ -43,6 +43,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
       if (data) {
         setMe(data);
+        // Keep a guest cookie too: staff/admin (no customer row) still need it to cart.
+        try {
+          await ensureGuestSession();
+        } catch {
+          // browsing still works; cart may fail until guest cookie exists
+        }
       } else {
         setMe(null);
         await ensureGuestSession();

@@ -9,8 +9,12 @@ import {
 } from "@/[locale]/components/icons/icons";
 import styles from "./RentalTrustBanner.module.css";
 
-export default async function RentalTrustBanner() {
-  const t = await getTranslations("home");
+type Props = {
+  locale: string;
+};
+
+export default async function RentalTrustBanner({ locale }: Props) {
+  const t = await getTranslations({ locale, namespace: "home" });
 
   const processSteps = [
     {

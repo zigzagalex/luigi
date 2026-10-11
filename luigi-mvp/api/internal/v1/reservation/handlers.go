@@ -13,6 +13,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/zigzagalex/luigi/api/internal/cart"
 	"github.com/zigzagalex/luigi/api/internal/customers"
+	"github.com/zigzagalex/luigi/api/internal/daterange"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
 	"github.com/zigzagalex/luigi/api/internal/httpx"
 	"github.com/zigzagalex/luigi/api/internal/images"
@@ -469,26 +470,7 @@ func parseIntQuery(r *http.Request, key string) (int64, error) {
 }
 
 func parseDateRangeZurich(startDate, endDate string) (time.Time, time.Time, error) {
-	startDate = strings.TrimSpace(startDate)
-	endDate = strings.TrimSpace(endDate)
-	if startDate == "" || endDate == "" {
-		return time.Time{}, time.Time{}, errors.New("start_date and end_date required")
-	}
-
-	start, err := time.Parse("2006-01-02", startDate)
-	if err != nil {
-		return time.Time{}, time.Time{}, err
-	}
-	end, err := time.Parse("2006-01-02", endDate)
-	if err != nil {
-		return time.Time{}, time.Time{}, err
-	}
-
-	loc, _ := time.LoadLocation("Europe/Zurich")
-	startAt := time.Date(start.Year(), start.Month(), start.Day(), 0, 0, 0, 0, loc)
-	endAt := time.Date(end.Year(), end.Month(), end.Day(), 0, 0, 0, 0, loc)
-
-	return startAt, endAt, nil
+	return daterange.ParseInclusiveZurich(startDate, endDate)
 }
 
 func parseChiIDParam(r *http.Request, key string) (int64, error) {

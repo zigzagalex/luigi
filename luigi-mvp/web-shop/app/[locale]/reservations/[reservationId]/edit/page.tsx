@@ -11,11 +11,11 @@ import { getTranslations } from "next-intl/server";
 export default async function ReservationEditPage({
   params,
 }: {
-  params: Promise<{ reservationId: string }>;
+  params: Promise<{ locale: string; reservationId: string }>;
 }) {
-  const t = await getTranslations("reservationEditPage");
+  const { locale, reservationId } = await params;
+  const t = await getTranslations({ locale, namespace: "reservationEditPage" });
 
-  const { reservationId } = await params;
   const reservationIdNum = Number(reservationId);
   if (!Number.isFinite(reservationIdNum)) notFound();
 

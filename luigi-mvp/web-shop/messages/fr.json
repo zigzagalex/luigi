@@ -145,7 +145,10 @@
     "title": "Réservation réussie",
     "subtitle": "Ta réservation a été créée avec succès. Tu peux la consulter et la gérer à tout moment dans ton compte.",
     "checkReservations": "Voir mes réservations",
-    "continueShopping": "Continuer les achats"
+    "continueShopping": "Continuer les achats",
+    "reservationNumber": "Réservation {id}",
+    "reservationFallback": "Location",
+    "moreItems": "+{count} de plus"
   },
   "reservationsPage": {
     "title": "Tes réservations",
@@ -398,9 +401,9 @@
     "specsSectionTitle": "Caractéristiques",
     "specsSectionBody": "Les spécifications techniques de ce vélo apparaîtront ici.",
     "includedSectionTitle": "Contenu de la location",
-    "includedSectionBody": "Détails sur accessoires, antivols, casque et ce qui est inclus dans la location — à venir ici.",
+    "includedSectionBody": "Ta location comprend un vélo entretenu et réglé à ta taille lors du retrait. Les contrôles de sécurité de base sont faits avant chaque départ. Casques et autres accessoires peuvent être ajoutés séparément selon disponibilité.",
     "pickupInfoSectionTitle": "Retrait & retour",
-    "pickupInfoSectionBody": "Lieu de retrait, horaires de retour et politique en cas de retard — à venir ici.",
+    "pickupInfoSectionBody": "Récupère ton vélo dans le magasin choisi. Tu paies au retrait — aucune carte n’est débitée en ligne. Ramène-le au même magasin le jour de retour pendant les heures d’ouverture.",
     "priceHint": "Le prix se met à jour selon les dates et la quantité.",
     "adding": "Ajout en cours…",
     "addToCart": "Ajouter au panier",
@@ -488,9 +491,22 @@
     "products": "Produits",
     "accessories": "Accessoires",
     "search": "Recherche",
-    "agb": "CG",
+    "agb": "Conditions",
     "privacy": "Confidentialité",
     "imprint": "Mentions légales"
+  },
+  "categoryLabels": {
+    "mountain-bikes": "VTT",
+    "road-bikes": "Vélos de route",
+    "electric-mountain-bikes": "VTT électriques",
+    "accessories": "Accessoires",
+    "hardtail": "Hardtail",
+    "fully": "Tout-suspendu",
+    "endurance": "Endurance",
+    "race": "Course",
+    "helmets": "Casques",
+    "shoes": "Chaussures",
+    "other": "Autres vélos"
   },
   "customerProfile": {
     "firstName": "Prénom",

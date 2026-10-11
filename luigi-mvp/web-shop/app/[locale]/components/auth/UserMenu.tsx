@@ -2,8 +2,9 @@
 
 import { useEffect, useId, useMemo, useRef, useState } from "react";
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
 import { IconLogout, IconProfile, IconReservations } from "@/[locale]/components/icons";
+import { localeHref } from "@/../i18n/localeHref";
 import { useAuth } from "./AuthContext";
 import styles from "./UserMenu.module.css";
 
@@ -13,6 +14,7 @@ type Props = {
 
 export default function UserMenu({ onOpenAuth }: Props) {
   const t = useTranslations("auth");
+  const locale = useLocale();
   const { me, loading, logout } = useAuth();
   const [open, setOpen] = useState(false);
   const wrapRef = useRef<HTMLDivElement | null>(null);
@@ -149,7 +151,7 @@ export default function UserMenu({ onOpenAuth }: Props) {
             ref={reservationRef}
             className={styles.item}
             role="menuitem"
-            href="/reservations"
+            href={localeHref(locale, "/reservations")}
             onClick={() => setOpen(false)}
           >
             <span className={styles.itemIcon} aria-hidden>
@@ -161,7 +163,7 @@ export default function UserMenu({ onOpenAuth }: Props) {
             ref={profileRef}
             className={styles.item}
             role="menuitem"
-            href="/profile"
+            href={localeHref(locale, "/profile")}
             onClick={() => setOpen(false)}
           >
             <span className={styles.itemIcon} aria-hidden>

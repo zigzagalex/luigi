@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getTranslations } from "next-intl/server";
+import { localeHref } from "@/../i18n/localeHref";
 import { footerColumns } from "./FooterLinks";
 import styles from "./AppFooterShell.module.css";
 
@@ -20,7 +21,7 @@ export default async function AppFooterShell({ locale }: Props) {
               <ul className={styles.list}>
                 {col.links.map((l) => (
                   <li key={l.href}>
-                    <Link className={styles.link} href={l.href}>
+                    <Link className={styles.link} href={localeHref(locale, l.href)}>
                       {t(l.labelKey)}
                     </Link>
                   </li>

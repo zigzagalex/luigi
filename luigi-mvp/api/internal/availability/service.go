@@ -31,9 +31,10 @@ type SearchInput struct {
 	StoreID     *int64
 	ProductIDs  []int64
 	CategoryIDs []int64
-	StartDate   time.Time
-	EndDate     time.Time
-	Quantity    int32
+	// Half-open [StartAt, EndAt) in Europe/Zurich (inclusive pickup/return dates converted by handler).
+	StartAt  time.Time
+	EndAt    time.Time
+	Quantity int32
 }
 
 type VariantAvailability struct {
@@ -118,16 +119,11 @@ func (s *Service) Search(ctx context.Context, in SearchInput) ([]SearchResult, e
 		return nil, fmt.Errorf("quantity must be > 0")
 	}
 
-	start := normalizeDate(in.StartDate)
-	endInc := normalizeDate(in.EndDate)
-
-	// Treat EndDate as INCLUSIVE.
-	// If end is missing or before start, clamp it to start.
-	if endInc.IsZero() || endInc.Before(start) {
-		endInc = start
+	start := in.StartAt
+	end := in.EndAt
+	if end.IsZero() || !end.After(start) {
+		end = start.Add(day)
 	}
-	// Convert inclusive end date to exclusive end timestamp.
-	end := endInc.Add(day)
 
 	dayCount := calcDayCount(start, end)
 

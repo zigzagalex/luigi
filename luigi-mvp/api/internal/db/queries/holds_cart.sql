@@ -8,6 +8,15 @@ ORDER BY id ASC;
 DELETE FROM holds
 WHERE cart_item_id = sqlc.arg(cart_item_id)::bigint;
 
+-- name: DeleteHoldsByCart :exec
+DELETE FROM holds
+WHERE cart_id = sqlc.arg(cart_id)::bigint;
+
+-- name: AttachHoldsToCustomerByCart :exec
+UPDATE holds
+SET customer_id = sqlc.arg(customer_id)::bigint
+WHERE cart_id = sqlc.arg(cart_id)::bigint;
+
 -- name: CreateHoldForCartItem :one
 INSERT INTO holds (
   shop_id,

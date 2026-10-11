@@ -72,7 +72,8 @@ export default async function HomePage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const t = await getTranslations("home");
+  const t = await getTranslations({ locale, namespace: "home" });
+  const tCat = await getTranslations({ locale, namespace: "categoryLabels" });
   let products: Product[] = [];
   let fromDailyPriceByCategory: Record<string, number> = {};
 
@@ -133,7 +134,9 @@ export default async function HomePage({
         {rows.map((row) => (
           <section key={row.key} className={styles.section}>
             <CategoryRow
-              title={row.title}
+              title={
+                tCat.has(row.key as never) ? tCat(row.key as never) : row.title
+              }
               products={row.products.slice(0, 10)}
               fromDailyPriceByCategory={fromDailyPriceByCategory}
               viewAllHref={
@@ -148,7 +151,7 @@ export default async function HomePage({
 
         {rows.length > 0 && (
           <section className={styles.section}>
-            <RentalTrustBanner />
+            <RentalTrustBanner locale={locale} />
           </section>
         )}
 

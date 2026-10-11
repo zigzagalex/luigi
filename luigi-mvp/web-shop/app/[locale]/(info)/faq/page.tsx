@@ -9,7 +9,7 @@ type Props = {
 
 export default async function FAQPage({ params }: Props) {
   const { locale } = await params;
-  const t = await getTranslations("faqPage");
+  const t = await getTranslations({ locale, namespace: "faqPage" });
 
   return (
     <main className={pageShell.page}>

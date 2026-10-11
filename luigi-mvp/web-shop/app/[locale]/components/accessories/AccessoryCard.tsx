@@ -1,7 +1,8 @@
 "use client";
 
 import Link from "next/link";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { localeHref } from "@/../i18n/localeHref";
 import type { Accessory } from "@/../utils/accessories";
 import styles from "./AccessoryCard.module.css";
 
@@ -14,9 +15,10 @@ const FALLBACK_IMAGE =
 
 export default function AccessoryCard({ accessory }: Props) {
   const t = useTranslations("accessoryCard");
+  const locale = useLocale();
   const imageUrl = accessory.primary_image_url ?? FALLBACK_IMAGE;
   return (
-    <Link href={`/accessories/${accessory.id}`} className={styles.card}>
+    <Link href={localeHref(locale, `/accessories/${accessory.id}`)} className={styles.card}>
       <div className={styles.imageWrapper}>
         {/* eslint-disable-next-line @next/next/no-img-element */}
         <img

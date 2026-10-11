@@ -7,7 +7,8 @@ import {
   reservationMatchesFilter,
   type ReservationFilter,
 } from "@/lib/reservationFilters";
-import { useTranslations } from "next-intl";
+import { useLocale, useTranslations } from "next-intl";
+import { localeHref } from "@/../i18n/localeHref";
 import styles from "./ReservationsList.module.css";
 import ReservationRow from "./ReservationRow";
 
@@ -31,6 +32,7 @@ const FILTER_LABEL_KEY: Record<ReservationFilter, "filterAll" | "filterActive" |
 
 export default function ReservationsList({ reservations }: Props) {
   const t = useTranslations("reservationsList");
+  const locale = useLocale();
   const [filter, setFilter] = useState<ReservationFilter>("all");
 
   const filtered = useMemo(
@@ -43,7 +45,7 @@ export default function ReservationsList({ reservations }: Props) {
       <div className={styles.emptyWrap}>
         <p className={styles.empty}>{t("empty")}</p>
         <p className={styles.emptyHint}>{t("emptyHint")}</p>
-        <Link href="/" className={styles.browseCta}>
+        <Link href={localeHref(locale, "/")} className={styles.browseCta}>
           {t("browseProducts")}
         </Link>
       </div>

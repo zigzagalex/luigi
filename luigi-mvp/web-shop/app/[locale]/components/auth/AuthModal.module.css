@@ -12,6 +12,8 @@
   .modal {
     position: relative;
     width: min(560px, 100%);
+    max-height: calc(100dvh - 2 * var(--space-6));
+    overflow-y: auto;
     background: var(--color-bg-surface);
     color: var(--color-bg-inverse);
     border-radius: 20px;

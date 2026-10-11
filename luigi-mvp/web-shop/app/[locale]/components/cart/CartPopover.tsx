@@ -5,6 +5,7 @@ import { useLocale, useTranslations } from "next-intl";
 import { formatRentalDateRange } from "@/lib/formatRentalRange";
 import { int64OrNull } from "@/lib/nulls";
 import { IconTrash } from "@/[locale]/components/icons";
+import { localeHref } from "@/../i18n/localeHref";
 import { useCart } from "./CartContext";
 import styles from "./CartPopover.module.css";
 
@@ -125,7 +126,7 @@ export function CartPopover({ onClose }: Props) {
             </strong>
           </div>
 
-          <Link href="/cart" className={styles.cta} onClick={onClose}>
+          <Link href={localeHref(locale, "/cart")} className={styles.cta} onClick={onClose}>
             {t("viewCart")}
           </Link>
         </div>

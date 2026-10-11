@@ -140,13 +140,14 @@ JSON
   echo "$resp" | jq -r '.id'
 }
 
-upsert_product_translation_en() {
+upsert_product_translation() {
   local product_id="$1"
-  local name="$2"
-  local description="$3"
-  local detailed_description="$4"
+  local locale="$2"
+  local name="$3"
+  local description="$4"
+  local detailed_description="$5"
 
-  api_curl -X PUT "${API_BASE_URL}/v1/products/${product_id}/translations/en" \
+  api_curl -X PUT "${API_BASE_URL}/v1/products/${product_id}/translations/${locale}" \
     -H "Content-Type: application/json" \
     -d @- <<JSON >/dev/null
 {
@@ -155,6 +156,53 @@ upsert_product_translation_en() {
   "detailed_description": $(json_escape "$detailed_description")
 }
 JSON
+}
+
+# Short blurb translations keyed by SKU (names stay English product names).
+accessory_description_for_locale() {
+  local locale="$1"
+  local sku="$2"
+  local en_description="$3"
+  if [ "${locale}" = "en" ]; then
+    echo "${en_description}"
+    return
+  fi
+  case "${locale}:${sku}" in
+    de:ACC-SHOE-RECON-30) echo "Trail-orientierte Radschuhe mit stabilem Kraftfluss und ganztägigem Komfort." ;;
+    de:ACC-SHOE-TORCH-RD) echo "Performance-Rennradschuhe für effizientes Treten und sicheren Halt." ;;
+    de:ACC-SHOE-RIME-MTB) echo "All-Mountain-Schuhe mit Balance aus Tritt-Effizienz und Grip beim Gehen." ;;
+    de:ACC-HLMT-MIO-2) echo "Leichter Jugendhelm mit Fokus auf Komfort und Alltagsschutz." ;;
+    de:ACC-HLMT-PREVAIL-3) echo "Stark belüfteter Performance-Helm für warme Bedingungen und harte Einheiten." ;;
+    de:ACC-HLMT-TRAIL-65) echo "Vielseitiger Trail-Helm mit erweitertem Schutz für Offroad-Fahrten." ;;
+    de:ACC-HLMT-CHAMONIX-3) echo "Komfortbetonter Allround-Helm für Pendeln und Freizeittouren." ;;
+    de:ACC-PEDAL-TRAIL-FLAT) echo "Breite Flatpedale mit zuverlässigem Grip für technisches Gelände." ;;
+    de:ACC-NAV-HANDLEBAR-MOUNT) echo "Kompakte Lenkerhalterung für Handy und GPS auf Road- oder Gravelbikes." ;;
+    de:ACC-TOOLS-ESSENTIAL-KIT) echo "Tragbares Tool-Set für Unterwegs-Anpassungen und häufige Fixes." ;;
+    de:ACC-KIDS-STARTER-PROTECTION) echo "Einsteigerfreundliches Schutz-Set in Kindergrössen." ;;
+    fr:ACC-SHOE-RECON-30) echo "Chaussures trail avec transfert de puissance stable et confort toute la journée." ;;
+    fr:ACC-SHOE-TORCH-RD) echo "Chaussures route performantes pour un pédalage efficace et un maintien sûr." ;;
+    fr:ACC-SHOE-RIME-MTB) echo "Chaussures all-mountain qui équilibrent efficacité et accroche à pied." ;;
+    fr:ACC-HLMT-MIO-2) echo "Casque léger pour jeunes, axé confort et protection quotidienne." ;;
+    fr:ACC-HLMT-PREVAIL-3) echo "Casque performance très ventilé pour chaleur et efforts intenses." ;;
+    fr:ACC-HLMT-TRAIL-65) echo "Casque trail polyvalent avec couverture étendue hors route." ;;
+    fr:ACC-HLMT-CHAMONIX-3) echo "Casque polyvalent confortable pour trajets et sorties loisirs." ;;
+    fr:ACC-PEDAL-TRAIL-FLAT) echo "Pédales plates larges avec grip régulier sur terrain technique." ;;
+    fr:ACC-NAV-HANDLEBAR-MOUNT) echo "Support cockpit compact pour téléphone ou GPS sur route ou gravel." ;;
+    fr:ACC-TOOLS-ESSENTIAL-KIT) echo "Kit d’outils portable pour réglages et réparations courantes." ;;
+    fr:ACC-KIDS-STARTER-PROTECTION) echo "Set de protection débutant adapté aux jeunes cyclistes." ;;
+    it:ACC-SHOE-RECON-30) echo "Scarpe trail con trasferimento di potenza stabile e comfort tutto il giorno." ;;
+    it:ACC-SHOE-TORCH-RD) echo "Scarpe da corsa performanti per pedalate efficienti e tenuta sicura." ;;
+    it:ACC-SHOE-RIME-MTB) echo "Scarpe all-mountain che bilanciano efficienza e grip a piedi." ;;
+    it:ACC-HLMT-MIO-2) echo "Casco leggero per giovani, pensato per comfort e protezione quotidiana." ;;
+    it:ACC-HLMT-PREVAIL-3) echo "Casco performance molto ventilato per caldo e sforzi intensi." ;;
+    it:ACC-HLMT-TRAIL-65) echo "Casco trail versatile con copertura estesa per l’off-road." ;;
+    it:ACC-HLMT-CHAMONIX-3) echo "Casco all-round comfort-first per pendolari e uscite leisure." ;;
+    it:ACC-PEDAL-TRAIL-FLAT) echo "Pedali flat ampi con grip costante su terreno tecnico." ;;
+    it:ACC-NAV-HANDLEBAR-MOUNT) echo "Supporto manubrio compatto per telefono o GPS su road o gravel." ;;
+    it:ACC-TOOLS-ESSENTIAL-KIT) echo "Kit attrezzi portatile per regolazioni e riparazioni comuni." ;;
+    it:ACC-KIDS-STARTER-PROTECTION) echo "Set di protezione per principianti in taglie bambino." ;;
+    *) echo "${en_description}" ;;
+  esac
 }
 
 find_variant_id() {
@@ -466,7 +514,12 @@ seed_accessory_product() {
 
   ensure_product_price_category "${product_id}" "${price_category}"
 
-  upsert_product_translation_en "${product_id}" "${name}" "${short_description}" "${detailed_description}"
+  local locale
+  for locale in en de fr it; do
+    local desc
+    desc="$(accessory_description_for_locale "${locale}" "${sku}" "${short_description}")"
+    upsert_product_translation "${product_id}" "${locale}" "${name}" "${desc}" "${detailed_description}"
+  done
 
   local cat_ids_json
   cat_ids_json="$(resolve_accessory_category_ids "${sku}")"

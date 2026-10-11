@@ -1,7 +1,12 @@
 import { getTranslations } from "next-intl/server";
 
-export default async function AGBPage() {
-  const t = await getTranslations("legalPages");
+export default async function AGBPage({
+  params,
+}: {
+  params: Promise<{ locale: string }>;
+}) {
+  const { locale } = await params;
+  const t = await getTranslations({ locale, namespace: "legalPages" });
 
   return (
     <div style={{ padding: 24 }}>

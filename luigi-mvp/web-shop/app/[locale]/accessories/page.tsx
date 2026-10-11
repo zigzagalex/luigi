@@ -77,8 +77,8 @@ export default async function AccessoriesPage({
   params: Promise<{ locale: string }>;
 }) {
   const { locale } = await params;
-  const tCat = await getTranslations("categoryPage");
-  const tAcc = await getTranslations("accessoryPage");
+  const tCat = await getTranslations({ locale, namespace: "categoryPage" });
+  const tAcc = await getTranslations({ locale, namespace: "accessoryPage" });
 
   let tree;
   try {
