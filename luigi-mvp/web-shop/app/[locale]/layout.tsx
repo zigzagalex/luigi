@@ -17,11 +17,11 @@ export const dynamic = "force-dynamic";
 
 type Props = {
   children: ReactNode;
-  params: { locale: string } | Promise<{ locale: string }>;
+  params: Promise<{ locale: string }>;
 };
 
 export default async function LocaleLayout({ children, params }: Props) {
-  const { locale } = await Promise.resolve(params);
+  const { locale } = await params;
 
   if (!hasLocale(locales, locale)) notFound();
 

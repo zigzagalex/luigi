@@ -13,8 +13,8 @@ export default async function ReservationsPage() {
   try {
     const SHOP_ID = 1; 
 
-    const cookieStore = cookies();
-    const cookieHeader = (await cookieStore)
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore
       .getAll()
       .map((c) => `${c.name}=${c.value}`)
       .join("; ");
