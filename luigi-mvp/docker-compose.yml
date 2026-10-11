@@ -68,7 +68,7 @@ services:
       - no-new-privileges:true
 
   migrate:
-    image: ghcr.io/${GHCR_OWNER:?set GHCR_OWNER}/luigi-api:${API_TAG:?set API_TAG}
+    image: ghcr.io/${GITHUB_REPOSITORY:?set GITHUB_REPOSITORY}/luigi-api:${API_TAG:?set API_TAG}
     restart: "no"
     entrypoint: ["/goose"]
     command:
@@ -88,7 +88,7 @@ services:
       - no-new-privileges:true
 
   api:
-    image: ghcr.io/${GHCR_OWNER}/luigi-api:${API_TAG}
+    image: ghcr.io/${GITHUB_REPOSITORY}/luigi-api:${API_TAG}
     container_name: luigi-api
     restart: unless-stopped
     environment:
@@ -139,13 +139,11 @@ services:
       - ./seaweed/start-mini.sh:/etc/luigi/start-mini.sh:ro
     networks:
       - media
-    cap_drop:
-      - ALL
-    security_opt:
-      - no-new-privileges:true
+    # weed's entrypoint uses su-exec to drop to its user. Dropping every
+    # capability makes setgroups fail and the container restart forever.
 
   web-shop:
-    image: ghcr.io/${GHCR_OWNER}/luigi-web-shop:${SHOP_TAG:?set SHOP_TAG}
+    image: ghcr.io/${GITHUB_REPOSITORY}/luigi-web-shop:${SHOP_TAG:?set SHOP_TAG}
     restart: unless-stopped
     environment:
       API_BASE_URL: http://api:8080
@@ -161,7 +159,7 @@ services:
       - no-new-privileges:true
 
   web-admin:
-    image: ghcr.io/${GHCR_OWNER}/luigi-web-admin:${ADMIN_TAG:?set ADMIN_TAG}
+    image: ghcr.io/${GITHUB_REPOSITORY}/luigi-web-admin:${ADMIN_TAG:?set ADMIN_TAG}
     restart: unless-stopped
     environment:
       API_BASE_URL: http://api:8080
@@ -177,7 +175,7 @@ services:
       - no-new-privileges:true
 
   seed:
-    image: ghcr.io/${GHCR_OWNER}/luigi-api:${API_TAG}
+    image: ghcr.io/${GITHUB_REPOSITORY}/luigi-api:${API_TAG}
     profiles: ["seed"]
     entrypoint: ["/seedadmin"]
     environment:

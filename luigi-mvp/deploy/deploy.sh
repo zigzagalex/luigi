@@ -73,7 +73,7 @@ found=0
 
 verify() {
   name=$1
-  image="ghcr.io/${GHCR_OWNER}/luigi-${name}:${sha}"
+  image="ghcr.io/${GITHUB_REPOSITORY}/luigi-${name}:${sha}"
   if ! docker manifest inspect "$image" >/dev/null 2>&1; then
     return 0
   fi
