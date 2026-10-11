@@ -83,10 +83,11 @@ services:
       ENV: ${ENV:-dev}
       SESSION_SECRET: ${SESSION_SECRET:-dev-only-session-secret-change-me}
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:3000,http://localhost:3001}
-      # Next dev still serves /public. Point this at Seaweed once the S3 client lands.
-      MEDIA_BASE_URL: ${MEDIA_BASE_URL:-http://localhost:3000}
+      # Browser image URLs are this origin plus the object key.
+      # Path-style: http://localhost:8333/<bucket>/<object key>
+      MEDIA_BASE_URL: ${MEDIA_BASE_URL:-http://localhost:${S3_PORT:-8333}/${S3_BUCKET:-luigi}}
       SHOP_ID: ${SHOP_ID:-1}
-      # Present for the S3 client. Dev storage is still the noop client until that lands.
+      # Upload and delete use these. Browsers GET objects without these keys.
       S3_ENDPOINT: ${S3_ENDPOINT:-http://seaweedfs:8333}
       S3_BUCKET: ${S3_BUCKET:-luigi}
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-luigi}
@@ -101,7 +102,7 @@ services:
     image: chrislusf/seaweedfs:4.28
     container_name: luigi-seaweed-dev
     restart: unless-stopped
-    command: ["mini", "-dir=/data"]
+    entrypoint: ["/bin/sh", "/etc/luigi/start-mini.sh"]
     environment:
       AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-luigi}
       AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-luigi-dev-secret}
@@ -110,6 +111,7 @@ services:
       - "${S3_PORT:-8333}:8333"
     volumes:
       - luigi-seaweed-data:/data
+      - ./seaweed/start-mini.sh:/etc/luigi/start-mini.sh:ro
 
 volumes:
   luigi-postgres-data:

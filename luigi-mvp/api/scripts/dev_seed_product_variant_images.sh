@@ -127,3 +127,13 @@ docker exec -i "$CONTAINER" sh -c '
     LIMIT 30;
   "
 '
+
+# Object keys are paths under web-shop/public (media/Bikes/...). Put those
+# bytes in the bucket so the shop URL MEDIA_BASE_URL + key resolves.
+MEDIA_DIR="${SCRIPT_DIR:-$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)}/../../web-shop/public/media"
+API_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+echo "==> Uploading ${MEDIA_DIR} to S3 (keys media/...)"
+(
+  cd "${API_DIR}"
+  go run ./cmd/seedmedia -dir "${MEDIA_DIR}"
+)

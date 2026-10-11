@@ -1,6 +1,6 @@
 # Local development
 
-Postgres, the API, and SeaweedFS run in Docker. The shop and admin stay on the host so `pnpm dev` stays fast. No Google credentials.
+Postgres, the API, and SeaweedFS run in Docker. The shop and admin stay on the host so `pnpm dev` stays fast. 
 
 ## One-time setup
 
@@ -37,7 +37,7 @@ From `luigi-mvp/`:
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-That starts Postgres, applies goose migrations, seeds an admin, then starts the API on http://localhost:8080 and SeaweedFS S3 on http://localhost:8333. Master, filer, and admin ports are not published.
+That starts Postgres, applies goose migrations, seeds an admin, then starts the API on http://localhost:8080 and SeaweedFS S3 on http://localhost:8333. Master, filer, and admin ports are not published. Product image URLs are `http://localhost:8333/luigi/<object key>`. The browser can read those objects. Upload and delete still go through the API.
 
 In two other terminals:
 
@@ -58,7 +58,7 @@ Log in to admin with the seed user (override these in `.env`):
 
 Each `up` writes that password again, so a change made in the admin UI is replaced the next time the seed service runs.
 
-Catalog data is still loaded with `api/scripts/dev_seed_all.sh` when you want products. Login does not need that script.
+Catalog data is still loaded with `api/scripts/dev_seed_all.sh` when you want products. Login does not need that script. The bike image step writes `media/...` keys and uploads the files already in `web-shop/public/media` into the `luigi` bucket under those same keys. Accessory images are uploaded through the API. Placeholders stay in the Next public folder.
 
 ## After API code changes
 

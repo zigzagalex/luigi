@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net/http"
 
@@ -28,18 +27,15 @@ func main() {
 
 	q := db.New(sqlDB)
 
-	ctx := context.Background()
-
-	var store storage.Client
-
-	if cfg.Env == "dev" {
-		store = storage.NewNoopClient()
-	} else {
-		gcsClient, err := storage.NewGCSClient(ctx, cfg.GCSBucketName)
-		if err != nil {
-			log.Fatalf("failed to init GCS client: %v", err)
-		}
-		store = gcsClient
+	store, err := storage.NewS3Client(storage.S3Options{
+		Endpoint:  cfg.S3Endpoint,
+		Bucket:    cfg.S3Bucket,
+		AccessKey: cfg.S3AccessKey,
+		SecretKey: cfg.S3SecretKey,
+		Region:    cfg.S3Region,
+	})
+	if err != nil {
+		log.Fatalf("s3 client: %v", err)
 	}
 
 	r := router.New(router.Deps{
@@ -52,6 +48,7 @@ func main() {
 		CORSOrigins:   cfg.CORSOrigins,
 	})
 
+	log.Printf("s3 endpoint %s bucket %s", cfg.S3Endpoint, cfg.S3Bucket)
 	log.Printf("CORS allowlist: %v", cfg.CORSOrigins)
 	if cfg.ShopID > 0 {
 		log.Printf("deploy shop id: %d", cfg.ShopID)

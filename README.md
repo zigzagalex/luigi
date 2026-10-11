@@ -9,4 +9,4 @@ cd luigi-mvp
 docker compose -f docker-compose.dev.yml up --build
 ```
 
-The API listens on http://localhost:8080. Shop dev is http://localhost:3000, admin dev is http://localhost:3001. The seeded admin is `admin@localhost` / `Admin123!` unless `.env` overrides it. No Google credentials.
+The API listens on http://localhost:8080. Shop dev is http://localhost:3000, admin dev is http://localhost:3001. The seeded admin is `admin@localhost` / `Admin123!` unless `.env` overrides it.

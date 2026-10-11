@@ -5,6 +5,15 @@ import (
 	"testing"
 )
 
+func setS3Env(t *testing.T) {
+	t.Helper()
+	t.Setenv("S3_ENDPOINT", "http://seaweedfs:8333/")
+	t.Setenv("S3_BUCKET", "luigi")
+	t.Setenv("S3_ACCESS_KEY", "luigi")
+	t.Setenv("S3_SECRET_KEY", "luigi-dev-secret")
+	t.Setenv("S3_REGION", "us-east-1")
+}
+
 func TestLoadPrefersDatabaseURLOverHostParts(t *testing.T) {
 	t.Setenv("ENV", "dev")
 	t.Setenv("DATABASE_URL", "postgres://u:p@db:5432/luigi?sslmode=disable")
@@ -14,6 +23,7 @@ func TestLoadPrefersDatabaseURLOverHostParts(t *testing.T) {
 	t.Setenv("CORS_ORIGINS", "http://localhost:3000, http://localhost:3001")
 	t.Setenv("SHOP_ID", "1")
 	t.Setenv("MEDIA_BASE_URL", "")
+	setS3Env(t)
 
 	cfg := Load()
 	if cfg.DatabaseURL != "postgres://u:p@db:5432/luigi?sslmode=disable" {
@@ -27,6 +37,12 @@ func TestLoadPrefersDatabaseURLOverHostParts(t *testing.T) {
 	}
 	if len(cfg.CORSOrigins) != 2 || cfg.CORSOrigins[1] != "http://localhost:3001" {
 		t.Fatalf("cors = %#v", cfg.CORSOrigins)
+	}
+	if cfg.S3Endpoint != "http://seaweedfs:8333" || cfg.S3Bucket != "luigi" || cfg.S3Region != "us-east-1" {
+		t.Fatalf("s3 = endpoint %q bucket %q region %q", cfg.S3Endpoint, cfg.S3Bucket, cfg.S3Region)
+	}
+	if cfg.MediaBaseURL != "http://localhost:8333/luigi" {
+		t.Fatalf("media base = %q", cfg.MediaBaseURL)
 	}
 }
 
@@ -42,6 +58,7 @@ func TestLoadTCPFallbackIgnoresCloudSQLInstance(t *testing.T) {
 	t.Setenv("SESSION_SECRET", "s")
 	t.Setenv("CORS_ORIGINS", "http://localhost:3000")
 	t.Setenv("SHOP_ID", "")
+	setS3Env(t)
 
 	cfg := Load()
 	want := "postgres://u:p@127.0.0.1:5432/luigi?sslmode=disable"
@@ -59,6 +76,7 @@ func TestLoadRejectsBadShopID(t *testing.T) {
 	t.Setenv("SESSION_SECRET", "s")
 	t.Setenv("CORS_ORIGINS", "http://localhost:3000")
 	t.Setenv("SHOP_ID", "nope")
+	setS3Env(t)
 
 	defer func() {
 		if recover() == nil {
@@ -66,4 +84,21 @@ func TestLoadRejectsBadShopID(t *testing.T) {
 		}
 	}()
 	Load()
+}
+
+func TestLoadProdReadsS3AndMediaBase(t *testing.T) {
+	t.Setenv("ENV", "prod")
+	t.Setenv("DATABASE_URL", "postgres://u:p@db:5432/luigi?sslmode=disable")
+	t.Setenv("SESSION_SECRET", "s")
+	t.Setenv("CORS_ORIGINS", "http://localhost:3000")
+	t.Setenv("MEDIA_BASE_URL", "http://localhost:8333/luigi")
+	setS3Env(t)
+
+	cfg := Load()
+	if cfg.MediaBaseURL != "http://localhost:8333/luigi" {
+		t.Fatalf("media base = %q", cfg.MediaBaseURL)
+	}
+	if cfg.S3AccessKey != "luigi" || cfg.S3SecretKey != "luigi-dev-secret" {
+		t.Fatal("s3 credentials were not loaded")
+	}
 }

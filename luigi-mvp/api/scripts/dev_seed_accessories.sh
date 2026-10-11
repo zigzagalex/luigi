@@ -37,9 +37,7 @@ fi
 
 seed_require_cmds curl jq
 seed_wait_api
-if [[ ! -f "${COOKIE_JAR}" ]]; then
-  seed_login
-fi
+seed_login
 
 shopt -s nullglob
 
@@ -277,13 +275,39 @@ upload_variant_images_once() {
   has_placeholder_urls="$(
     echo "${existing_json}" | jq -r 'any(.[]; (.url | contains("placeholders")))'
   )"
+  local local_files=0
+  local path
+  for path in "${image_paths[@]}"; do
+    if [ -f "${path}" ]; then
+      local_files=$((local_files + 1))
+    fi
+  done
+
+  has_missing_objects=false
+  if [ "${existing_count}" -ne "${local_files}" ]; then
+    has_missing_objects=true
+  fi
+  while read -r url; do
+    [ -n "${url}" ] || continue
+    code="$(curl -s -o /dev/null -w '%{http_code}' --max-time 5 "${url}" || true)"
+    if [ "${code}" != "200" ]; then
+      has_missing_objects=true
+      break
+    fi
+  done < <(echo "${existing_json}" | jq -r '.[].url')
 
   if [ "${existing_count}" -gt 0 ]; then
-    if [ "${has_broken_urls}" = "true" ] || [ "${has_placeholder_urls}" = "true" ]; then
-      echo "      resetting variant ${variant_id} images (legacy upload path or placeholder URLs)"
-      echo "${existing_json}" | jq -r '.[].id' | while read -r image_id; do
-        api_curl -X DELETE "${API_BASE_URL}/v1/product_variants/${variant_id}/images/${image_id}" >/dev/null
-      done
+    if [ "${has_broken_urls}" = "true" ] || [ "${has_placeholder_urls}" = "true" ] || [ "${has_missing_objects}" = "true" ]; then
+      echo "      resetting variant ${variant_id} images (missing object, legacy path, or placeholder URL)"
+      while read -r image_id; do
+        [ -n "${image_id}" ] || continue
+        local delete_code
+        delete_code="$(api_curl -o /dev/null -w '%{http_code}' -X DELETE "${API_BASE_URL}/v1/product_variants/${variant_id}/images/${image_id}")"
+        if [ "${delete_code}" != "204" ] && [ "${delete_code}" != "200" ]; then
+          echo "      Error: delete image ${image_id} returned ${delete_code}" >&2
+          exit 1
+        fi
+      done < <(echo "${existing_json}" | jq -r '.[].id')
       existing_count=0
     else
       echo "      images already exist for variant ${variant_id}, skipping upload"
@@ -299,15 +323,37 @@ upload_variant_images_once() {
   local path
   for path in "${image_paths[@]}"; do
     if [ -f "${path}" ]; then
-      local rel_path object_key
+      local rel_path object_key upload_path
       rel_path="${path#${MEDIA_ROOT}/}"
       object_key="media/Accessories/${rel_path}"
+      upload_path="$(seed_upload_path "${path}")"
       echo "      upload image -> $(basename "${path}")"
-      api_curl -X POST "${API_BASE_URL}/v1/product_variants/${variant_id}/images" \
-        -F "file=@${path}" \
-        -F "object_key=${object_key}" >/dev/null
+      local upload_code
+      upload_code="$(api_curl -o /dev/null -w '%{http_code}' -X POST "${API_BASE_URL}/v1/product_variants/${variant_id}/images" \
+        -F "file=@${upload_path}" \
+        -F "object_key=${object_key}")"
+      if [ "${upload_path}" != "${path}" ]; then
+        rm -f "${upload_path}"
+      fi
+      if [ "${upload_code}" != "201" ]; then
+        echo "      Error: upload $(basename "${path}") returned ${upload_code}" >&2
+        exit 1
+      fi
     fi
   done
+}
+
+# The API accepts jpeg, png, and webp. One catalog file is AVIF with a .jpeg name.
+seed_upload_path() {
+  local path="$1"
+  if file -b "${path}" | grep -q 'AVIF'; then
+    local tmp
+    tmp="$(mktemp "${TMPDIR:-/tmp}/luigi-seed.XXXXXX.jpg")"
+    sips -s format jpeg "${path}" --out "${tmp}" >/dev/null
+    printf '%s\n' "${tmp}"
+    return
+  fi
+  printf '%s\n' "${path}"
 }
 
 resolve_accessory_category_ids() {
