@@ -27,7 +27,18 @@ go.work.sum
 # env file
 .env
 .env*.local
-# Editor/IDE
+
+# Local session cookies and deploy keys. Never commit these.
+luigi-mvp/api/scripts/.seed_cookies.txt
+luigi-mvp/api/scripts/cookies.txt
+luigi-ci-deploy*
+*.pem
+
+# TypeScript build info
+*.tsbuildinfo
+
+# Editor and local agent notes
+.cursor/
 # .idea/
 # .vscode/
 
@@ -45,4 +56,3 @@ yarn.lock
 
 # Containers
 *.env
-git add .gitignore

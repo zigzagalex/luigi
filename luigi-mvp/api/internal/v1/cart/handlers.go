@@ -77,7 +77,7 @@ type updateItemRequest struct {
 func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 	owner, err := h.ownerFromRequest(r)
 	if err != nil {
-		httpx.Fail(w, http.StatusUnauthorized, "no_owner", err.Error())
+		httpx.Fail(w, http.StatusUnauthorized, "no_owner", nil)
 		return
 	}
 
@@ -96,7 +96,7 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.svc.GetCart(r.Context(), owner, shopID)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "cart_failed", err.Error())
+		httpx.ServerError(w, "cart_failed", err)
 		return
 	}
 
@@ -106,19 +106,19 @@ func (h *Handler) Get(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
 	owner, err := h.ownerFromRequest(r)
 	if err != nil {
-		httpx.Fail(w, http.StatusUnauthorized, "no_owner", err.Error())
+		httpx.Fail(w, http.StatusUnauthorized, "no_owner", nil)
 		return
 	}
 
 	var req addItemRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_json", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_json", nil)
 		return
 	}
 
 	startAt, endAt, err := parseDateRangeZurich(req.StartDate, req.EndDate)
 	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_dates", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_dates", nil)
 		return
 	}
 
@@ -134,12 +134,7 @@ func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.svc.AddItem(r.Context(), owner, in)
 	if err != nil {
-		if errors.Is(err, cart.ErrDifferentStore) {
-			httpx.Fail(w, http.StatusConflict, "different_store",
-				"Your cart already contains items from another store. Please checkout or clear your cart.")
-			return
-		}
-		httpx.Fail(w, http.StatusInternalServerError, "add_item_failed", err.Error())
+		writeCartError(w, "add_item_failed", err)
 		return
 	}
 
@@ -150,24 +145,24 @@ func (h *Handler) AddItem(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 	owner, err := h.ownerFromRequest(r)
 	if err != nil {
-		httpx.Fail(w, http.StatusUnauthorized, "no_owner", err.Error())
+		httpx.Fail(w, http.StatusUnauthorized, "no_owner", nil)
 		return
 	}
 
 	var req updateItemRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_json", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_json", nil)
 		return
 	}
 
 	cartItemID, err := parseCartItemIDParam(r)
 	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_cart_item_id", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_cart_item_id", nil)
 		return
 	}
 	startAt, endAt, err := parseDateRangeZurich(req.StartDate, req.EndDate)
 	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_dates", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_dates", nil)
 		return
 	}
 
@@ -182,7 +177,7 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.svc.UpdateItem(r.Context(), owner, in)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "error while updating item", err.Error())
+		writeCartError(w, "update_cart_item_failed", err)
 		return
 	}
 
@@ -193,17 +188,17 @@ func (h *Handler) UpdateItem(w http.ResponseWriter, r *http.Request) {
 func (h *Handler) DeleteItem(w http.ResponseWriter, r *http.Request) {
 	owner, err := h.ownerFromRequest(r)
 	if err != nil {
-		httpx.Fail(w, http.StatusUnauthorized, "no_owner", err.Error())
+		httpx.Fail(w, http.StatusUnauthorized, "no_owner", nil)
 		return
 	}
 	cartItemID, err := parseCartItemIDParam(r)
 	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_cart_item_id", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_cart_item_id", nil)
 		return
 	}
 	res, err := h.svc.DeleteItem(r.Context(), owner, cartItemID)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "error while deleting item", err)
+		writeCartError(w, "delete_cart_item_failed", err)
 		return
 	}
 
@@ -225,7 +220,7 @@ func (h *Handler) AttachGuestCart(w http.ResponseWriter, r *http.Request) {
 
 	cust, err := h.custSvc.GetCustomerByUserID(r.Context(), owner.ID)
 	if err != nil {
-		httpx.Fail(w, 500, "customer_missing", err.Error())
+		httpx.ServerError(w, "customer_missing", err)
 		return
 	}
 
@@ -268,6 +263,30 @@ func (h *Handler) ownerFromRequest(r *http.Request) (cart.Owner, error) {
 	}
 
 	return cart.Owner{}, cart.ErrNoOwner
+}
+
+func writeCartError(w http.ResponseWriter, code string, err error) {
+	switch {
+	case errors.Is(err, cart.ErrInvalidQuantity), errors.Is(err, cart.ErrQuantityMustBeOne):
+		httpx.Fail(w, http.StatusBadRequest, "invalid_quantity", nil)
+	case errors.Is(err, cart.ErrInvalidRange):
+		httpx.Fail(w, http.StatusBadRequest, "invalid_dates", nil)
+	case errors.Is(err, cart.ErrMissingVariant):
+		httpx.Fail(w, http.StatusBadRequest, "missing_variant", nil)
+	case errors.Is(err, cart.ErrInsufficientStock):
+		httpx.Fail(w, http.StatusConflict, "insufficient_stock", nil)
+	case errors.Is(err, cart.ErrDifferentStore):
+		httpx.Fail(w, http.StatusConflict, "different_store",
+			"Your cart already contains items from another store. Please checkout or clear your cart.")
+	case errors.Is(err, cart.ErrCartItemNotFound), errors.Is(err, cart.ErrCartNotFound):
+		httpx.Fail(w, http.StatusNotFound, "cart_item_not_found", nil)
+	case errors.Is(err, cart.ErrCartNotOpen):
+		httpx.Fail(w, http.StatusConflict, "cart_not_open", nil)
+	case errors.Is(err, cart.ErrNotYourCart):
+		httpx.Fail(w, http.StatusForbidden, "not_your_cart", nil)
+	default:
+		httpx.ServerError(w, code, err)
+	}
 }
 
 func parseDateRangeZurich(startDate, endDate string) (time.Time, time.Time, error) {

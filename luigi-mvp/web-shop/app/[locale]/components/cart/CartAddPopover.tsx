@@ -11,9 +11,6 @@ import styles from "./CartAddPopover.module.css";
 /** Upsell payload returned by GET /api/cart-accessory-upsell (mirrors API JSON). */
 type UpsellProduct = NonNullable<CartUpsellAccessoryItem["product"]>;
 
-const ACCESSORY_PLACEHOLDER =
-    "https://images.pexels.com/photos/100582/pexels-photo-100582.jpeg?auto=compress&cs=tinysrgb&w=400";
-
 export function CartAddPopover() {
     const t = useTranslations("cartAddPopover");
     const router = useRouter();
@@ -113,12 +110,16 @@ export function CartAddPopover() {
             className={styles.upsellCard}
             onClick={closeAddPopover}
         >
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-                src={product.primary_image_url ?? ACCESSORY_PLACEHOLDER}
-                alt=""
-                className={styles.upsellThumb}
-            />
+            {product.primary_image_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img
+                    src={product.primary_image_url}
+                    alt=""
+                    className={styles.upsellThumb}
+                />
+            ) : (
+                <div className={styles.upsellThumb} />
+            )}
             <div className={styles.upsellName}>{product.name}</div>
         </Link>
     );

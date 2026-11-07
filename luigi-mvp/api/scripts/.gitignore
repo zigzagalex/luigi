@@ -1,2 +1,3 @@
-*.seed_cookies.txt
+.seed_cookies.txt
+cookies.txt
 .seed_shop_id

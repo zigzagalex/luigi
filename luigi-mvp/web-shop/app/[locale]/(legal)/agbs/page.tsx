@@ -1,5 +1,8 @@
 import { getTranslations } from "next-intl/server";
 
+import { getLegalCopy } from "@/../content/legal/getLegalCopy";
+import CopyArticle from "../../components/layout/CopyArticle";
+
 export default async function AGBPage({
   params,
 }: {
@@ -7,11 +10,9 @@ export default async function AGBPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "legalPages" });
+  const copy = getLegalCopy(locale, "agbs");
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1>{t("agbs")}</h1>
-      <p>{t("comingSoon")}</p>
-    </div>
+    <CopyArticle title={t("agbs")} intro={copy.intro} sections={copy.sections} />
   );
 }

@@ -46,7 +46,7 @@ type searchRequest struct {
 func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 	var req searchRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_json", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_json", nil)
 		return
 	}
 
@@ -61,7 +61,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 
 	startAt, endAt, err := daterange.ParseInclusiveZurich(req.StartDate, req.EndDate)
 	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_date_range", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_date_range", nil)
 		return
 	}
 
@@ -77,7 +77,7 @@ func (h *Handler) Search(w http.ResponseWriter, r *http.Request) {
 
 	results, err := h.svc.Search(r.Context(), in)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "search_failed", err.Error())
+		httpx.ServerError(w, "search_failed", err)
 		return
 	}
 
@@ -118,12 +118,12 @@ func (h *Handler) Calendar(w http.ResponseWriter, r *http.Request) {
 
 	from, err := time.Parse("2006-01-02", fromStr)
 	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_from", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_from", nil)
 		return
 	}
 	to, err := time.Parse("2006-01-02", toStr)
 	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_to", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_to", nil)
 		return
 	}
 
@@ -136,7 +136,7 @@ func (h *Handler) Calendar(w http.ResponseWriter, r *http.Request) {
 
 	days, err := h.svc.Calendar(r.Context(), in)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "calendar_failed", err.Error())
+		httpx.ServerError(w, "calendar_failed", err)
 		return
 	}
 
@@ -161,7 +161,7 @@ type quoteRequest struct {
 func (h *Handler) Quote(w http.ResponseWriter, r *http.Request) {
 	var req quoteRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_json", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_json", nil)
 		return
 	}
 
@@ -186,7 +186,7 @@ func (h *Handler) Quote(w http.ResponseWriter, r *http.Request) {
 		var err error
 		startAt, endAt, err = daterange.ParseInclusiveZurich(req.StartDate, req.EndDate)
 		if err != nil {
-			httpx.Fail(w, http.StatusBadRequest, "invalid_date_range", err.Error())
+			httpx.Fail(w, http.StatusBadRequest, "invalid_date_range", nil)
 			return
 		}
 	} else {
@@ -194,12 +194,12 @@ func (h *Handler) Quote(w http.ResponseWriter, r *http.Request) {
 		var err error
 		startAt, err = time.Parse(time.RFC3339, req.StartAt)
 		if err != nil {
-			httpx.Fail(w, http.StatusBadRequest, "invalid_start_at", err.Error())
+			httpx.Fail(w, http.StatusBadRequest, "invalid_start_at", nil)
 			return
 		}
 		endAt, err = time.Parse(time.RFC3339, req.EndAt)
 		if err != nil {
-			httpx.Fail(w, http.StatusBadRequest, "invalid_end_at", err.Error())
+			httpx.Fail(w, http.StatusBadRequest, "invalid_end_at", nil)
 			return
 		}
 	}
@@ -214,7 +214,7 @@ func (h *Handler) Quote(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.svc.Quote(r.Context(), in)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "quote_failed", err.Error())
+		httpx.ServerError(w, "quote_failed", err)
 		return
 	}
 

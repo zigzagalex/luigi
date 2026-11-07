@@ -2,10 +2,8 @@ package shopsv1
 
 import (
 	"encoding/json"
-	"log"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/go-chi/chi/v5"
 	db "github.com/zigzagalex/luigi/api/internal/db/sqlc"
@@ -38,7 +36,7 @@ func listHandler(svc *shopsvc.Service) http.HandlerFunc {
 			Offset: int32(offset),
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "lists_shops_failed", err.Error())
+			httpx.ServerError(w, "lists_shops_failed", err)
 			return
 		}
 		if items == nil {
@@ -72,7 +70,7 @@ func createHandler(svc *shopsvc.Service) http.HandlerFunc {
 			IsActive: req.IsActive,
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "create_shop_failed", err.Error())
+			httpx.ServerError(w, "create_shop_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
@@ -107,22 +105,14 @@ func updateHandler(svc *shopsvc.Service) http.HandlerFunc {
 			IsActive: req.IsActive,
 		})
 		if err != nil {
-			// TEMP: log + raw error response so we see what's going on
-			// (keep your 404 mapping for ErrNotFound)
 			if err == shopsvc.ErrNotFound {
 				httpx.Fail(w, http.StatusNotFound, "shop_not_found", nil)
 				return
 			}
-			// Log to stderr so it shows in Cloud Run logs
-			// import "log" at top
-			log.Printf("update_shop_failed id=%d: %v", id, err)
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusInternalServerError)
-			_, _ = w.Write([]byte(`{"error":"update_shop_failed","details":"` + strings.ReplaceAll(err.Error(), `"`, `\"`) + `"}`))
+			httpx.ServerError(w, "update_shop_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
 
 	}
 }
-

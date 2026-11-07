@@ -41,7 +41,7 @@ func listHandler(svc *pricepoints.Service) http.HandlerFunc {
 		items, err := svc.List(r.Context(), categoryPtr)
 		if err != nil {
 			log.Printf("list_price_points_failed: %v", err)
-			httpx.Fail(w, http.StatusInternalServerError, "list_price_points_failed", err.Error())
+			httpx.ServerError(w, "list_price_points_failed", err)
 			return
 		}
 
@@ -77,7 +77,7 @@ func getHandler(svc *pricepoints.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("get_price_point_failed: %v", err)
-			httpx.Fail(w, http.StatusInternalServerError, "get_price_point_failed", err.Error())
+			httpx.ServerError(w, "get_price_point_failed", err)
 			return
 		}
 
@@ -124,7 +124,7 @@ func upsertHandler(svc *pricepoints.Service) http.HandlerFunc {
 		})
 		if err != nil {
 			log.Printf("upsert_price_point_failed: %v", err)
-			httpx.Fail(w, http.StatusInternalServerError, "upsert_price_point_failed", err.Error())
+			httpx.ServerError(w, "upsert_price_point_failed", err)
 			return
 		}
 
@@ -160,7 +160,7 @@ func deleteHandler(svc *pricepoints.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("delete_price_point_failed: %v", err)
-			httpx.Fail(w, http.StatusInternalServerError, "delete_price_point_failed", err.Error())
+			httpx.ServerError(w, "delete_price_point_failed", err)
 			return
 		}
 

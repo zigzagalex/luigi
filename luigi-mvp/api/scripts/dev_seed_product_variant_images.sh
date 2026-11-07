@@ -41,45 +41,44 @@ imgs AS (
     FROM unnest(
       CASE trim(both from fb.sku)
         WHEN 'STD-MTB-TRAIL-1' THEN ARRAY[
-          'media/Bikes/Standard/Hardtail/91325-50_EPIC-HT-COMP-RBLPNK-OBSD-BRSH_FDSQ.webp',
-          'media/Bikes/Standard/Hardtail/91325-50_EPIC-HT-COMP-RBLPNK-OBSD-BRSH_HERO-PDP.webp'
+          'media/Bikes/Standard/Hardtail/placeholder-std-hardtail-side-v3.jpg',
+          'media/Bikes/Standard/Hardtail/placeholder-std-hardtail-angle-v3.jpg'
         ]::text[]
         WHEN 'STD-MTB-TRAIL-2' THEN ARRAY[
-          'media/Bikes/Standard/Fully/93325-76_SJ-15-ALLOY-WHTMTN-DKMOS_FDSQ.webp',
-          'media/Bikes/Standard/Fully/93325-76_SJ-15-ALLOY-WHTMTN-DKMOS_HERO-PDP.webp'
+          'media/Bikes/Standard/Fully/placeholder-std-fullsus-side-v3.jpg',
+          'media/Bikes/Standard/Fully/placeholder-std-fullsus-angle-v3.jpg'
         ]::text[]
         WHEN 'STD-RD-END-1' THEN ARRAY[
-          'media/Bikes/Standard/Endurance/94426-61_ROUBAIX-SPORT-FLORED-OBSD_FDSQ.webp',
-          'media/Bikes/Standard/Endurance/94426-61_ROUBAIX-SPORT-FLORED-OBSD_HERO-PDP.webp'
+          'media/Bikes/Standard/Endurance/placeholder-std-endurance-side-v3.jpg',
+          'media/Bikes/Standard/Endurance/placeholder-std-endurance-angle-v3.jpg'
         ]::text[]
         WHEN 'STD-RD-END-2' THEN ARRAY[
-          'media/Bikes/Standard/Endurance/94426-61_ROUBAIX-SPORT-FLORED-OBSD_FDSQ.webp',
-          'media/Bikes/Standard/Endurance/94426-61_ROUBAIX-SPORT-FLORED-OBSD_HERO-PDP.webp'
+          'media/Bikes/Standard/Endurance/placeholder-std-comfort-side-v3.jpg',
+          'media/Bikes/Standard/Endurance/placeholder-std-comfort-angle-v3.jpg'
         ]::text[]
         WHEN 'STD-RD-CITY-1' THEN ARRAY[
-          'media/Bikes/Standard/City/92426-32_SIRRUS-X-60-FJDMET-EMDMET_FDSQ.webp',
-          'media/Bikes/Standard/City/92426-32_SIRRUS-X-60-FJDMET-EMDMET_HERO-PDP.webp'
+          'media/Bikes/Standard/City/placeholder-std-city-side-v3.jpg',
+          'media/Bikes/Standard/City/placeholder-std-city-angle-v3.jpg'
         ]::text[]
         WHEN 'PRO-MTB-END-1' THEN ARRAY[
-          'media/Bikes/Pro/Fully/93326-31_SJ-15-EXPERT-DI2-PST-DKMOS_FDSQ.webp',
-          'media/Bikes/Pro/Fully/93326-31_SJ-15-EXPERT-DI2-PST-DKMOS_HERO-PDP.webp'
+          'media/Bikes/Pro/Fully/placeholder-pro-enduro-side-v3.jpg',
+          'media/Bikes/Pro/Fully/placeholder-pro-enduro-angle-v3.jpg'
         ]::text[]
         WHEN 'PRO-MTB-DH-1' THEN ARRAY[
-          'media/Bikes/Pro/Hardtail/93125-03_EPIC-WC-SW-GCLMET-CARB-CHRM_FDSQ.webp',
-          'media/Bikes/Pro/Hardtail/93125-03_EPIC-WC-SW-GCLMET-CARB-CHRM_HERO-PDP.webp',
-          'media/Bikes/Pro/Hardtail/93125-03_EPIC-WC-SW-GCLMET-CARB-CHRM_D6-LINK.webp'
+          'media/Bikes/Pro/Downhill/placeholder-pro-downhill-side-v3.jpg',
+          'media/Bikes/Pro/Downhill/placeholder-pro-downhill-angle-v3.jpg'
         ]::text[]
         WHEN 'PRO-RD-RACE-1' THEN ARRAY[
-          'media/Bikes/Pro/Endurance/94425-01_ROUBAIX-SW-DI2-TPE-GUN-BLKTNT_FDSQ.webp',
-          'media/Bikes/Pro/Endurance/94425-01_ROUBAIX-SW-DI2-TPE-GUN-BLKTNT_HERO-PDP.webp'
+          'media/Bikes/Pro/Endurance/placeholder-pro-race-side-v3.jpg',
+          'media/Bikes/Pro/Endurance/placeholder-pro-race-angle-v3.jpg'
         ]::text[]
         WHEN 'PRO-RD-AERO-1' THEN ARRAY[
-          'media/Bikes/Pro/Endurance/94425-01_ROUBAIX-SW-DI2-TPE-GUN-BLKTNT_FDSQ.webp',
-          'media/Bikes/Pro/Endurance/94425-01_ROUBAIX-SW-DI2-TPE-GUN-BLKTNT_HERO-PDP.webp'
+          'media/Bikes/Pro/Aero/placeholder-pro-aero-side-v3.jpg',
+          'media/Bikes/Pro/Aero/placeholder-pro-aero-angle-v3.jpg'
         ]::text[]
         WHEN 'PRO-RD-GRVL-1' THEN ARRAY[
-          'media/Bikes/Pro/Gravel/95426-10_DIVERGE-PRO-BDXMET-REDPRL-DLMMET_FDSQ.webp',
-          'media/Bikes/Pro/Gravel/95426-10_DIVERGE-PRO-BDXMET-REDPRL-DLMMET_HERO-PDP.webp'
+          'media/Bikes/Pro/Gravel/placeholder-pro-gravel-side-v3.jpg',
+          'media/Bikes/Pro/Gravel/placeholder-pro-gravel-angle-v3.jpg'
         ]::text[]
         ELSE ARRAY[]::text[]
       END

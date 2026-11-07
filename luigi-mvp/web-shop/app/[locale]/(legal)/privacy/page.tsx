@@ -1,5 +1,8 @@
 import { getTranslations } from "next-intl/server";
 
+import { getLegalCopy } from "@/../content/legal/getLegalCopy";
+import CopyArticle from "../../components/layout/CopyArticle";
+
 export default async function PrivacyPage({
   params,
 }: {
@@ -7,11 +10,13 @@ export default async function PrivacyPage({
 }) {
   const { locale } = await params;
   const t = await getTranslations({ locale, namespace: "legalPages" });
+  const copy = getLegalCopy(locale, "privacy");
 
   return (
-    <div style={{ padding: 24 }}>
-      <h1>{t("privacy")}</h1>
-      <p>{t("comingSoon")}</p>
-    </div>
+    <CopyArticle
+      title={t("privacy")}
+      intro={copy.intro}
+      sections={copy.sections}
+    />
   );
 }

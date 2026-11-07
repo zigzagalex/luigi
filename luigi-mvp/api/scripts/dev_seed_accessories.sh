@@ -168,35 +168,35 @@ accessory_description_for_locale() {
     return
   fi
   case "${locale}:${sku}" in
-    de:ACC-SHOE-RECON-30) echo "Trail-orientierte Radschuhe mit stabilem Kraftfluss und ganztägigem Komfort." ;;
-    de:ACC-SHOE-TORCH-RD) echo "Performance-Rennradschuhe für effizientes Treten und sicheren Halt." ;;
-    de:ACC-SHOE-RIME-MTB) echo "All-Mountain-Schuhe mit Balance aus Tritt-Effizienz und Grip beim Gehen." ;;
-    de:ACC-HLMT-MIO-2) echo "Leichter Jugendhelm mit Fokus auf Komfort und Alltagsschutz." ;;
-    de:ACC-HLMT-PREVAIL-3) echo "Stark belüfteter Performance-Helm für warme Bedingungen und harte Einheiten." ;;
-    de:ACC-HLMT-TRAIL-65) echo "Vielseitiger Trail-Helm mit erweitertem Schutz für Offroad-Fahrten." ;;
-    de:ACC-HLMT-CHAMONIX-3) echo "Komfortbetonter Allround-Helm für Pendeln und Freizeittouren." ;;
+    de:ACC-SHOE-TRAIL) echo "Trail-orientierte Radschuhe mit stabilem Kraftfluss und ganztägigem Komfort." ;;
+    de:ACC-SHOE-ROAD) echo "Performance-Rennradschuhe für effizientes Treten und sicheren Halt." ;;
+    de:ACC-SHOE-ALL-MOUNTAIN) echo "All-Mountain-Schuhe mit Balance aus Tritt-Effizienz und Grip beim Gehen." ;;
+    de:ACC-HLMT-YOUTH) echo "Leichter Jugendhelm mit Fokus auf Komfort und Alltagsschutz." ;;
+    de:ACC-HLMT-RACE) echo "Stark belüfteter Performance-Helm für warme Bedingungen und harte Einheiten." ;;
+    de:ACC-HLMT-TRAIL) echo "Vielseitiger Trail-Helm mit erweitertem Schutz für Offroad-Fahrten." ;;
+    de:ACC-HLMT-CITY) echo "Komfortbetonter Allround-Helm für Pendeln und Freizeittouren." ;;
     de:ACC-PEDAL-TRAIL-FLAT) echo "Breite Flatpedale mit zuverlässigem Grip für technisches Gelände." ;;
     de:ACC-NAV-HANDLEBAR-MOUNT) echo "Kompakte Lenkerhalterung für Handy und GPS auf Road- oder Gravelbikes." ;;
     de:ACC-TOOLS-ESSENTIAL-KIT) echo "Tragbares Tool-Set für Unterwegs-Anpassungen und häufige Fixes." ;;
     de:ACC-KIDS-STARTER-PROTECTION) echo "Einsteigerfreundliches Schutz-Set in Kindergrössen." ;;
-    fr:ACC-SHOE-RECON-30) echo "Chaussures trail avec transfert de puissance stable et confort toute la journée." ;;
-    fr:ACC-SHOE-TORCH-RD) echo "Chaussures route performantes pour un pédalage efficace et un maintien sûr." ;;
-    fr:ACC-SHOE-RIME-MTB) echo "Chaussures all-mountain qui équilibrent efficacité et accroche à pied." ;;
-    fr:ACC-HLMT-MIO-2) echo "Casque léger pour jeunes, axé confort et protection quotidienne." ;;
-    fr:ACC-HLMT-PREVAIL-3) echo "Casque performance très ventilé pour chaleur et efforts intenses." ;;
-    fr:ACC-HLMT-TRAIL-65) echo "Casque trail polyvalent avec couverture étendue hors route." ;;
-    fr:ACC-HLMT-CHAMONIX-3) echo "Casque polyvalent confortable pour trajets et sorties loisirs." ;;
+    fr:ACC-SHOE-TRAIL) echo "Chaussures trail avec transfert de puissance stable et confort toute la journée." ;;
+    fr:ACC-SHOE-ROAD) echo "Chaussures route performantes pour un pédalage efficace et un maintien sûr." ;;
+    fr:ACC-SHOE-ALL-MOUNTAIN) echo "Chaussures all-mountain qui équilibrent efficacité et accroche à pied." ;;
+    fr:ACC-HLMT-YOUTH) echo "Casque léger pour jeunes, axé confort et protection quotidienne." ;;
+    fr:ACC-HLMT-RACE) echo "Casque performance très ventilé pour chaleur et efforts intenses." ;;
+    fr:ACC-HLMT-TRAIL) echo "Casque trail polyvalent avec couverture étendue hors route." ;;
+    fr:ACC-HLMT-CITY) echo "Casque polyvalent confortable pour trajets et sorties loisirs." ;;
     fr:ACC-PEDAL-TRAIL-FLAT) echo "Pédales plates larges avec grip régulier sur terrain technique." ;;
     fr:ACC-NAV-HANDLEBAR-MOUNT) echo "Support cockpit compact pour téléphone ou GPS sur route ou gravel." ;;
     fr:ACC-TOOLS-ESSENTIAL-KIT) echo "Kit d’outils portable pour réglages et réparations courantes." ;;
     fr:ACC-KIDS-STARTER-PROTECTION) echo "Set de protection débutant adapté aux jeunes cyclistes." ;;
-    it:ACC-SHOE-RECON-30) echo "Scarpe trail con trasferimento di potenza stabile e comfort tutto il giorno." ;;
-    it:ACC-SHOE-TORCH-RD) echo "Scarpe da corsa performanti per pedalate efficienti e tenuta sicura." ;;
-    it:ACC-SHOE-RIME-MTB) echo "Scarpe all-mountain che bilanciano efficienza e grip a piedi." ;;
-    it:ACC-HLMT-MIO-2) echo "Casco leggero per giovani, pensato per comfort e protezione quotidiana." ;;
-    it:ACC-HLMT-PREVAIL-3) echo "Casco performance molto ventilato per caldo e sforzi intensi." ;;
-    it:ACC-HLMT-TRAIL-65) echo "Casco trail versatile con copertura estesa per l’off-road." ;;
-    it:ACC-HLMT-CHAMONIX-3) echo "Casco all-round comfort-first per pendolari e uscite leisure." ;;
+    it:ACC-SHOE-TRAIL) echo "Scarpe trail con trasferimento di potenza stabile e comfort tutto il giorno." ;;
+    it:ACC-SHOE-ROAD) echo "Scarpe da corsa performanti per pedalate efficienti e tenuta sicura." ;;
+    it:ACC-SHOE-ALL-MOUNTAIN) echo "Scarpe all-mountain che bilanciano efficienza e grip a piedi." ;;
+    it:ACC-HLMT-YOUTH) echo "Casco leggero per giovani, pensato per comfort e protezione quotidiana." ;;
+    it:ACC-HLMT-RACE) echo "Casco performance molto ventilato per caldo e sforzi intensi." ;;
+    it:ACC-HLMT-TRAIL) echo "Casco trail versatile con copertura estesa per l’off-road." ;;
+    it:ACC-HLMT-CITY) echo "Casco all-round comfort-first per pendolari e uscite leisure." ;;
     it:ACC-PEDAL-TRAIL-FLAT) echo "Pedali flat ampi con grip costante su terreno tecnico." ;;
     it:ACC-NAV-HANDLEBAR-MOUNT) echo "Supporto manubrio compatto per telefono o GPS su road o gravel." ;;
     it:ACC-TOOLS-ESSENTIAL-KIT) echo "Kit attrezzi portatile per regolazioni e riparazioni comuni." ;;
@@ -418,27 +418,27 @@ resolve_accessory_category_ids() {
   local group_slug=""
   local sub_slug=""
   case "${sku}" in
-    ACC-SHOE-TORCH-RD)
+    ACC-SHOE-ROAD)
       group_slug="acc-shoes"
       sub_slug="acc-road-shoes"
       ;;
-    ACC-SHOE-RECON-30|ACC-SHOE-RIME-MTB)
+    ACC-SHOE-TRAIL|ACC-SHOE-ALL-MOUNTAIN)
       group_slug="acc-shoes"
       sub_slug="acc-mtb-shoes"
       ;;
-    ACC-HLMT-PREVAIL-3)
+    ACC-HLMT-RACE)
       group_slug="acc-helmets"
       sub_slug="acc-road-helmets"
       ;;
-    ACC-HLMT-TRAIL-65)
+    ACC-HLMT-TRAIL)
       group_slug="acc-helmets"
       sub_slug="acc-mtb-helmets"
       ;;
-    ACC-HLMT-CHAMONIX-3)
+    ACC-HLMT-CITY)
       group_slug="acc-helmets"
       sub_slug="acc-city-helmets"
       ;;
-    ACC-HLMT-MIO-2)
+    ACC-HLMT-YOUTH)
       group_slug="acc-helmets"
       sub_slug="acc-youth-helmets"
       ;;
@@ -579,70 +579,70 @@ seed_accessory_product() {
 # web-shop/public/media/Accessories/{Shoes,Helmets,Pedals,Navigation,Tools,Kids}
 
 seed_accessory_product \
-  "ACC-SHOE-RECON-30" \
-  "Recon 3.0 MTB Shoes" \
+  "ACC-SHOE-TRAIL" \
+  "Trail MTB Shoes" \
   "Trail-focused cycling shoes with stable power transfer and all-day comfort." \
-  "The Recon 3.0 is designed for riders who need efficient pedaling and confident off-bike traction.\n\n- Stiff sole to transfer power on climbs and sprints\n- Reinforced toe area for rocky terrain\n- Secure closure for a precise fit\n- Breathable upper for warm-weather rides\n- Durable outsole suitable for hike-a-bike sections\n\nIdeal for: mountain biking, mixed terrain rides, and long trail days." \
+  "These trail shoes are designed for riders who need efficient pedaling and confident off-bike traction.\n\n- Stiff sole to transfer power on climbs and sprints\n- Reinforced toe area for rocky terrain\n- Secure closure for a precise fit\n- Breathable upper for warm-weather rides\n- Durable outsole suitable for hike-a-bike sections\n\nIdeal for: mountain biking, mixed terrain rides, and long trail days." \
   "accessory_premium" \
   "shoes" \
-  "${MEDIA_ROOT}/Shoes/61524-3042_SHOE_24_RECON_30_Black_HERO.webp" \
-  "${MEDIA_ROOT}/Shoes/61524-3042_SHOE_24_RECON_30_Black_PAIR.webp"
+  "${MEDIA_ROOT}/Shoes/placeholder-shoe-trail-hero.jpg" \
+  "${MEDIA_ROOT}/Shoes/placeholder-shoe-trail-pair.jpg"
 
 seed_accessory_product \
-  "ACC-SHOE-TORCH-RD" \
-  "Torch Road Shoes" \
+  "ACC-SHOE-ROAD" \
+  "Road Cycling Shoes" \
   "Performance road cycling shoes built for efficient pedaling and secure fit." \
-  "Torch Road Shoes are tuned for road riders who want a responsive feel and reliable comfort over long hours.\n\n- Stiff sole for efficient watt transfer\n- Ergonomic closure for pressure-free hold\n- Ventilated upper for airflow at high intensity\n- Stable heel cup for confident accelerations\n- Durable construction for regular training use\n\nIdeal for: road training, fast group rides, and sportive events." \
+  "These road cycling shoes are tuned for riders who want a responsive feel and reliable comfort over long hours.\n\n- Stiff sole for efficient watt transfer\n- Ergonomic closure for pressure-free hold\n- Ventilated upper for airflow at high intensity\n- Stable heel cup for confident accelerations\n- Durable construction for regular training use\n\nIdeal for: road training, fast group rides, and sportive events." \
   "accessory_premium" \
   "shoes" \
-  "${MEDIA_ROOT}/Shoes/61026-003_SHOE_SW-TORCH-RD-SHOE-FRYRED-BLK_HERO-PDP.webp" \
-  "${MEDIA_ROOT}/Shoes/61026-003_SHOE_SW-TORCH-RD-SHOE-FRYRED-BLK_PAIR.webp"
+  "${MEDIA_ROOT}/Shoes/placeholder-shoe-road-hero.jpg" \
+  "${MEDIA_ROOT}/Shoes/placeholder-shoe-road-pair.jpg"
 
 seed_accessory_product \
-  "ACC-SHOE-RIME-MTB" \
-  "Rime 2.0 MTB Shoes" \
+  "ACC-SHOE-ALL-MOUNTAIN" \
+  "All-Mountain Shoes" \
   "All-mountain shoes that balance pedaling efficiency and walkable grip." \
-  "Rime 2.0 MTB Shoes are built for riders who climb, descend, and occasionally hike technical sections.\n\n- Balanced stiffness for pedaling and comfort\n- Grippy outsole for wet rocks and loose dirt\n- Protective upper for rough trail conditions\n- Secure fit to reduce foot movement on descents\n- Breathable design for all-day adventures\n\nIdeal for: trail riding, enduro days, and mountain adventures." \
+  "These all-mountain shoes are built for riders who climb, descend, and occasionally hike technical sections.\n\n- Balanced stiffness for pedaling and comfort\n- Grippy outsole for wet rocks and loose dirt\n- Protective upper for rough trail conditions\n- Secure fit to reduce foot movement on descents\n- Breathable design for all-day adventures\n\nIdeal for: trail riding, enduro days, and mountain adventures." \
   "accessory_premium" \
   "shoes" \
-  "${MEDIA_ROOT}/Shoes/61119-734_SHOE_RIME-20-MTB_BLK_HERO.webp" \
-  "${MEDIA_ROOT}/Shoes/61119-734_SHOE_RIME-20-MTB_BLK_PAIR.webp"
+  "${MEDIA_ROOT}/Shoes/placeholder-shoe-allmountain-hero.jpg" \
+  "${MEDIA_ROOT}/Shoes/placeholder-shoe-allmountain-pair.jpg"
 
 seed_accessory_product \
-  "ACC-HLMT-MIO-2" \
-  "Mio 2 Helmet" \
+  "ACC-HLMT-YOUTH" \
+  "Youth Helmet" \
   "Lightweight youth-oriented helmet focused on comfort and everyday protection." \
-  "The Mio 2 Helmet is designed for younger riders and smaller head sizes, with ventilation and a stable fit.\n\n- Protective shell with modern impact standards\n- Easy adjustment dial for quick fit tuning\n- Vent layout for daily comfort\n- Lightweight construction for reduced neck fatigue\n- Clean design suitable for city and recreational riding\n\nIdeal for: daily rides, school commutes, and beginner cyclists." \
+  "This youth helmet is designed for younger riders and smaller head sizes, with ventilation and a stable fit.\n\n- Protective shell with modern impact standards\n- Easy adjustment dial for quick fit tuning\n- Vent layout for daily comfort\n- Lightweight construction for reduced neck fatigue\n- Clean design suitable for city and recreational riding\n\nIdeal for: daily rides, school commutes, and beginner cyclists." \
   "accessory_standard" \
   "helmets" \
-  "${MEDIA_ROOT}/Helmets/60025-441_HLMT_MIO-2-HLMT-CE-DUNEWHTOIS_HERO-PDP.webp"
+  "${MEDIA_ROOT}/Helmets/placeholder-helmet-youth.jpg"
 
 seed_accessory_product \
-  "ACC-HLMT-PREVAIL-3" \
-  "S-Works Prevail 3 Helmet" \
+  "ACC-HLMT-RACE" \
+  "Race Road Helmet" \
   "High-ventilation performance helmet optimized for warm conditions and hard efforts." \
-  "S-Works Prevail 3 is built for riders who prioritize airflow and low weight without compromising safety.\n\n- Advanced ventilation channels for cooling\n- Aerodynamic profile for high-speed riding\n- Lightweight in-mold construction\n- Precision retention system for race-ready fit\n- Compatible shape for modern road positions\n\nIdeal for: road racing, fast group rides, and summer training blocks." \
+  "This race road helmet is built for riders who prioritize airflow and low weight without compromising safety.\n\n- Advanced ventilation channels for cooling\n- Aerodynamic profile for high-speed riding\n- Lightweight in-mold construction\n- Precision retention system for race-ready fit\n- Compatible shape for modern road positions\n\nIdeal for: road racing, fast group rides, and summer training blocks." \
   "accessory_premium" \
   "helmets" \
-  "${MEDIA_ROOT}/Helmets/60923-100_HLMT_SW-PREVAIL-3-HLMT-CE-BLK-M_HERO.webp"
+  "${MEDIA_ROOT}/Helmets/placeholder-helmet-race.jpg"
 
 seed_accessory_product \
-  "ACC-HLMT-TRAIL-65" \
-  "Trail 65 Helmet" \
+  "ACC-HLMT-TRAIL" \
+  "Trail Helmet" \
   "Versatile trail helmet with extended coverage for off-road confidence." \
-  "The Trail 65 Helmet offers dependable protection and all-day comfort for mountain and gravel riders.\n\n- Extended rear coverage for trail riding\n- Ventilation designed for low-speed climbs and technical descents\n- Secure fit system for rough terrain\n- Durable shell finish for regular use\n- Balanced weight for long sessions\n\nIdeal for: trail riding, bike parks, and mixed-surface adventures." \
+  "This trail helmet offers dependable protection and all-day comfort for mountain and gravel riders.\n\n- Extended rear coverage for trail riding\n- Ventilation designed for low-speed climbs and technical descents\n- Secure fit system for rough terrain\n- Durable shell finish for regular use\n- Balanced weight for long sessions\n\nIdeal for: trail riding, bike parks, and mixed-surface adventures." \
   "accessory_standard" \
   "helmets" \
-  "${MEDIA_ROOT}/Helmets/60222-193_HLMT_65-TRAIL-HLMT-CE-COLOR-3-M_HERO.webp"
+  "${MEDIA_ROOT}/Helmets/placeholder-helmet-trail.jpg"
 
 seed_accessory_product \
-  "ACC-HLMT-CHAMONIX-3" \
-  "Chamonix 3 Helmet" \
+  "ACC-HLMT-CITY" \
+  "City Helmet" \
   "Comfort-first all-round helmet suitable for commuting and leisure rides." \
-  "Chamonix 3 is a reliable everyday helmet with easy fit adjustment and broad riding versatility.\n\n- Protective design with practical everyday coverage\n- User-friendly rear adjustment system\n- Ventilation for urban and weekend riding\n- Compatible shape for casual and fitness use\n- Durable shell for frequent handling\n\nIdeal for: city commuting, weekend loops, and fitness cycling." \
+  "This city helmet is a reliable everyday helmet with easy fit adjustment and broad riding versatility.\n\n- Protective design with practical everyday coverage\n- User-friendly rear adjustment system\n- Ventilation for urban and weekend riding\n- Compatible shape for casual and fitness use\n- Durable shell for frequent handling\n\nIdeal for: city commuting, weekend loops, and fitness cycling." \
   "accessory_standard" \
   "helmets" \
-  "${MEDIA_ROOT}/Helmets/60125-180_HLMT_CHAMONIX-3-HLMT_VISOR-CE-HYPERVIZ-ROUND_HERO (1).webp"
+  "${MEDIA_ROOT}/Helmets/placeholder-helmet-city.jpg"
 
 seed_accessory_product \
   "ACC-PEDAL-TRAIL-FLAT" \
@@ -651,9 +651,9 @@ seed_accessory_product \
   "Trail Flat Pedals prioritize stability and confidence for riders who prefer flat-shoe control.\n\n- Large contact platform for better foot support\n- Serviceable axle and bearing setup\n- Pin layout tuned for reliable grip\n- Durable body for repeated trail impacts\n- Balanced profile for cornering clearance\n\nIdeal for: trail bikes, enduro riding, and all-mountain setups." \
   "accessory_standard" \
   "default" \
-  "${MEDIA_ROOT}/Pedals/d7cb3fb9-b10e-4055-af9c-1b0a3fe363bc.jpeg" \
-  "${MEDIA_ROOT}/Pedals/62270f66-461c-49b4-9383-d713794c664a.jpeg" \
-  "${MEDIA_ROOT}/Pedals/a225b095-6b37-4e6b-b26e-f01d7a62a84f.jpeg"
+  "${MEDIA_ROOT}/Pedals/placeholder-pedal-top.jpg" \
+  "${MEDIA_ROOT}/Pedals/placeholder-pedal-side.jpg" \
+  "${MEDIA_ROOT}/Pedals/placeholder-pedal-angle.jpg"
 
 seed_accessory_product \
   "ACC-NAV-HANDLEBAR-MOUNT" \
@@ -662,7 +662,7 @@ seed_accessory_product \
   "This handlebar navigation mount keeps your route information centered and easy to read.\n\n- Stable clamp interface for rough surfaces\n- Low-profile design to keep cockpit clean\n- Quick install and adjustment\n- Broad compatibility with common handlebar diameters\n- Vibration-resistant setup for better readability\n\nIdeal for: touring, gravel exploration, and long route planning rides." \
   "accessory_compact" \
   "default" \
-  "${MEDIA_ROOT}/Navigation/6eeff327-5350-4348-9116-4884806dfd2f.jpeg"
+  "${MEDIA_ROOT}/Navigation/placeholder-nav-mount.jpg"
 
 seed_accessory_product \
   "ACC-TOOLS-ESSENTIAL-KIT" \
@@ -671,8 +671,8 @@ seed_accessory_product \
   "Essential Ride Tool Kit covers the most frequent mid-ride adjustments in a compact package.\n\n- Multi-tool core for fit and drivetrain tweaks\n- Compact form factor for jersey pocket or saddle bag\n- Durable metal tools for repeated use\n- Organized layout for quick access\n- Built for emergency and preventive maintenance\n\nIdeal for: training rides, commuting, and bikepacking carry." \
   "accessory_compact" \
   "default" \
-  "${MEDIA_ROOT}/Tools/ce5e7c87-2b6e-4a40-8431-f4c4c2bcf6ff.jpeg" \
-  "${MEDIA_ROOT}/Tools/5ec91be9-a75e-411b-bfa5-c335a44b0bf9.jpeg"
+  "${MEDIA_ROOT}/Tools/placeholder-tools-closed.jpg" \
+  "${MEDIA_ROOT}/Tools/placeholder-tools-open.jpg"
 
 seed_accessory_product \
   "ACC-KIDS-STARTER-PROTECTION" \
@@ -681,7 +681,7 @@ seed_accessory_product \
   "Kids Starter Protection Set is made to help children ride with confidence and comfort from day one.\n\n- Soft-contact materials for comfortable wear\n- Adjustable closures to support growth and fit\n- Lightweight construction for easy movement\n- Durable build for repeated daily use\n- Simple setup for parents and instructors\n\nIdeal for: first rides, family cycling days, and youth training sessions." \
   "accessory_compact" \
   "default" \
-  "${MEDIA_ROOT}/Kids/a4b29729-4287-4b43-b6fd-b72d8b95253a.jpeg"
+  "${MEDIA_ROOT}/Kids/placeholder-kids-protection.jpg"
 
 echo "==> Accessory-as-product seeding finished 🎉"
 echo "    Note: no product_accessory links were created."

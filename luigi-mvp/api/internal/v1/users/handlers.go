@@ -52,7 +52,7 @@ func listHandler(svc *usersvc.Service) http.HandlerFunc {
 			Offset: int32(offset),
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "list_users_failed", err.Error())
+			httpx.ServerError(w, "list_users_failed", err)
 			return
 		}
 		if items == nil {
@@ -135,7 +135,7 @@ func createHandler(svc *usersvc.Service) http.HandlerFunc {
 				httpx.Fail(w, http.StatusBadRequest, "weak_password", err.Error())
 				return
 			}
-			httpx.Fail(w, http.StatusInternalServerError, "hash_password_failed", nil)
+			httpx.ServerError(w, "hash_password_failed", err)
 			return
 		}
 
@@ -159,7 +159,7 @@ func createHandler(svc *usersvc.Service) http.HandlerFunc {
 				httpx.Fail(w, http.StatusConflict, "email_already_exists", nil)
 				return
 			}
-			httpx.Fail(w, http.StatusInternalServerError, "create_user_failed", err.Error())
+			httpx.ServerError(w, "create_user_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, sanitizeUser(item))
@@ -226,7 +226,7 @@ func updateHandler(svc *usersvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("update_user_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "update_user_failed", err.Error())
+			httpx.ServerError(w, "update_user_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, sanitizeUser(item))
@@ -248,7 +248,7 @@ func deleteHandler(svc *usersvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("delete_user_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "delete_user_failed", err.Error())
+			httpx.ServerError(w, "delete_user_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, sanitizeUser(item))

@@ -690,8 +690,10 @@ export default function CheckoutPage() {
               return (
                 <div className={styles.cartRow} key={String(item.id)}>
                   <div className={styles.cartImgWrap}>
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={imageUrl} alt={name} className={styles.cartImg} />
+                    {imageUrl ? (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={imageUrl} alt={name} className={styles.cartImg} />
+                    ) : null}
                   </div>
 
                   <div className={styles.cartInfo}>

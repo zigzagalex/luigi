@@ -159,7 +159,7 @@ ORDER BY r.created_at DESC
 LIMIT $3 OFFSET $4
 `, shopID, status, limit, offset, storeIDArg)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "list_admin_reservations_failed", err.Error())
+		httpx.ServerError(w, "list_admin_reservations_failed", err)
 		return
 	}
 	defer rows.Close()
@@ -192,20 +192,20 @@ LIMIT $3 OFFSET $4
 			&it.PickupPhone,
 			&it.PickupEmail,
 		); err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "scan_admin_reservations_failed", err.Error())
+			httpx.ServerError(w, "scan_admin_reservations_failed", err)
 			return
 		}
 		base = append(base, it)
 		ids = append(ids, it.ID)
 	}
 	if err := rows.Err(); err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "list_admin_reservations_failed", err.Error())
+		httpx.ServerError(w, "list_admin_reservations_failed", err)
 		return
 	}
 
 	itemsByRes, err := h.loadReservationItems(r.Context(), ids, locale)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "list_admin_reservation_items_failed", err.Error())
+		httpx.ServerError(w, "list_admin_reservation_items_failed", err)
 		return
 	}
 
@@ -301,7 +301,7 @@ ORDER BY r.created_at DESC
 LIMIT $5 OFFSET $6
 `, shopID, storeIDArg, includeCancelled, pattern, limit, offset)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "search_admin_reservations_failed", err.Error())
+		httpx.ServerError(w, "search_admin_reservations_failed", err)
 		return
 	}
 	defer rows.Close()
@@ -334,20 +334,20 @@ LIMIT $5 OFFSET $6
 			&it.PickupPhone,
 			&it.PickupEmail,
 		); err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "scan_admin_reservations_failed", err.Error())
+			httpx.ServerError(w, "scan_admin_reservations_failed", err)
 			return
 		}
 		base = append(base, it)
 		ids = append(ids, it.ID)
 	}
 	if err := rows.Err(); err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "search_admin_reservations_failed", err.Error())
+		httpx.ServerError(w, "search_admin_reservations_failed", err)
 		return
 	}
 
 	itemsByRes, err := h.loadReservationItems(r.Context(), ids, locale)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "list_admin_reservation_items_failed", err.Error())
+		httpx.ServerError(w, "list_admin_reservation_items_failed", err)
 		return
 	}
 
@@ -472,12 +472,12 @@ type updateStatusBody struct {
 func (h *Handler) UpdateStatus(w http.ResponseWriter, r *http.Request) {
 	reservationID, err := parseChiIDParam(r, "reservation_id")
 	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_reservation_id", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_reservation_id", nil)
 		return
 	}
 	var body updateStatusBody
 	if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_json", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_json", nil)
 		return
 	}
 	u, shopID, _, ok := adminShopScope(w, r, body.ShopID)
@@ -506,7 +506,7 @@ WHERE id = $1 AND shop_id = $2
 			httpx.Fail(w, http.StatusNotFound, "reservation_not_found", nil)
 			return
 		}
-		httpx.Fail(w, http.StatusInternalServerError, "load_status_failed", err.Error())
+		httpx.ServerError(w, "load_status_failed", err)
 		return
 	}
 	if u.StoreID.Valid && u.StoreID.Int64 > 0 && u.StoreID.Int64 != storeID {
@@ -534,7 +534,7 @@ RETURNING version
 			httpx.Fail(w, http.StatusConflict, "version_conflict", nil)
 			return
 		}
-		httpx.Fail(w, http.StatusInternalServerError, "update_status_failed", err.Error())
+		httpx.ServerError(w, "update_status_failed", err)
 		return
 	}
 
@@ -552,7 +552,7 @@ func (h *Handler) Invoice(w http.ResponseWriter, r *http.Request) {
 	}
 	reservationID, err := parseChiIDParam(r, "reservation_id")
 	if err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_reservation_id", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_reservation_id", nil)
 		return
 	}
 	clientShopID, _ := parseIntQuery(r, "shop_id")
@@ -570,7 +570,7 @@ SELECT store_id FROM reservations WHERE id = $1 AND shop_id = $2
 			httpx.Fail(w, http.StatusNotFound, "reservation_not_found", nil)
 			return
 		}
-		httpx.Fail(w, http.StatusInternalServerError, "load_reservation_failed", err.Error())
+		httpx.ServerError(w, "load_reservation_failed", err)
 		return
 	}
 	if u.StoreID.Valid && u.StoreID.Int64 > 0 && u.StoreID.Int64 != storeID {
@@ -591,7 +591,7 @@ SELECT store_id FROM reservations WHERE id = $1 AND shop_id = $2
 		case errors.Is(err, reservation.ErrInvoiceNotAvailable):
 			httpx.Fail(w, http.StatusBadRequest, "invoice_not_available", nil)
 		default:
-			httpx.Fail(w, http.StatusInternalServerError, "invoice_failed", err.Error())
+			httpx.ServerError(w, "invoice_failed", err)
 		}
 		return
 	}

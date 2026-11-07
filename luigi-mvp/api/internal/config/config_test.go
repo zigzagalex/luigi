@@ -1,9 +1,6 @@
 package config
 
-import (
-	"strings"
-	"testing"
-)
+import "testing"
 
 func setS3Env(t *testing.T) {
 	t.Helper()
@@ -18,7 +15,6 @@ func TestLoadPrefersDatabaseURLOverHostParts(t *testing.T) {
 	t.Setenv("ENV", "dev")
 	t.Setenv("DATABASE_URL", "postgres://u:p@db:5432/luigi?sslmode=disable")
 	t.Setenv("DB_HOST", "127.0.0.1")
-	t.Setenv("DB_INSTANCE", "proj:region:inst")
 	t.Setenv("SESSION_SECRET", "s")
 	t.Setenv("CORS_ORIGINS", "http://localhost:3000, http://localhost:3001")
 	t.Setenv("SHOP_ID", "1")
@@ -28,9 +24,6 @@ func TestLoadPrefersDatabaseURLOverHostParts(t *testing.T) {
 	cfg := Load()
 	if cfg.DatabaseURL != "postgres://u:p@db:5432/luigi?sslmode=disable" {
 		t.Fatalf("database url = %q", cfg.DatabaseURL)
-	}
-	if strings.Contains(cfg.DatabaseURL, "cloudsql") {
-		t.Fatalf("database url still points at Cloud SQL: %q", cfg.DatabaseURL)
 	}
 	if cfg.ShopID != 1 {
 		t.Fatalf("shop id = %d", cfg.ShopID)
@@ -46,10 +39,9 @@ func TestLoadPrefersDatabaseURLOverHostParts(t *testing.T) {
 	}
 }
 
-func TestLoadTCPFallbackIgnoresCloudSQLInstance(t *testing.T) {
+func TestLoadTCPFallback(t *testing.T) {
 	t.Setenv("ENV", "dev")
 	t.Setenv("DATABASE_URL", "")
-	t.Setenv("DB_INSTANCE", "proj:region:inst")
 	t.Setenv("DB_USER", "u")
 	t.Setenv("DB_PASSWORD", "p")
 	t.Setenv("DB_NAME", "luigi")

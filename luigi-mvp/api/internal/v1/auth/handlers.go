@@ -141,7 +141,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 			httpx.Fail(w, http.StatusBadRequest, "weak_password", err.Error())
 			return
 		}
-		httpx.Fail(w, http.StatusInternalServerError, "hash_password_failed", nil)
+		httpx.ServerError(w, "hash_password_failed", err)
 		return
 	}
 
@@ -150,7 +150,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 
 	tx, err := h.db.BeginTx(ctx, nil)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "tx_begin_failed", err.Error())
+		httpx.ServerError(w, "tx_begin_failed", err)
 		return
 	}
 	defer tx.Rollback()
@@ -176,7 +176,7 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 			httpx.Fail(w, http.StatusBadRequest, "shop_id_not_found", nil)
 			return
 		}
-		httpx.Fail(w, http.StatusInternalServerError, "register_failed", err.Error())
+		httpx.ServerError(w, "register_failed", err)
 		return
 	}
 
@@ -191,17 +191,17 @@ func (h *Handler) Register(w http.ResponseWriter, r *http.Request) {
 		IsActive:  ptrBool(true),
 	})
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "customer_create_failed", err.Error())
+		httpx.ServerError(w, "customer_create_failed", err)
 		return
 	}
 
 	if err := tx.Commit(); err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "tx_commit_failed", err.Error())
+		httpx.ServerError(w, "tx_commit_failed", err)
 		return
 	}
 
 	if err := h.issueSession(w, r, user.ID, customerCookieName); err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "session_create_failed", err.Error())
+		httpx.ServerError(w, "session_create_failed", err)
 		return
 	}
 
@@ -229,7 +229,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 			httpx.Fail(w, http.StatusUnauthorized, "invalid_credentials", nil)
 			return
 		}
-		httpx.Fail(w, http.StatusInternalServerError, "login_failed", err.Error())
+		httpx.ServerError(w, "login_failed", err)
 		return
 	}
 
@@ -250,7 +250,7 @@ func (h *Handler) Login(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := h.issueSession(w, r, user.ID, cookieName); err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "session_create_failed", err.Error())
+		httpx.ServerError(w, "session_create_failed", err)
 		return
 	}
 
@@ -433,7 +433,7 @@ func (h *Handler) GetMyCustomer(w http.ResponseWriter, r *http.Request) {
 			w.WriteHeader(http.StatusNotFound)
 			return
 		}
-		httpx.Fail(w, http.StatusInternalServerError, "get_customer_failed", err.Error())
+		httpx.ServerError(w, "get_customer_failed", err)
 		return
 	}
 
@@ -476,7 +476,7 @@ func (h *Handler) UpsertMyCustomer(w http.ResponseWriter, r *http.Request) {
 
 	existing, err := h.customers.GetCustomerByUserID(r.Context(), user.ID)
 	if err != nil && !errors.Is(err, customersvc.ErrNotFound) {
-		httpx.Fail(w, http.StatusInternalServerError, "get_customer_failed", err.Error())
+		httpx.ServerError(w, "get_customer_failed", err)
 		return
 	}
 
@@ -503,7 +503,7 @@ func (h *Handler) UpsertMyCustomer(w http.ResponseWriter, r *http.Request) {
 			IsActive:   ptrBool(true),
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "create_customer_failed", err.Error())
+			httpx.ServerError(w, "create_customer_failed", err)
 			return
 		}
 
@@ -526,7 +526,7 @@ func (h *Handler) UpsertMyCustomer(w http.ResponseWriter, r *http.Request) {
 		IsActive:   nil,
 	})
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "update_customer_failed", err.Error())
+		httpx.ServerError(w, "update_customer_failed", err)
 		return
 	}
 

@@ -78,7 +78,7 @@ func listHandler(svc *storesvc.Service) http.HandlerFunc {
 			Offset: int32(offset),
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "list_stores_failed", err.Error())
+			httpx.ServerError(w, "list_stores_failed", err)
 			return
 		}
 
@@ -86,12 +86,12 @@ func listHandler(svc *storesvc.Service) http.HandlerFunc {
 		for _, item := range items {
 			openingTimes, err := svc.ListOpeningTimes(r.Context(), item.ID)
 			if err != nil {
-				httpx.Fail(w, http.StatusInternalServerError, "list_store_opening_times_failed", err.Error())
+				httpx.ServerError(w, "list_store_opening_times_failed", err)
 				return
 			}
 			holidays, err := svc.ListHolidays(r.Context(), item.ID)
 			if err != nil {
-				httpx.Fail(w, http.StatusInternalServerError, "list_store_holidays_failed", err.Error())
+				httpx.ServerError(w, "list_store_holidays_failed", err)
 				return
 			}
 			out = append(out, storeResponse{
@@ -142,7 +142,7 @@ func createHandler(svc *storesvc.Service) http.HandlerFunc {
 			IsActive:   req.IsActive,
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "create_store_failed", err.Error())
+			httpx.ServerError(w, "create_store_failed", err)
 			return
 		}
 
@@ -153,7 +153,7 @@ func createHandler(svc *storesvc.Service) http.HandlerFunc {
 		}
 		if len(parsed) > 0 {
 			if err := svc.ReplaceOpeningTimes(r.Context(), item.ID, parsed); err != nil {
-				httpx.Fail(w, http.StatusInternalServerError, "save_opening_times_failed", err.Error())
+				httpx.ServerError(w, "save_opening_times_failed", err)
 				return
 			}
 		}
@@ -164,19 +164,19 @@ func createHandler(svc *storesvc.Service) http.HandlerFunc {
 		}
 		if len(parsedHolidays) > 0 {
 			if err := svc.ReplaceHolidays(r.Context(), item.ID, parsedHolidays); err != nil {
-				httpx.Fail(w, http.StatusInternalServerError, "save_holidays_failed", err.Error())
+				httpx.ServerError(w, "save_holidays_failed", err)
 				return
 			}
 		}
 
 		openingTimes, err := svc.ListOpeningTimes(r.Context(), item.ID)
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "list_store_opening_times_failed", err.Error())
+			httpx.ServerError(w, "list_store_opening_times_failed", err)
 			return
 		}
 		holidays, err := svc.ListHolidays(r.Context(), item.ID)
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "list_store_holidays_failed", err.Error())
+			httpx.ServerError(w, "list_store_holidays_failed", err)
 			return
 		}
 
@@ -229,7 +229,7 @@ func updateHandler(svc *storesvc.Service) http.HandlerFunc {
 			if err == storesvc.ErrNotFound {
 				httpx.Fail(w, http.StatusNotFound, "store_not_found", nil)
 			} else {
-				httpx.Fail(w, http.StatusInternalServerError, "update_store_failed", err.Error())
+				httpx.ServerError(w, "update_store_failed", err)
 			}
 			return
 		}
@@ -241,7 +241,7 @@ func updateHandler(svc *storesvc.Service) http.HandlerFunc {
 		}
 		if req.OpeningTimes != nil {
 			if err := svc.ReplaceOpeningTimes(r.Context(), item.ID, parsed); err != nil {
-				httpx.Fail(w, http.StatusInternalServerError, "save_opening_times_failed", err.Error())
+				httpx.ServerError(w, "save_opening_times_failed", err)
 				return
 			}
 		}
@@ -252,19 +252,19 @@ func updateHandler(svc *storesvc.Service) http.HandlerFunc {
 		}
 		if req.Holidays != nil {
 			if err := svc.ReplaceHolidays(r.Context(), item.ID, parsedHolidays); err != nil {
-				httpx.Fail(w, http.StatusInternalServerError, "save_holidays_failed", err.Error())
+				httpx.ServerError(w, "save_holidays_failed", err)
 				return
 			}
 		}
 
 		openingTimes, err := svc.ListOpeningTimes(r.Context(), item.ID)
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "list_store_opening_times_failed", err.Error())
+			httpx.ServerError(w, "list_store_opening_times_failed", err)
 			return
 		}
 		holidays, err := svc.ListHolidays(r.Context(), item.ID)
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "list_store_holidays_failed", err.Error())
+			httpx.ServerError(w, "list_store_holidays_failed", err)
 			return
 		}
 
@@ -291,7 +291,7 @@ func deleteHandler(svc *storesvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("delete_store_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "delete_store_failed", err.Error())
+			httpx.ServerError(w, "delete_store_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)

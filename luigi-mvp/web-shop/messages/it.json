@@ -625,6 +625,22 @@
     "noStores": "Nessun negozio disponibile al momento.",
     "addressPending": "Indirizzo in arrivo"
   },
+  "contactPage": {
+    "title": "Contatti",
+    "subtitle": "Scrivici. Il modulo c’è, l’invio no.",
+    "email": "Email",
+    "phone": "Numero di telefono",
+    "message": "Messaggio",
+    "emailPlaceholder": "tu@esempio.ch",
+    "messagePlaceholder": "Di che si tratta?",
+    "send": "Invia",
+    "invalidEmail": "Inserisci un indirizzo email valido.",
+    "invalidPhone": "Inserisci un numero di telefono valido.",
+    "messageRequired": "Scrivi un messaggio.",
+    "thanksTitle": "Grazie",
+    "thanksBody": "Questo è un progetto di sviluppo e alcune cose sono ancora in corso. Il tuo messaggio non è stato inviato.",
+    "writeAnother": "Scrivi un altro messaggio"
+  },
   "infoPages": {
     "comingSoon": "Prossimamente.",
     "about": "Chi siamo",

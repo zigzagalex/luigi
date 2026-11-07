@@ -53,7 +53,7 @@ func listHandler(svc *variantsvc.Service) http.HandlerFunc {
 			Offset:    int32(offset),
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "list_product_variants_failed", err.Error())
+			httpx.ServerError(w, "list_product_variants_failed", err)
 			return
 		}
 		if items == nil {
@@ -95,7 +95,7 @@ func createHandler(svc *variantsvc.Service) http.HandlerFunc {
 			IsActive:   req.IsActive,
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "create_product_variant_failed", err.Error())
+			httpx.ServerError(w, "create_product_variant_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
@@ -134,7 +134,7 @@ func updateHandler(svc *variantsvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("update_product_variant_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "update_product_variant_failed", err.Error())
+			httpx.ServerError(w, "update_product_variant_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
@@ -156,7 +156,7 @@ func deleteHandler(svc *variantsvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("delete_product_variant_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "delete_product_variant_failed", err.Error())
+			httpx.ServerError(w, "delete_product_variant_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
@@ -182,7 +182,7 @@ func GetByID(svc *variantsvc.Service) http.HandlerFunc {
 				})
 				return
 			}
-			httpx.Fail(w, http.StatusInternalServerError, "failed to get variant", err.Error())
+			httpx.ServerError(w, "get_variant_failed", err)
 			return
 		}
 

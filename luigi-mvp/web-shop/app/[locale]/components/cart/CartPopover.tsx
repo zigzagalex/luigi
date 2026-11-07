@@ -59,7 +59,7 @@ export function CartPopover({ onClose }: Props) {
             const details = (
               <>
                 <div className={styles.thumbWrap}>
-                  <img src={imageUrl} alt={productHref ? "" : name} />
+                  {imageUrl ? <img src={imageUrl} alt={productHref ? "" : name} /> : null}
                 </div>
                 <div className={styles.rowDetails}>
                   <div className={styles.rowTitle}>{name}</div>

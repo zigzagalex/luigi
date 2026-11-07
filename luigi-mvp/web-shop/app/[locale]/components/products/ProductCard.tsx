@@ -20,9 +20,6 @@ type Props = {
 
 };
 
-const FALLBACK_IMAGE =
-  "https://images.pexels.com/photos/276517/pexels-photo-276517.jpeg?auto=compress&cs=tinysrgb&w=800";
-
 function buildProductHref(
     locale: string,
     productId: number,
@@ -54,7 +51,7 @@ export default function ProductCard({
 }: Props) {
   const t = useTranslations("productCard");
   const locale = useLocale();
-  const imageUrl = product.primary_image_url ?? FALLBACK_IMAGE;
+  const imageUrl = product.primary_image_url || null;
   const href = buildProductHref(locale, product.id, linkSearchParams);
   const displayFromPriceCents = minPriceCents ?? fromPricePerDayCents;
   const fromPriceLabel =
@@ -67,13 +64,15 @@ export default function ProductCard({
   return (
     <Link href={href} className={styles.card}>
       <div className={styles.imageWrapper}>
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src={imageUrl}
-          alt={product.name}
-          className={styles.image}
-          loading="lazy"
-        />
+        {imageUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img
+            src={imageUrl}
+            alt={product.name}
+            className={styles.image}
+            loading="lazy"
+          />
+        ) : null}
       </div>
 
       <div className={styles.content}>

@@ -64,10 +64,10 @@ func (h *ProductVariantImageHandler) Upload(w http.ResponseWriter, r *http.Reque
 	img, err := h.svc.UploadVariantImage(r.Context(), variantID, file, header.Filename)
 	if err != nil {
 		if errors.Is(err, images.ErrUnsupportedFormat) {
-			httpx.Fail(w, http.StatusBadRequest, err.Error(), nil)
+			httpx.Fail(w, http.StatusBadRequest, "unsupported_image_format", nil)
 			return
 		}
-		httpx.Fail(w, http.StatusInternalServerError, "failed to upload image", err.Error())
+		httpx.ServerError(w, "upload_image_failed", err)
 		return
 	}
 
@@ -87,7 +87,7 @@ func (h *ProductVariantImageHandler) List(w http.ResponseWriter, r *http.Request
 
 	imgs, err := h.svc.ListVariantImages(r.Context(), variantID)
 	if err != nil {
-		httpx.Fail(w, http.StatusInternalServerError, "failed to list images", err.Error())
+		httpx.ServerError(w, "list_images_failed", err)
 		return
 	}
 
@@ -112,7 +112,7 @@ func (h *ProductVariantImageHandler) Delete(w http.ResponseWriter, r *http.Reque
 			})
 			return
 		}
-		httpx.Fail(w, http.StatusInternalServerError, "failed to delete image", err.Error())
+		httpx.ServerError(w, "delete_image_failed", err)
 		return
 	}
 

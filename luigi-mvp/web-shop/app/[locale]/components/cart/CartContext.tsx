@@ -81,8 +81,6 @@ export type LastAdded = {
   /** When true (bike PDP), popover may suggest matching accessories. */
   suggestAccessories?: boolean;
 };
-const PLACEHOLDER = "/media/placeholders/blue/blue-1.png";
-
 export function CartProvider({ shopId, children }: CartProviderProps) {
   const { loading: authLoading, me } = useAuth();
   const locale = useLocale();
@@ -243,11 +241,11 @@ export function CartProvider({ shopId, children }: CartProviderProps) {
   const imageUrlForCartItem = useCallback(
     (item: CartItem) => {
       const vid = int64OrNull((item as any).variant_id);
-      if (!vid) return PLACEHOLDER;
+      if (!vid) return "";
 
       const imgs = imagesByVariantId[vid] ?? null;
       const primary = getPrimaryVariantImage(imgs);
-      return primary?.url ?? PLACEHOLDER;
+      return primary?.url ?? "";
     },
     [imagesByVariantId]
   );

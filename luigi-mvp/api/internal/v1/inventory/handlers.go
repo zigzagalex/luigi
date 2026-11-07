@@ -51,7 +51,7 @@ func listHandler(svc *inventorysvc.Service) http.HandlerFunc {
 			Offset: int32(offset),
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "list_inventory_items_failed", err.Error())
+			httpx.ServerError(w, "list_inventory_items_failed", err)
 			return
 		}
 		if items == nil {
@@ -113,7 +113,7 @@ func createHandler(svc *inventorysvc.Service) http.HandlerFunc {
 			IsActive:         req.IsActive,
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "create_inventory_item_failed", err.Error())
+			httpx.ServerError(w, "create_inventory_item_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
@@ -166,7 +166,7 @@ func updateHandler(svc *inventorysvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("update_inventory_item_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "update_inventory_item_failed", err.Error())
+			httpx.ServerError(w, "update_inventory_item_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
@@ -188,7 +188,7 @@ func deleteHandler(svc *inventorysvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("delete_inventory_item_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "delete_inventory_item_failed", err.Error())
+			httpx.ServerError(w, "delete_inventory_item_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)

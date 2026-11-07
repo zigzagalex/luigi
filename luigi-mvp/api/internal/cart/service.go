@@ -24,6 +24,8 @@ var (
 	ErrInvalidQuantity   = errors.New("quantity must be > 0")
 	ErrInsufficientStock = errors.New("insufficient stock for requested range")
 	ErrDifferentStore    = errors.New("cart contains items from a different store")
+	ErrQuantityMustBeOne = errors.New("cart item quantity must be 1")
+	ErrMissingVariant    = errors.New("cart item missing variant_id")
 )
 
 type Owner struct {
@@ -53,15 +55,15 @@ type CartItemView struct {
 }
 
 type CartDTO struct {
-    ID        int64   `json:"id"`
-    ShopID    int64   `json:"shop_id"`
-    StoreID   *int64  `json:"store_id,omitempty"`
-    Status    string  `json:"status"`
-    StoreName string  `json:"store_name,omitempty"`
+	ID        int64  `json:"id"`
+	ShopID    int64  `json:"shop_id"`
+	StoreID   *int64 `json:"store_id,omitempty"`
+	Status    string `json:"status"`
+	StoreName string `json:"store_name,omitempty"`
 }
 
 type CartView struct {
-	Cart            CartDTO       `json:"cart"`
+	Cart            CartDTO        `json:"cart"`
 	Items           []CartItemView `json:"items"`
 	StoreID         int64          `json:"store_id"`
 	StoreName       string         `json:"store_name"`
@@ -236,7 +238,7 @@ func (s *Service) UpdateItem(ctx context.Context, owner Owner, in UpdateItemInpu
 		return nil, ErrInvalidQuantity
 	}
 	if in.Quantity != 1 {
-		return nil, errors.New("cart item quantity must be 1 (one cart_item per inventory item)")
+		return nil, ErrQuantityMustBeOne
 	}
 	if !in.StartAt.Before(in.EndAt) {
 		return nil, ErrInvalidRange
@@ -265,7 +267,7 @@ func (s *Service) UpdateItem(ctx context.Context, owner Owner, in UpdateItemInpu
 	}
 
 	if !row.VariantID.Valid {
-		return nil, errors.New("cart item missing variant_id")
+		return nil, ErrMissingVariant
 	}
 
 	// IMPORTANT:

@@ -1,0 +1,100 @@
+.form {
+  display: grid;
+  gap: var(--space-4);
+  max-width: 44rem;
+  padding: var(--space-5);
+  background: var(--color-bg-section-band);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 16px;
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--space-4);
+}
+
+@media (max-width: 720px) {
+  .row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.label {
+  composes: fontLabel from "../../components/ui/typography.module.css";
+  font-size: var(--text-meta-size);
+  color: var(--color-text-body);
+}
+
+.input {
+  composes: surfaceInput from "../../components/ui/primitives.module.css";
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+}
+
+.textarea {
+  composes: surfaceInput from "../../components/ui/primitives.module.css";
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  min-height: 8rem;
+  padding: var(--space-3);
+  resize: vertical;
+  font-family: inherit;
+  line-height: 1.45;
+}
+
+.error {
+  composes: fontLabel from "../../components/ui/typography.module.css";
+  margin: 0;
+  font-size: var(--text-meta-size);
+  color: var(--color-accent-danger);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-start;
+}
+
+.button {
+  composes: buttonPrimary from "../../components/ui/primitives.module.css";
+}
+
+.buttonSecondary {
+  composes: buttonSecondary from "../../components/ui/primitives.module.css";
+}
+
+.thanks {
+  max-width: 44rem;
+  padding: var(--space-5);
+  background: var(--color-bg-section-band);
+  border: 1px solid var(--color-border-soft);
+  border-radius: 16px;
+  display: grid;
+  gap: var(--space-3);
+  justify-items: start;
+}
+
+.thanksTitle {
+  composes: fontSectionTitle from "../../components/ui/typography.module.css";
+  margin: 0;
+  font-size: var(--text-body-size);
+  font-weight: 700;
+}
+
+.thanksBody {
+  composes: fontBody from "../../components/ui/typography.module.css";
+  margin: 0;
+  font-size: var(--text-meta-size);
+  line-height: 1.55;
+  color: var(--color-text-body);
+}

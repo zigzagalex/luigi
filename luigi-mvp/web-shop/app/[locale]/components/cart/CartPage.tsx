@@ -114,7 +114,7 @@ export default function CartPage() {
                     className={`${styles.itemRow} ${blocked ? styles.itemRowBlocked : ""}`}
                   >
                     <div className={styles.imageWrap}>
-                      <img src={imageUrl} alt="" loading="lazy" />
+                      {imageUrl ? <img src={imageUrl} alt="" loading="lazy" /> : null}
                     </div>
 
                     <div className={styles.itemInfo}>

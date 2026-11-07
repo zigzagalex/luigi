@@ -53,9 +53,6 @@ export async function fetchCategoryOptions(
     const path = `/v1/categories/tree?shop_id=${shopId}`;
     const res = await fetchApi(path);
 
-    // For debugging – you’ll see the full URL in the console via fetchApi’s logic if you log there.
-    console.log("fetchCategoryOptions path:", path);
-
     if (!res.ok) {
       console.error("fetchCategoryOptions failed:", res.status);
       return [];

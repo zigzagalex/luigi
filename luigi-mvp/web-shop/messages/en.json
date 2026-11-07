@@ -625,6 +625,22 @@
     "contactPrompt": "Can't find what you need?",
     "contactLink": "Contact us"
   },
+  "contactPage": {
+    "title": "Contact",
+    "subtitle": "Send a note. The form is here. Delivery is not.",
+    "email": "Email",
+    "phone": "Phone number",
+    "message": "Message",
+    "emailPlaceholder": "you@example.com",
+    "messagePlaceholder": "What should we know?",
+    "send": "Send",
+    "invalidEmail": "Enter a valid email address.",
+    "invalidPhone": "Enter a valid phone number.",
+    "messageRequired": "Write a message.",
+    "thanksTitle": "Thank you",
+    "thanksBody": "This is a development project, and a few things are still in progress. Your message was not sent.",
+    "writeAnother": "Write another message"
+  },
   "infoPages": {
     "comingSoon": "Coming soon.",
     "about": "About",

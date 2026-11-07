@@ -121,18 +121,16 @@ export function IconWarning(props: IconProps) {
   );
 }
 
-/** Home trust banner — choose a bike */
+/** Home trust banner — find and choose a bike */
 export function IconBikeChoose(props: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
-      <circle cx="7" cy="16" r="3.25" stroke="currentColor" strokeWidth="1.75" />
-      <circle cx="17" cy="16" r="3.25" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="10.25" cy="10.25" r="6" stroke="currentColor" strokeWidth="1.75" />
       <path
-        d="M9.8 16 12 8.5h3.8M12 8.5l2.1 4.2M12 8.5 10 6"
+        d="m14.5 14.5 4.7 4.7"
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"
-        strokeLinejoin="round"
       />
     </svg>
   );
@@ -192,21 +190,21 @@ export function IconPayAtPickup(props: IconProps) {
 export function IconRideBike(props: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
+      <circle cx="5.6" cy="17.4" r="3.15" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="18.4" cy="17.4" r="3.15" stroke="currentColor" strokeWidth="1.75" />
+      <circle cx="15" cy="5.1" r="1.15" stroke="currentColor" strokeWidth="1.75" />
       <path
-        d="M3.5 14h2M2.5 17h2.5"
-        stroke="currentColor"
-        strokeWidth="1.6"
-        strokeLinecap="round"
-        opacity={0.35}
-      />
-      <circle cx="8" cy="16" r="3.25" stroke="currentColor" strokeWidth="1.75" />
-      <circle cx="17.5" cy="16" r="3.25" stroke="currentColor" strokeWidth="1.75" />
-      <path
-        d="M10.5 16 12.3 8.5h3.6l1.6 7.5M12.3 8.5 10.2 6"
+        d="M12.15 17.4V14l-2.7-2.6 3.5-2.7 1.85 2.55h2.35"
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"
         strokeLinejoin="round"
+      />
+      <path
+        d="M14.15 6.2 13 8.7"
+        stroke="currentColor"
+        strokeWidth="1.75"
+        strokeLinecap="round"
       />
     </svg>
   );
@@ -217,14 +215,7 @@ export function IconWrenchServiced(props: IconProps) {
   return (
     <svg viewBox="0 0 24 24" fill="none" {...props}>
       <path
-        d="m14.8 4.8 2.1 2.1-4.3 4.3a2.9 2.9 0 1 0 2.1 2.1l4.3-4.3 2.1 2.1"
-        stroke="currentColor"
-        strokeWidth="1.75"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M6.5 17.5a2.5 2.5 0 1 0 0-3.5l1.8-1.8"
+        d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.4-3.4a5.5 5.5 0 0 1-7.3 7.3l-6.3 6.3a2.15 2.15 0 0 1-3.05-3.05l6.3-6.3a5.5 5.5 0 0 1 7.3-7.3l-3.35 3.45z"
         stroke="currentColor"
         strokeWidth="1.75"
         strokeLinecap="round"
@@ -317,7 +308,7 @@ export const iconCatalog: { name: string; description: string; Icon: IconCompone
   { name: "IconSearch", description: "PDP header search, search pill submit", Icon: IconSearch },
   { name: "IconArrowRight", description: "Product card rent CTA", Icon: IconArrowRight },
   { name: "IconWarning", description: "Cart page conflict / blocked items", Icon: IconWarning },
-  { name: "IconBikeChoose", description: "Home trust banner — choose bike", Icon: IconBikeChoose },
+  { name: "IconBikeChoose", description: "Home trust banner — find and choose a bike", Icon: IconBikeChoose },
   { name: "IconCalendarReserve", description: "Home trust banner — reserve", Icon: IconCalendarReserve },
   { name: "IconPayAtPickup", description: "Home trust banner — pay at pickup", Icon: IconPayAtPickup },
   { name: "IconRideBike", description: "Home trust banner — ride", Icon: IconRideBike },

@@ -104,7 +104,7 @@ func (h *Handler) CheckoutFromCart(w http.ResponseWriter, r *http.Request) {
 
 	var req checkoutRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httpx.Fail(w, http.StatusBadRequest, "invalid_json", err.Error())
+		httpx.Fail(w, http.StatusBadRequest, "invalid_json", nil)
 		return
 	}
 
@@ -124,13 +124,13 @@ func (h *Handler) CheckoutFromCart(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		switch {
 		case errors.Is(err, reservation.ErrCartEmpty):
-			httpx.Fail(w, 400, "cart_empty", err.Error())
+			httpx.Fail(w, 400, "cart_empty", nil)
 		case errors.Is(err, reservation.ErrCartBlocked):
-			httpx.Fail(w, 400, "cart_blocked", err.Error())
+			httpx.Fail(w, 400, "cart_blocked", nil)
 		case errors.Is(err, reservation.ErrNotAvailableForDates):
-			httpx.Fail(w, 409, "inventory_unavailable", err.Error())
+			httpx.Fail(w, 409, "inventory_unavailable", nil)
 		default:
-			httpx.Fail(w, 500, "checkout_failed", err.Error())
+			httpx.ServerError(w, "checkout_failed", err)
 		}
 		return
 	}
@@ -165,7 +165,7 @@ func (h *Handler) ListMyReservations(w http.ResponseWriter, r *http.Request) {
 
 	res, err := h.svc.ListMyReservations(r.Context(), in)
 	if err != nil {
-		httpx.Fail(w, 500, "list_failed", err.Error())
+		httpx.ServerError(w, "list_failed", err)
 		return
 	}
 
@@ -188,17 +188,17 @@ func (h *Handler) GetMyReservation(w http.ResponseWriter, r *http.Request) {
 
 	resID, err := parseReservationIDParam(r)
 	if err != nil {
-		httpx.Fail(w, 400, "invalid_reservation_id", err.Error())
+		httpx.Fail(w, 400, "invalid_reservation_id", nil)
 		return
 	}
 
 	res, err := h.svc.GetMyReservation(r.Context(), shopID, customerID, resID, locale)
 	if err != nil {
 		if errors.Is(err, reservation.ErrReservationNotFound) {
-			httpx.Fail(w, 404, "not_found", err.Error())
+			httpx.Fail(w, 404, "not_found", nil)
 			return
 		}
-		httpx.Fail(w, 500, "get_failed", err.Error())
+		httpx.ServerError(w, "get_failed", err)
 		return
 	}
 
@@ -221,7 +221,7 @@ func (h *Handler) DownloadMyInvoice(w http.ResponseWriter, r *http.Request) {
 
 	resID, err := parseReservationIDParam(r)
 	if err != nil {
-		httpx.Fail(w, 400, "invalid_reservation_id", err.Error())
+		httpx.Fail(w, 400, "invalid_reservation_id", nil)
 		return
 	}
 
@@ -233,7 +233,7 @@ func (h *Handler) DownloadMyInvoice(w http.ResponseWriter, r *http.Request) {
 		case errors.Is(err, reservation.ErrInvoiceNotAvailable):
 			httpx.Fail(w, 400, "invoice_not_available", nil)
 		default:
-			httpx.Fail(w, 500, "invoice_failed", err.Error())
+			httpx.ServerError(w, "invoice_failed", err)
 		}
 		return
 	}
@@ -254,13 +254,13 @@ func (h *Handler) CancelMyReservation(w http.ResponseWriter, r *http.Request) {
 
 	var req cancelRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httpx.Fail(w, 400, "invalid_json", err.Error())
+		httpx.Fail(w, 400, "invalid_json", nil)
 		return
 	}
 
 	resID, err := parseReservationIDParam(r)
 	if err != nil {
-		httpx.Fail(w, 400, "invalid_reservation_id", err.Error())
+		httpx.Fail(w, 400, "invalid_reservation_id", nil)
 		return
 	}
 
@@ -276,10 +276,10 @@ func (h *Handler) CancelMyReservation(w http.ResponseWriter, r *http.Request) {
 	res, err := h.svc.CancelMyReservation(r.Context(), in)
 	if err != nil {
 		if errors.Is(err, reservation.ErrOptimisticLock) {
-			httpx.Fail(w, 409, "version_conflict", err.Error())
+			httpx.Fail(w, 409, "version_conflict", nil)
 			return
 		}
-		httpx.Fail(w, 500, "cancel_failed", err.Error())
+		httpx.ServerError(w, "cancel_failed", err)
 		return
 	}
 
@@ -296,19 +296,19 @@ func (h *Handler) RescheduleMyReservation(w http.ResponseWriter, r *http.Request
 
 	var req rescheduleRequest
 	if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
-		httpx.Fail(w, 400, "invalid_json", err.Error())
+		httpx.Fail(w, 400, "invalid_json", nil)
 		return
 	}
 
 	resID, err := parseReservationIDParam(r)
 	if err != nil {
-		httpx.Fail(w, 400, "invalid_reservation_id", err.Error())
+		httpx.Fail(w, 400, "invalid_reservation_id", nil)
 		return
 	}
 
 	startAt, endAt, err := parseDateRangeZurich(req.StartDate, req.EndDate)
 	if err != nil {
-		httpx.Fail(w, 400, "invalid_dates", err.Error())
+		httpx.Fail(w, 400, "invalid_dates", nil)
 		return
 	}
 
@@ -326,11 +326,11 @@ func (h *Handler) RescheduleMyReservation(w http.ResponseWriter, r *http.Request
 	if err != nil {
 		switch {
 		case errors.Is(err, reservation.ErrOptimisticLock):
-			httpx.Fail(w, 409, "version_conflict", err.Error())
+			httpx.Fail(w, 409, "version_conflict", nil)
 		case errors.Is(err, reservation.ErrNotAvailableForDates):
-			httpx.Fail(w, 409, "inventory_unavailable", err.Error())
+			httpx.Fail(w, 409, "inventory_unavailable", nil)
 		default:
-			httpx.Fail(w, 500, "reschedule_failed", err.Error())
+			httpx.ServerError(w, "reschedule_failed", err)
 		}
 		return
 	}
@@ -397,7 +397,7 @@ func (h *Handler) UpdateMyReservationDetails(w http.ResponseWriter, r *http.Requ
 		case errors.Is(err, reservation.ErrReservationNotFound):
 			writeJSON(w, http.StatusNotFound, map[string]any{"error": "reservation_not_found"})
 		default:
-			writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "internal_error"})
+			httpx.ServerError(w, "internal_error", err)
 		}
 		return
 	}
@@ -452,7 +452,7 @@ func (h *Handler) CancelMyReservationItem(w http.ResponseWriter, r *http.Request
 		case errors.Is(err, reservation.ErrReservationNotFound):
 			writeJSON(w, http.StatusNotFound, map[string]any{"error": "reservation_not_found"})
 		default:
-			writeJSON(w, http.StatusInternalServerError, map[string]any{"error": "internal_error"})
+			httpx.ServerError(w, "internal_error", err)
 		}
 		return
 	}

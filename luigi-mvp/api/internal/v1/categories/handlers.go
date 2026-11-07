@@ -66,7 +66,7 @@ func listHandler(svc *categoriessvc.Service) http.HandlerFunc {
 		items, err := svc.ListCategories(r.Context(), shopID)
 		if err != nil {
 			log.Printf("list_categories_failed shop_id=%d: %v", shopID, err)
-			httpx.Fail(w, http.StatusInternalServerError, "list_categories_failed", err.Error())
+			httpx.ServerError(w, "list_categories_failed", err)
 			return
 		}
 		if items == nil {
@@ -87,7 +87,7 @@ func treeHandler(svc *categoriessvc.Service) http.HandlerFunc {
 		tree, err := svc.ListCategoryTree(r.Context(), shopID)
 		if err != nil {
 			log.Printf("list_category_tree_failed shop_id=%d: %v", shopID, err)
-			httpx.Fail(w, http.StatusInternalServerError, "list_category_tree_failed", err.Error())
+			httpx.ServerError(w, "list_category_tree_failed", err)
 			return
 		}
 		if tree == nil {
@@ -141,7 +141,7 @@ func createHandler(svc *categoriessvc.Service) http.HandlerFunc {
 		})
 		if err != nil {
 			log.Printf("create_category_failed shop_id=%d slug=%s: %v", req.ShopID, slug, err)
-			httpx.Fail(w, http.StatusInternalServerError, "create_category_failed", err.Error())
+			httpx.ServerError(w, "create_category_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
@@ -197,7 +197,7 @@ func updateHandler(svc *categoriessvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("update_category_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "update_category_failed", err.Error())
+			httpx.ServerError(w, "update_category_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
@@ -219,7 +219,7 @@ func deleteHandler(svc *categoriessvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("delete_category_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "delete_category_failed", err.Error())
+			httpx.ServerError(w, "delete_category_failed", err)
 			return
 		}
 		// Consistent with most REST APIs: 204 No Content for delete
@@ -247,7 +247,7 @@ func replaceProductCategoriesHandler(svc *categoriessvc.Service) http.HandlerFun
 
 		if err := svc.ReplaceProductCategories(r.Context(), productID, req.CategoryIDs); err != nil {
 			log.Printf("replace_product_categories_failed product_id=%d: %v", productID, err)
-			httpx.Fail(w, http.StatusInternalServerError, "replace_product_categories_failed", err.Error())
+			httpx.ServerError(w, "replace_product_categories_failed", err)
 			return
 		}
 
@@ -266,7 +266,7 @@ func listProductCategoriesHandler(svc *categoriessvc.Service) http.HandlerFunc {
 		items, err := svc.ListProductCategories(r.Context(), productID)
 		if err != nil {
 			log.Printf("list_product_categories_failed product_id=%d: %v", productID, err)
-			httpx.Fail(w, http.StatusInternalServerError, "list_product_categories_failed", err.Error())
+			httpx.ServerError(w, "list_product_categories_failed", err)
 			return
 		}
 		if items == nil {

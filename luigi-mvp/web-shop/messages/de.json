@@ -625,6 +625,22 @@
     "contactPrompt": "Findest du keine Antwort?",
     "contactLink": "Kontakt aufnehmen"
   },
+  "contactPage": {
+    "title": "Kontakt",
+    "subtitle": "Schreib uns. Das Formular ist da, der Versand noch nicht.",
+    "email": "E-Mail",
+    "phone": "Telefonnummer",
+    "message": "Nachricht",
+    "emailPlaceholder": "du@beispiel.ch",
+    "messagePlaceholder": "Worum geht es?",
+    "send": "Senden",
+    "invalidEmail": "Bitte eine gültige E-Mail-Adresse eingeben.",
+    "invalidPhone": "Bitte eine gültige Telefonnummer eingeben.",
+    "messageRequired": "Bitte eine Nachricht schreiben.",
+    "thanksTitle": "Danke",
+    "thanksBody": "Das hier ist ein Entwicklungsprojekt, und ein paar Dinge sind noch in Arbeit. Deine Nachricht wurde nicht gesendet.",
+    "writeAnother": "Noch eine Nachricht schreiben"
+  },
   "infoPages": {
     "comingSoon": "Demnächst verfügbar.",
     "about": "Über uns",

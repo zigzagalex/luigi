@@ -49,7 +49,7 @@ func listHandler(svc *customersvc.Service) http.HandlerFunc {
 			Offset: int32(offset),
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "list_customers_failed", err.Error())
+			httpx.ServerError(w, "list_customers_failed", err)
 			return
 		}
 		if items == nil {
@@ -110,7 +110,7 @@ func createHandler(svc *customersvc.Service) http.HandlerFunc {
 			IsActive: req.IsActive,
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "create_customer_failed", err.Error())
+			httpx.ServerError(w, "create_customer_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
@@ -169,7 +169,7 @@ func updateHandler(svc *customersvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("update_customer_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "update_customer_failed", err.Error())
+			httpx.ServerError(w, "update_customer_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)
@@ -191,7 +191,7 @@ func deleteHandler(svc *customersvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("delete_customer_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "delete_customer_failed", err.Error())
+			httpx.ServerError(w, "delete_customer_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, item)

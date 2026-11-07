@@ -46,7 +46,7 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 		if s := strings.TrimSpace(r.URL.Query().Get("shop_id")); s != "" {
 			v, err := strconv.ParseInt(s, 10, 64)
 			if err != nil {
-				httpx.Fail(w, http.StatusBadRequest, "invalid_shop_id", err.Error())
+				httpx.Fail(w, http.StatusBadRequest, "invalid_shop_id", nil)
 				return
 			}
 			shopID := v
@@ -56,7 +56,7 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 		// ids optional (comma separated)
 		ids, err := parseInt64CSV(r.URL.Query().Get("ids"))
 		if err != nil {
-			httpx.Fail(w, http.StatusBadRequest, "invalid_ids", err.Error())
+			httpx.Fail(w, http.StatusBadRequest, "invalid_ids", nil)
 			return
 		}
 
@@ -72,7 +72,7 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 
 		isAccessoryPtr, err := parseOptionalBoolQuery(r, "is_accessory")
 		if err != nil {
-			httpx.Fail(w, http.StatusBadRequest, "invalid_is_accessory", err.Error())
+			httpx.Fail(w, http.StatusBadRequest, "invalid_is_accessory", nil)
 			return
 		}
 
@@ -91,7 +91,7 @@ func listHandler(svc *productsvc.Service, mediaBaseURL string) http.HandlerFunc 
 			mediaBaseURL,
 		)
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "list_products_failed", err.Error())
+			httpx.ServerError(w, "list_products_failed", err)
 			return
 		}
 		if items == nil {
@@ -119,7 +119,7 @@ func getHandler(svc *productsvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("get_product_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "get_product_failed", err.Error())
+			httpx.ServerError(w, "get_product_failed", err)
 			return
 		}
 
@@ -144,7 +144,7 @@ func listTranslationsHandler(svc *productsvc.Service) http.HandlerFunc {
 		items, err := svc.ListTranslations(r.Context(), productID)
 		if err != nil {
 			log.Printf("list_product_translations_failed product_id=%d: %v", productID, err)
-			httpx.Fail(w, http.StatusInternalServerError, "list_product_translations_failed", err.Error())
+			httpx.ServerError(w, "list_product_translations_failed", err)
 			return
 		}
 		if items == nil {
@@ -189,7 +189,7 @@ func upsertTranslationHandler(svc *productsvc.Service) http.HandlerFunc {
 		})
 		if err != nil {
 			log.Printf("upsert_product_translation_failed product_id=%d locale=%s: %v", productID, locale, err)
-			httpx.Fail(w, http.StatusInternalServerError, "upsert_product_translation_failed", err.Error())
+			httpx.ServerError(w, "upsert_product_translation_failed", err)
 			return
 		}
 
@@ -213,7 +213,7 @@ func deleteTranslationHandler(svc *productsvc.Service) http.HandlerFunc {
 
 		if err := svc.DeleteTranslation(r.Context(), productID, locale); err != nil {
 			log.Printf("delete_product_translation_failed product_id=%d locale=%s: %v", productID, locale, err)
-			httpx.Fail(w, http.StatusInternalServerError, "delete_product_translation_failed", err.Error())
+			httpx.ServerError(w, "delete_product_translation_failed", err)
 			return
 		}
 		w.WriteHeader(http.StatusNoContent)
@@ -267,7 +267,7 @@ func createHandler(svc *productsvc.Service) http.HandlerFunc {
 			IsActive:      req.IsActive,
 		})
 		if err != nil {
-			httpx.Fail(w, http.StatusInternalServerError, "create_product_failed", err.Error())
+			httpx.ServerError(w, "create_product_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, productsvc.NewProductWriteResponseFromCreate(item))
@@ -312,7 +312,7 @@ func updateHandler(svc *productsvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("update_product_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "update_product_failed", err.Error())
+			httpx.ServerError(w, "update_product_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, productsvc.NewProductWriteResponseFromUpdate(item))
@@ -334,7 +334,7 @@ func deleteHandler(svc *productsvc.Service) http.HandlerFunc {
 				return
 			}
 			log.Printf("delete_product_failed id=%d: %v", id, err)
-			httpx.Fail(w, http.StatusInternalServerError, "delete_product_failed", err.Error())
+			httpx.ServerError(w, "delete_product_failed", err)
 			return
 		}
 		httpx.JSON(w, http.StatusOK, productsvc.NewProductWriteResponseFromDelete(item))
