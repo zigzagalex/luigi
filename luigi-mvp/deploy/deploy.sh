@@ -78,6 +78,7 @@ verify() {
     return 0
   fi
   docker run --rm \
+    --user "$(id -u):$(id -g)" \
     -e DOCKER_CONFIG=/docker \
     -v "${HOME}/.docker:/docker:ro" \
     "$COSIGN_IMAGE" \
