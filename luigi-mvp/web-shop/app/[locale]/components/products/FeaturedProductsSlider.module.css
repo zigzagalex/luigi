@@ -80,6 +80,15 @@
     --cols: 1;
   }
 
+  .scrollPeek .item {
+    flex-basis: calc(100% - 4.25rem);
+    max-width: calc(100% - 4.25rem);
+  }
+
+  .scrollPeek .item:last-child {
+    scroll-snap-align: end;
+  }
+
   .arrow {
     display: none;
   }

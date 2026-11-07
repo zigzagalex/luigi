@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { Accessory } from "@/../utils/accessories";
 import AccessoryCard from "./AccessoryCard";
+import ScrollCue from "../products/ScrollCue";
 import styles from "../products/CategoryRow.module.css";
 
 type Props = {
@@ -50,7 +51,14 @@ export default function AccessoryRow({ accessories, viewAllHref }: Props) {
           ‹
         </button>
 
-        <div ref={scrollRef} className={styles.scroll}>
+        <div
+          ref={scrollRef}
+          className={
+            accessories.length > 1
+              ? `${styles.scroll} ${styles.scrollPeek}`
+              : styles.scroll
+          }
+        >
           {accessories.map((a) => (
             <div key={a.id} className={styles.item}>
               <AccessoryCard accessory={a} />
@@ -67,6 +75,7 @@ export default function AccessoryRow({ accessories, viewAllHref }: Props) {
           ›
         </button>
       </div>
+      <ScrollCue scrollRef={scrollRef} itemCount={accessories.length} />
     </section>
   );
 }

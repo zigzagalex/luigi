@@ -2,6 +2,8 @@
 
 White-label software for a rental shop. The demo shop rents bikes. One deployment is one shop.
 
+The shop is running at https://luigisrental.de/en. How that server is updated is in [DEPLOYMENT.md](DEPLOYMENT.md).
+
 ## Why
 
 - Learn Go and concurrency.
@@ -107,4 +109,4 @@ cd luigi-mvp/web-admin && pnpm dev
 
 Each `up` writes that admin password again. Products are loaded separately with `api/scripts/dev_seed_all.sh`. Login works without that script.
 
-A server uses the production compose file and images from GHCR. Caddy is the only service with public ports. The first admin is created with the `seed` profile, and that command does not overwrite an existing password. See the header of [`luigi-mvp/docker-compose.yml`](luigi-mvp/docker-compose.yml).
+A server uses the production compose file and images from GHCR. Caddy is the only service with public ports. The first admin is created with the `seed` profile, and that command does not overwrite an existing password. [DEPLOYMENT.md](DEPLOYMENT.md) is the short version. The header of [`luigi-mvp/docker-compose.yml`](luigi-mvp/docker-compose.yml) has the commands.

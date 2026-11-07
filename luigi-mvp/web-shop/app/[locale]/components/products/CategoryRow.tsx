@@ -5,6 +5,7 @@ import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { Product } from "@/../utils/products";
 import ProductCard from "./ProductCard";
+import ScrollCue from "./ScrollCue";
 import styles from "./CategoryRow.module.css";
 
 type Props = {
@@ -64,7 +65,12 @@ export default function CategoryRow({
           ‹
         </button>
 
-        <div ref={scrollRef} className={styles.scroll}>
+        <div
+          ref={scrollRef}
+          className={
+            products.length > 1 ? `${styles.scroll} ${styles.scrollPeek}` : styles.scroll
+          }
+        >
           {products.map((p) => (
             <div key={p.id} className={styles.item}>
               <ProductCard
@@ -87,6 +93,7 @@ export default function CategoryRow({
           ›
         </button>
       </div>
+      <ScrollCue scrollRef={scrollRef} itemCount={products.length} />
     </section>
   );
 }

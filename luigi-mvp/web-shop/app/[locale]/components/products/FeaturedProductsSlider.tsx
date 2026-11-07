@@ -4,6 +4,7 @@ import { useRef } from "react";
 import { useTranslations } from "next-intl";
 import type { Product } from "@/../utils/products";
 import ProductCard from "./ProductCard";
+import ScrollCue from "./ScrollCue";
 import styles from "./FeaturedProductsSlider.module.css";
 
 type Props = {
@@ -56,7 +57,12 @@ export default function FeaturedProductsSlider({
           ‹
         </button>
 
-        <div ref={scrollRef} className={styles.scroll}>
+        <div
+          ref={scrollRef}
+          className={
+            items.length > 1 ? `${styles.scroll} ${styles.scrollPeek}` : styles.scroll
+          }
+        >
           {items.map((product) => (
             <div key={product.id} className={styles.item}>
               <ProductCard
@@ -81,6 +87,7 @@ export default function FeaturedProductsSlider({
           ›
         </button>
       </div>
+      <ScrollCue scrollRef={scrollRef} itemCount={items.length} />
     </section>
   );
 }

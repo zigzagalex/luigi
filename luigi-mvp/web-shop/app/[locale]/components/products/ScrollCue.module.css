@@ -1,0 +1,29 @@
+.cue {
+  display: none;
+}
+
+.track {
+  position: relative;
+  width: 2.75rem;
+  height: 3px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--color-primary) 18%, transparent);
+  overflow: hidden;
+}
+
+.thumb {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--color-primary);
+}
+
+@media (max-width: 640px) {
+  .cue {
+    display: flex;
+    justify-content: center;
+    min-height: 3px;
+    margin-top: var(--space-3);
+  }
+}
