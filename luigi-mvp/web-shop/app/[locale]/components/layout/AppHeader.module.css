@@ -136,10 +136,8 @@
   white-space: nowrap;
   font-weight: 650;
   font-size: 1rem;
-  line-height: 1;
+  line-height: 1.25;
   letter-spacing: 0.02em;
-  position: relative;
-  top: 1px;
 }
 
 .logoSubtitle {
