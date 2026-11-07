@@ -35,7 +35,6 @@ The same deployment, live:
 - [Shop](https://luigisrental.de/en)
 - [A product](https://luigisrental.de/en/products/1)
 - [Checkout](https://luigisrental.de/en/checkout)
-- [Admin](https://admin.luigisrental.de/en)
 
 ## Styles
 
