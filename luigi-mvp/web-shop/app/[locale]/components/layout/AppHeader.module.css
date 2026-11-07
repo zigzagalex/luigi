@@ -1,7 +1,12 @@
 .header {
+  position: relative;
   background: var(--color-bg-inverse);
   color: var(--color-bg-surface);
   padding: 0.65rem 0 2.25rem;
+}
+
+.headerHome {
+  padding-bottom: 4.25rem;
 }
 
 .headerCompact {
@@ -95,9 +100,9 @@
 }
 
 .inner {
-  max-width: 1200px;
+  max-width: 1120px;
   margin: 0 auto;
-  padding-inline: 2rem;
+  padding-inline: var(--space-6);
 }
 
 /* Row 1: logo (left) | actions (right) */
@@ -158,6 +163,8 @@
 
 /* Row 2: search pill */
 .searchRow {
+  position: relative;
+  z-index: 5;
   margin-top: var(--space-5);
 }
 
@@ -238,7 +245,11 @@
   }
 
   .inner {
-    padding-inline: 1rem;
+    padding-inline: var(--space-4);
+  }
+
+  .headerHome {
+    padding-bottom: 3.25rem;
   }
 
   .topRow {

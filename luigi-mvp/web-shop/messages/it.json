@@ -435,7 +435,7 @@
     "fromPricePerDay": "Da CHF {price}/giorno",
     "availableBikes": "{count} bici disponibil{suffix}",
     "viewDetails": "vedi dettagli",
-    "rentNow": "noleggia ora"
+    "rentNow": "Noleggia ora"
   },
   "accessoryPage": {
     "title": "Accessori",
@@ -443,7 +443,7 @@
     "empty": "Nessun accessorio disponibile al momento."
   },
   "accessoryCard": {
-    "viewDetails": "vedi dettagli"
+    "viewDetails": "Vedi dettagli"
   },
   "accessoryDetail": {
     "variant": "Variante",

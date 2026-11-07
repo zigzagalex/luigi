@@ -34,9 +34,9 @@ export default function AccessoryRow({ accessories, viewAllHref }: Props) {
 
   return (
     <section className={styles.row}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>{tTitle("title")}</h2>
-        <Link href={viewAllHref} className={styles.viewAll}>
+      <div className={`${styles.header} ${styles.headerChapter}`}>
+        <h2 className={styles.titleChapter}>{tTitle("title")}</h2>
+        <Link href={viewAllHref} className={styles.viewAllButton}>
           {tRow("viewAll")}
         </Link>
       </div>
@@ -54,9 +54,13 @@ export default function AccessoryRow({ accessories, viewAllHref }: Props) {
         <div
           ref={scrollRef}
           className={
-            accessories.length > 1
-              ? `${styles.scroll} ${styles.scrollPeek}`
-              : styles.scroll
+            [
+              styles.scroll,
+              styles.scrollCompact,
+              accessories.length > 1 ? styles.scrollPeek : "",
+            ]
+              .filter(Boolean)
+              .join(" ")
           }
         >
           {accessories.map((a) => (

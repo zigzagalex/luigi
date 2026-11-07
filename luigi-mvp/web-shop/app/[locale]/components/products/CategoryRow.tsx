@@ -15,6 +15,8 @@ type Props = {
   /** e.g. `/en/categories/mountain-bikes` — shows “View all” in the row header */
   viewAllHref?: string;
   linkSearchParams?: Record<string, string | undefined>;
+  /** Chapter: larger title, button, and a cut-off last card. */
+  variant?: "default" | "chapter";
 };
 
 function normalizeCategoryKey(value: string): string {
@@ -27,11 +29,14 @@ export default function CategoryRow({
   fromDailyPriceByCategory,
   viewAllHref,
   linkSearchParams,
+  variant = "default",
 }: Props) {
   const t = useTranslations("categoryRow");
   const scrollRef = useRef<HTMLDivElement | null>(null);
 
   if (!products.length) return null;
+
+  const chapter = variant === "chapter";
 
   const scroll = (direction: "left" | "right") => {
     const container = scrollRef.current;
@@ -46,10 +51,10 @@ export default function CategoryRow({
 
   return (
     <section className={styles.row}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>{title}</h2>
+      <div className={chapter ? `${styles.header} ${styles.headerChapter}` : styles.header}>
+        <h2 className={chapter ? styles.titleChapter : styles.title}>{title}</h2>
         {viewAllHref ? (
-          <Link href={viewAllHref} className={styles.viewAll}>
+          <Link href={viewAllHref} className={chapter ? styles.viewAllButton : styles.viewAll}>
             {t("viewAll")}
           </Link>
         ) : null}
@@ -68,7 +73,13 @@ export default function CategoryRow({
         <div
           ref={scrollRef}
           className={
-            products.length > 1 ? `${styles.scroll} ${styles.scrollPeek}` : styles.scroll
+            [
+              styles.scroll,
+              products.length > 1 ? styles.scrollPeek : "",
+              chapter ? styles.scrollChapter : "",
+            ]
+              .filter(Boolean)
+              .join(" ")
           }
         >
           {products.map((p) => (

@@ -25,6 +25,11 @@ type Props = {
   stores: StoreOption[];
 };
 
+function isHomePath(pathname: string | null): boolean {
+  if (!pathname) return false;
+  return pathname.split("/").filter(Boolean).length === 1;
+}
+
 function isCompactHeaderPath(pathname: string | null): boolean {
   if (!pathname) return false;
   const parts = pathname.split("/").filter(Boolean);
@@ -55,6 +60,7 @@ export default function AppHeader({ categories, stores }: Props) {
   const locale = useLocale();
   const pathname = usePathname();
   const compact = isCompactHeaderPath(pathname);
+  const home = isHomePath(pathname);
 
   useEffect(() => {
     if (!compact) setPdpSearchOpen(false);
@@ -67,7 +73,7 @@ export default function AppHeader({ categories, stores }: Props) {
 
   return (
     <header
-      className={`${styles.header} ${compact ? styles.headerCompact : ""} ${compact && pdpSearchOpen ? styles.headerCompactSearchOpen : ""}`}
+      className={`${styles.header} ${compact ? styles.headerCompact : ""} ${home ? styles.headerHome : ""} ${compact && pdpSearchOpen ? styles.headerCompactSearchOpen : ""}`}
     >
       <div className={styles.inner}>
         <div className={styles.topRow}>

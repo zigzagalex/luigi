@@ -435,7 +435,7 @@
     "fromPricePerDay": "Ab CHF {price}/Tag",
     "availableBikes": "{count} Bike{suffix} verfügbar",
     "viewDetails": "details ansehen",
-    "rentNow": "jetzt mieten"
+    "rentNow": "Jetzt mieten"
   },
   "accessoryPage": {
     "title": "Zubehör",

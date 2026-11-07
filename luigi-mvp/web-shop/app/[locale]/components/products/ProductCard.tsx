@@ -17,7 +17,6 @@ type Props = {
   availableQuantity?: number;
   /** Optional: search parameters from search pill */
   linkSearchParams?: Record<string, string | undefined>;
-
 };
 
 function buildProductHref(
@@ -78,18 +77,22 @@ export default function ProductCard({
       <div className={styles.content}>
         <h3 className={styles.title}>{product.name}</h3>
 
-        {fromPriceLabel && (
-          <p className={styles.price}>
-            {fromPriceLabel}
-            {typeof availableQuantity === "number" &&
-              ` · ${t("availableBikes", { count: String(availableQuantity), suffix: availableQuantity === 1 ? "" : "s" })}`}
-          </p>
-        )}
+        <div className={styles.footer}>
+          {fromPriceLabel ? (
+            <p className={styles.price}>
+              {fromPriceLabel}
+              {typeof availableQuantity === "number" &&
+                ` · ${t("availableBikes", { count: String(availableQuantity), suffix: availableQuantity === 1 ? "" : "s" })}`}
+            </p>
+          ) : (
+            <span />
+          )}
 
-        <span className={styles.cta}>
-          <span>{t("rentNow")}</span>
-          <IconArrowRight className={styles.ctaIcon} aria-hidden focusable={false} />
-        </span>
+          <span className={styles.cta}>
+            <span>{t("rentNow")}</span>
+            <IconArrowRight className={styles.ctaIcon} aria-hidden focusable={false} />
+          </span>
+        </div>
       </div>
     </Link>
   );

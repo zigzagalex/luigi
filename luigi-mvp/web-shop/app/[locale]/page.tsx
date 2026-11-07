@@ -25,6 +25,18 @@ type PricePointDTO = {
   price_total_cents: number;
 };
 
+const CATEGORY_ORDER = ["mountain-bikes", "road-bikes"];
+
+function sortCategoryRows<T extends { key: string }>(rows: T[]): T[] {
+  return [...rows].sort((a, b) => {
+    const ia = CATEGORY_ORDER.indexOf(a.key);
+    const ib = CATEGORY_ORDER.indexOf(b.key);
+    const ra = ia === -1 ? CATEGORY_ORDER.length : ia;
+    const rb = ib === -1 ? CATEGORY_ORDER.length : ib;
+    return ra - rb;
+  });
+}
+
 function normalizeCategoryKey(value: string): string {
   return value.trim().toLowerCase();
 }
@@ -103,7 +115,7 @@ export default async function HomePage({
   }
 
   const featured = products.slice(0, 8);
-  const rows = groupProductsByMainCategory(products);
+  const rows = sortCategoryRows(groupProductsByMainCategory(products));
 
   let homeAccessories: Accessory[] = [];
   try {
@@ -120,9 +132,9 @@ export default async function HomePage({
 
   return (
     <main className={styles.page}>
-      <div className={styles.inner}>
+      <div className={`${styles.inner} ${styles.innerHome}`}>
         {featured.length > 0 && (
-          <section className={styles.section}>
+          <section className={`${styles.section} ${styles.sectionLead}`}>
             <FeaturedProductsSlider
               products={featured}
               fromDailyPriceByCategory={fromDailyPriceByCategory}
@@ -132,7 +144,7 @@ export default async function HomePage({
         )}
 
         {rows.map((row) => (
-          <section key={row.key} className={styles.section}>
+          <section key={row.key} className={`${styles.section} ${styles.sectionFlat}`}>
             <CategoryRow
               title={
                 tCat.has(row.key as never) ? tCat(row.key as never) : row.title
@@ -145,12 +157,13 @@ export default async function HomePage({
                   : undefined
               }
               linkSearchParams={{ ref: "browse" }}
+              variant="chapter"
             />
           </section>
         ))}
 
         {rows.length > 0 && (
-          <section className={styles.section}>
+          <section className={`${styles.section} ${styles.sectionContrast}`}>
             <RentalTrustBanner locale={locale} />
           </section>
         )}

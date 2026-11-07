@@ -58,14 +58,18 @@ export default async function RentalTrustBanner({ locale }: Props) {
         <ol className={styles.processGrid}>
           {processSteps.map(({ key, Icon }, index) => (
             <li key={key} className={styles.step}>
-              <span className={styles.stepIndex} aria-hidden="true">
-                {index + 1}
-              </span>
-              <Icon className={styles.stepIcon} aria-hidden />
-              <h3 className={styles.stepTitle}>
-                {t(`trustBanner.${key}.title`)}
-              </h3>
-              <p className={styles.stepBody}>{t(`trustBanner.${key}.body`)}</p>
+              <div className={styles.stepTop}>
+                <Icon className={styles.stepIcon} aria-hidden />
+                <span className={styles.stepIndex} aria-hidden="true">
+                  {index + 1}
+                </span>
+              </div>
+              <div className={styles.stepText}>
+                <h3 className={styles.stepTitle}>
+                  {t(`trustBanner.${key}.title`)}
+                </h3>
+                <p className={styles.stepBody}>{t(`trustBanner.${key}.body`)}</p>
+              </div>
             </li>
           ))}
         </ol>

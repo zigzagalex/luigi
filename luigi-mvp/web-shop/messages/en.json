@@ -435,7 +435,7 @@
     "fromPricePerDay": "From CHF {price}/day",
     "availableBikes": "{count} bike{suffix} available",
     "viewDetails": "view details",
-    "rentNow": "rent now"
+    "rentNow": "Rent now"
   },
   "accessoryPage": {
     "title": "Accessories",
@@ -443,7 +443,7 @@
     "empty": "No accessories available yet."
   },
   "accessoryCard": {
-    "viewDetails": "view details"
+    "viewDetails": "View details"
   },
   "accessoryDetail": {
     "variant": "Variant",
