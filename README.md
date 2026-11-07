@@ -30,23 +30,16 @@ The shop home. Search by bike, dates, and store, then the catalog.
 
 ![Shop home: search and recommended bikes](docs/images/shop.png)
 
-A product. Pick a store, a size, and the rental dates.
+The same deployment, live:
 
-![Product page for a mountain bike](docs/images/product.png)
-
-Checkout. The reservation, the pickup store, and the total. You pay when you pick the bike up.
-
-![Checkout with a bike in the cart](docs/images/checkout.png)
-
-The admin. Pickups, returns, and the week ahead.
-
-![Admin operations overview](docs/images/admin.png)
+- [Shop](https://luigisrental.de/en)
+- [A product](https://luigisrental.de/en/products/1)
+- [Checkout](https://luigisrental.de/en/checkout)
+- [Admin](https://admin.luigisrental.de/en)
 
 ## Styles
 
-Typography, color, spacing, and the shared controls are collected on one shop page, served at `/components`. The tokens are CSS variables in `luigi-mvp/web-shop/app/[locale]/globals.css`.
-
-![UI components: type, color, spacing, and controls](docs/images/styles.png)
+Typography, color, spacing, and the shared controls are on the [styles page](https://luigisrental.de/en/components). The tokens are CSS variables in `luigi-mvp/web-shop/app/[locale]/globals.css`.
 
 ## Architecture
 
