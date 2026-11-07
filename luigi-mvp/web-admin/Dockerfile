@@ -14,6 +14,8 @@ FROM base AS build
 RUN corepack enable
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+# Next does not create public/ when the app has no static assets.
+RUN mkdir -p public
 ARG NEXT_PUBLIC_SHOP_ID=1
 ENV NEXT_PUBLIC_SHOP_ID=$NEXT_PUBLIC_SHOP_ID
 RUN pnpm build
