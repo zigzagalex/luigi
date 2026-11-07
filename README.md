@@ -1,15 +1,15 @@
-# luigi
+# Luigi
 
 White-label software for a rental shop. The demo shop rents bikes. One deployment is one shop.
 
 The shop is running at https://luigisrental.de/en. How that server is updated is in [DEPLOYMENT.md](DEPLOYMENT.md).
 
 ## Why
-
+This project was done to 
 - Learn Go and concurrency.
-- Build the frontend with Next.js.
+- Build a frontend with Next.js.
 - Find out how much you have to think about in a full-stack project, and how to build the architecture and the deployment.
-- Figure out how to use AI to improve my skills: its strengths, its weaknesses, and what to watch out for.
+- Figure out how to use AI: its strengths, its weaknesses, and what to watch out for.
 - Make a product I can stand behind, using AI mostly as a tool to teach me, write boilerplate, review, and do the frontend styling.
 
 ## What it consists of
