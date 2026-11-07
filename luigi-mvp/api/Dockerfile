@@ -26,7 +26,9 @@ ENTRYPOINT ["/seedadmin"]
 # Default target. Production Compose runs goose and seedadmin from this image
 # so the VPS does not need a checkout of the SQL. Dev Compose still uses the
 # migrate and seed targets above, with migrations mounted for fast edits.
-FROM busybox:1.36.1-glibc AS busybox
+# musl busybox is static. The glibc tag needs GLIBC_2.38, which distroless
+# debian12 does not ship, so the container healthcheck cannot start.
+FROM busybox:1.36.1-musl AS busybox
 
 FROM gcr.io/distroless/base-debian12 AS api
 ENV PORT=8080
