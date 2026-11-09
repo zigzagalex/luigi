@@ -1,5 +1,9 @@
 # Changelog
 
+## [0.2.1] - 2026-11-09
+### Changed
+- Drop machine hostnames from the commit history.
+
 ## [0.2.0] - 2026-11-09
 ### Added
 - The shop, admin, and API running at luigisrental.de.
